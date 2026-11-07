@@ -1,0 +1,27 @@
+[project]
+name = "adversary"
+version = "0.1.0"
+description = "An independent verifier that writes tests the implementer can't see. Blocks AI-generated changes with a reproducible verdict."
+requires-python = ">=3.11"
+dependencies = [
+  "hypothesis>=6.100",
+  "pytest>=8.0",
+  "rich>=13.0",
+  "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+mongo = ["pymongo>=4.6"]
+
+[project.scripts]
+adversary = "adversary.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["adversary*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
