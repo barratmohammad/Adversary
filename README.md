@@ -1,0 +1,3 @@
+# Adversary
+
+Hackathon project.
