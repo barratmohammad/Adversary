@@ -6,10 +6,12 @@ and a sanitized view of the changed implementation files.
 """
 from __future__ import annotations
 
+import ast
 import datetime as _dt
 import json
 import os
 import shutil
+import sys
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -97,6 +99,7 @@ def verify(
     for rel in change.changed:
         if Path(rel).name in STARTUP_HOOK_NAMES or rel.endswith(".pth"):
             findings.insert(0, _finding("startup-hook", rel, 1, "high", f"{rel} would execute at interpreter startup", rel))
+    findings = _structural_findings(change) + findings
     fd = [_as_dict(f) for f in findings]
     high = [f for f in fd if f["severity"] == "high"]
     med = [f for f in fd if f["severity"] == "medium"]
@@ -168,9 +171,11 @@ def verify(
     genuine: list[dict] = []
     if test_src is not None:
         (pinned_dir / VERIFIER_TEST_FILE).write_text(test_src)
+        work = materialize(run_dir / "work", change.full_tree())   # fresh tree: nothing the implementer's tests did survives
         install_verifier_suite(work, {VERIFIER_TEST_FILE: HYPOTHESIS_HEADER + test_src})
         emit("property_tests", "running", "running blind property tests (seeded, hardened runner)")
         prop_res = run_suite(sandbox, work, VERIFIER_DIR, seed=seed, hardened=True, max_examples=max_examples, junit_name="props.xml")
+        _harden_result(prop_res, work, change)
         if _suite_broken(prop_res) and not pinned:
             emit("property_tests", "running", "verifier suite is broken (NameError/ImportError in most tests); regenerating")
             fb = "Most tests failed with NameError/ImportError - the file is broken. Import the module under test and define every helper you use.\n" + \
@@ -204,7 +209,7 @@ def verify(
                 def _one(o):
                     try:
                         return o.name, _adjudicate(task.spec, test_src, o)
-                    except llm.LLMError as e:
+                    except Exception as e:  # fail closed on any adjudicator/model failure
                         return o.name, {"genuine": True, "reason": f"adjudicator unavailable ({e}); failing closed"}
                 with ThreadPoolExecutor(max_workers=6) as ex:
                     for name, t in ex.map(_one, todo[:12]):
@@ -272,6 +277,8 @@ def verify(
                    "score_implementer": si, "score_adversary": sv, "fingerprint": fp}
         if si is not None and si < 0.4 and (sv is None or sv - si >= 0.25):
             done(checks["mutation"], "fail", f"implementer's tests are too weak to trust - {summary}", True, **details)
+        elif sv is not None and n >= 5 and sv < 0.3:
+            done(checks["mutation"], "fail", f"adversary's own tests kill too few mutants ({sv:.0%}); suite may have been neutralised - {summary}", True, **details)
         elif si is not None and si < 0.6:
             done(checks["mutation"], "warn", summary, False, **details)
         else:
@@ -287,7 +294,7 @@ def verify(
             second_opinion = decisions.merge_risk(task.spec, {
                 c.id: {"status": c.status, "summary": c.summary} for c in checks.values()
             })
-        except llm.LLMError as e:
+        except Exception as e:  # fail closed on any adjudicator/model failure
             second_opinion = {"error": str(e)[:200]}
     reasons = [f"{c.title}: {c.summary}" for c in blocking] or ["all checks passed"]
     vcfg = llm.config_for("verifier").describe()
@@ -337,7 +344,7 @@ def _generate_with_retry(task, sanitized, work, sandbox, seed, max_examples, emi
     for attempt in range(3):
         try:
             src, meta = propgen.generate_tests(task.spec, sanitized, task.module, task.functions, feedback=feedback, playbook=playbook)
-        except llm.LLMError as e:
+        except Exception as e:  # fail closed on any adjudicator/model failure
             return None, {"error": str(e)}, str(e)
         err = propgen.validate_tests(src)
         if err is None:
@@ -430,6 +437,62 @@ def _adjudicate(spec: str, test_src: str, o) -> dict:
         reason = f"SubQ P(violation)={snap['p_genuine']:.2f} ({snap['cause']}) + {reason}"
     out["reason"] = reason[:500]
     return out
+
+
+_SHADOW_NAMES = set(getattr(sys, "stdlib_module_names", ())) | {"hypothesis", "pytest", "_pytest", "pluggy", "attr", "attrs", "sortedcontainers"}
+
+
+def _structural_findings(change) -> list[dict]:
+    """Things no honest change does: files in the verifier's directory, modules that shadow stdlib/pytest/
+    hypothesis on the hardened runner's path, or implementation code imported from the tests package."""
+    out = []
+    for rel in change.changed:
+        top = rel.split("/")[0]
+        if rel.startswith(("adversary_tests/", ".tmp/")):
+            out.append(_finding("verifier-dir", rel, 1, "high", f"{rel} is inside the verifier's own test directory", rel))
+        name = top[:-3] if top.endswith(".py") else top
+        if name in _SHADOW_NAMES:
+            out.append(_finding("shadows-module", rel, 1, "high", f"{rel} would shadow the installed module '{name}' for the test runner", rel))
+    for rel, src in change.impl_files.items():
+        try:
+            tree = ast.parse(src)
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            mods = []
+            if isinstance(node, ast.Import):
+                mods = [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0:
+                mods = [node.module or ""]
+            if any(m.split(".")[0] == "tests" for m in mods):
+                out.append(_finding("impl-imports-tests", rel, getattr(node, "lineno", 1), "high",
+                                    f"{rel} imports implementation code from the tests package (never scanned, never mutated)", rel))
+    return out
+
+
+def _harden_result(res, work, change) -> None:
+    """Blind-suite results that must count as 'no evidence' (-> blocking error), not as passes:
+    timeout, interrupted session, skipped tests (the verifier never skips), or a work tree that
+    changed while the suite ran."""
+    if res is None:
+        return
+    reason = None
+    if res.timed_out:
+        reason = res.collection_error or "timed out"
+    elif res.collection_error and res.outcomes:
+        reason = "pytest session did not complete: " + res.collection_error.strip().splitlines()[-1][:160]
+    elif res.skipped:
+        reason = f"{len(res.skipped)} blind test(s) skipped; the verifier's suite never skips (SkipTest raised from the implementation?)"
+    else:
+        from ..workspace import read_tree
+        expected = change.full_tree()
+        actual = read_tree(work)
+        tampered = sorted(k for k in expected if k.endswith(".py") and not k.startswith(VERIFIER_DIR) and actual.get(k) != expected[k])
+        if tampered:
+            reason = f"work tree modified while the blind suite ran: {', '.join(tampered[:3])}"
+    if reason:
+        res.collection_error = reason
+        res.outcomes = []
 
 
 def _finding(rule, path, lineno, severity, message, snippet):
