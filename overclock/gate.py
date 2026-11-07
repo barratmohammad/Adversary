@@ -12,12 +12,21 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from adversary.sandbox import detect_sandbox
 from adversary.verifier.pipeline import verify as adversary_verify
 from adversary.workspace import RUNS_DIR, Change
 from adversary.workspace import Task as RepoTask
 from overclock.tasks import Task
 
 GATE_RUNS = RUNS_DIR / "overclock"
+_SANDBOX = None
+
+
+def sandbox():
+    global _SANDBOX
+    if _SANDBOX is None:
+        _SANDBOX = detect_sandbox()
+    return _SANDBOX
 
 
 @dataclass
@@ -64,7 +73,7 @@ def verify(task: Task, candidate_source: str, *, seed: int = 1337, max_mutants: 
     repo_task, change = as_repo_task(task), as_change(task, candidate_source, model_desc)
     run_dir = GATE_RUNS / (f"{task.name}-{label}" if label else task.name)
     verdict, rdir = adversary_verify(repo_task, change, seed=seed, emit=emit, run_dir=_unique(run_dir),
-                                     max_mutants=max_mutants, max_examples=max_examples)
+                                     sandbox=sandbox(), max_mutants=max_mutants, max_examples=max_examples)
     return GateResult(
         task=task.name, decision=verdict.decision, run_id=verdict.run_id,
         outcome_sha256=verdict.outcome_sha256, reasons=list(verdict.reasons),

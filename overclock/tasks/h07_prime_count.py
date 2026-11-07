@@ -1,5 +1,6 @@
 SPEC = """
-slow(limit) returns how many prime numbers p satisfy 2 <= p <= limit. `limit` is a non-negative int.
+slow(limit) returns how many prime numbers p satisfy p <= limit (primes are at least two by definition).
+`limit` is a non-negative int.
 Return an int.
 """
 TAGS = ["primes", "sieve", "sqrt-bound"]

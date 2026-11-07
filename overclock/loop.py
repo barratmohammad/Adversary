@@ -35,6 +35,9 @@ def _noop(_e: dict) -> None:
     pass
 
 
+SPEEDUP_CAP = 100.0   # one exponential-vs-linear task must not dominate the held-out geometric mean
+
+
 @dataclass
 class TaskRun:
     task: str
@@ -71,6 +74,17 @@ def run_task(task: Task, playbook: pb.Playbook, *, use_gate: bool = True, seed: 
     """`explore` (training only) lets the optimizer restructure freely on LEARN tasks. Held-out and
     unseen tasks must always be run with explore=False: same policy, only the playbook differs."""
     run = TaskRun(task=task.name, playbook_version=playbook.version)
+    try:
+        return _run_task(task, playbook, run, use_gate=use_gate, seed=seed, emit=emit, label=label,
+                         explore=explore, gate_budget=gate_budget)
+    except Exception as e:  # noqa: BLE001 - a single task must never kill the learn loop
+        run.status, run.error = "error", f"{type(e).__name__}: {e}"
+        emit({"event": "error", "task": task.name, "error": run.error})
+        return run
+
+
+def _run_task(task: Task, playbook: pb.Playbook, run: TaskRun, *, use_gate: bool, seed: int, emit: Emit,
+              label: str, explore: bool, gate_budget: dict | None) -> TaskRun:
     emit({"event": "optimize", "task": task.name, "version": playbook.version, "explore": explore})
     try:
         opt = optimizer.optimize(task, playbook, explore=explore)
@@ -109,6 +123,10 @@ def run_task(task: Task, playbook: pb.Playbook, *, use_gate: bool = True, seed: 
         run.status, run.correct, run.mismatch = "incorrect", False, b.error or "wrong on fresh inputs"
         emit({"event": "incorrect", "task": task.name, "detail": run.mismatch})
         return run
+    if b.error or b.speedup is None:
+        run.status, run.error = "error", b.error or "no timing result"
+        emit({"event": "error", "task": task.name, "error": run.error})
+        return run
     run.speedup, run.fresh_speedup = b.speedup, b.fresh_speedup
     run.slow_ms = (b.slow_median_s or 0) * 1000
     run.fast_ms = (b.fast_median_s or 0) * 1000
@@ -124,12 +142,17 @@ def run_task(task: Task, playbook: pb.Playbook, *, use_gate: bool = True, seed: 
 
 # ---- held-out evaluation ------------------------------------------------------------------------
 def _gmean(xs: list[float]) -> float:
-    xs = [max(x, 1e-6) for x in xs] or [1.0]
+    xs = [min(max(x, 1e-6), SPEEDUP_CAP) for x in xs] or [1.0]
     return math.exp(sum(math.log(x) for x in xs) / len(xs))
 
 
 def heldout_key(playbook: pb.Playbook, tasks: list[Task], seed: int, use_gate: bool) -> str:
-    blob = json.dumps([[r.text for r in playbook.rules], [t.name for t in tasks], seed, use_gate])
+    """Cache key covers everything that changes the result: rules, tasks, seed, gate, the optimizer model
+    and the prompt templates. A different model or prompt never reuses an old baseline."""
+    model = llm.config_for("implementer").describe()
+    prompts = hashlib.sha256((optimizer.SYSTEM + optimizer.USER_TMPL + optimizer.DEPLOY_POLICY).encode()).hexdigest()
+    blob = json.dumps([[r.text for r in playbook.rules], [t.name for t in tasks], seed, use_gate,
+                       model.get("provider"), model.get("model"), prompts, SPEEDUP_CAP])
     return hashlib.sha256(blob.encode()).hexdigest()[:16]
 
 
@@ -151,8 +174,11 @@ def heldout_eval(playbook: pb.Playbook, tasks: list[Task], *, use_gate: bool = T
             "per_task": {r.task: {"status": r.status, "speedup": r.speedup, "effective": r.effective_speedup}
                          for r in runs},
             "runs": [r.to_dict() for r in runs]}
-    CACHE.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=1))
+    if not any(r.status == "error" for r in runs):      # never cache a score distorted by a transient failure
+        CACHE.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=1))
+    else:
+        data["uncached_due_to_errors"] = [r.task for r in runs if r.status == "error"]
     emit({"event": "heldout-done", "version": playbook.version, "gmean": data["gmean"], "per_task": data["per_task"]})
     return data
 
