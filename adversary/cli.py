@@ -203,7 +203,8 @@ def cmd_matrix(args) -> int:
 
 def cmd_bench(args) -> int:
     from . import bench
-    s = bench.run(n=args.n, bugs_per=args.bugs, seed=args.seed, parallel=args.parallel, console=ui.console)
+    s = bench.run(n=args.n, bugs_per=args.bugs, seed=args.seed, parallel=args.parallel, console=ui.console, source=args.source,
+                  max_llm_bugs=args.llm_bugs, max_llm_correct=args.llm_correct)
     return 0 if s.get("catch_rate") is not None else 1
 
 
@@ -270,6 +271,10 @@ def main(argv: list[str] | None = None) -> int:
     bn.add_argument("--bugs", type=int, default=2, help="sneaky bugs per problem")
     bn.add_argument("--seed", type=int, default=0)
     bn.add_argument("--parallel", type=int, default=6)
+    bn.add_argument("--source", choices=["mutants", "llm", "both"], default="mutants",
+                    help="mutants of canonical solutions, real LLM solutions from the EvalPlus release, or both")
+    bn.add_argument("--llm-bugs", type=int, default=40)
+    bn.add_argument("--llm-correct", type=int, default=20)
     bn.set_defaults(fn=cmd_bench)
     ln = sub.add_parser("learn", help="improve the verifier's playbook; adopt only held-out-validated tactics")
     ln.add_argument("--train", required=True, help="comma-separated task names to learn from")

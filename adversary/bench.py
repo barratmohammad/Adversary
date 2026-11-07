@@ -85,9 +85,9 @@ def _differential(ref_src: str, cand_src: str, entry: str, atol: float, base: li
         (dp / "inputs.json").write_text(json.dumps({"base": base, "plus": plus}, default=list))
         (dp / "check.py").write_text(_CHECK)
         try:
-            p = subprocess.run([sys.executable, "-I", str(dp / "check.py"), str(dp / "ref.py"), str(dp / "cand.py"), entry, str(atol or 0),
-                                str(dp / "inputs.json")], capture_output=True, text=True, timeout=120)
-            return json.loads(p.stdout.strip().splitlines()[-1]) if p.returncode == 0 else None
+            from .sandbox import detect_sandbox
+            rr = detect_sandbox().run(["-I", "check.py", "ref.py", "cand.py", entry, str(atol or 0), "inputs.json"], cwd=dp, timeout=120)
+            return json.loads(rr.stdout.strip().splitlines()[-1]) if rr.returncode == 0 and rr.stdout.strip() else None
         except Exception:
             return None
 
@@ -157,14 +157,111 @@ def build_cases(n: int = 20, bugs_per: int = 2, seed: int = 0, plus_cap: int = 4
     return cases
 
 
-def run(n: int = 20, bugs_per: int = 2, seed: int = 0, parallel: int = 6, console=None) -> dict:
+EVALPLUS_MODELS = {  # EvalPlus v0.1.0 release: greedy (temperature 0) HumanEval samples
+    "gpt-4": "gpt-4_temp_0.0.zip",
+    "chatgpt": "chatgpt_temp_0.0.zip",
+    "code-llama-34b": "code-llama-34b_temp_0.0.zip",
+    "mistral-7b": "mistral-7b_temp_0.0.zip",
+}
+SAMPLES_DIR = ROOT / ".adversary" / "evalplus_samples"
+
+
+def fetch_samples(log=print) -> dict[str, dict[str, str]]:
+    """Download (once) and index EvalPlus's published LLM samples: {model: {task_id: source}}."""
+    import zipfile
+    SAMPLES_DIR.mkdir(parents=True, exist_ok=True)
+    out: dict[str, dict[str, str]] = {}
+    for model, asset in EVALPLUS_MODELS.items():
+        z = SAMPLES_DIR / asset
+        if not z.exists():
+            log(f"  downloading {asset} from github.com/evalplus/evalplus releases/v0.1.0")
+            subprocess.run(["gh", "release", "download", "v0.1.0", "-R", "evalplus/evalplus", "-p", asset, "-D", str(SAMPLES_DIR)],
+                           check=True, capture_output=True)
+        sols = {}
+        with zipfile.ZipFile(z) as zf:
+            for name in zf.namelist():
+                parts = name.split("/")
+                if len(parts) >= 2 and parts[-1] == "0.py" and parts[-2].startswith("HumanEval_"):
+                    sols["HumanEval/" + parts[-2].split("_", 1)[1]] = zf.read(name).decode("utf-8", "replace")
+        out[model] = sols
+    return out
+
+
+def build_llm_cases(max_bugs: int = 40, max_correct: int = 20, seed: int = 0, parallel: int = 8, log=print) -> list[Case]:
+    """Real LLM-written solutions. Buggy = passes every official HumanEval input but fails EvalPlus (the false passes
+    that motivated EvalPlus). Correct = passes both - used to measure false blocks on realistic, non-canonical code."""
+    from evalplus.data import get_human_eval_plus
+
+    data = get_human_eval_plus()
+    samples = fetch_samples(log)
+    jobs = []
+    for model, sols in samples.items():
+        for tid, src in sols.items():
+            if tid in data:
+                jobs.append((model, tid, src))
+    log(f"  {len(jobs)} LLM solutions from {len(samples)} models; differential-testing against EvalPlus in the sandbox...")
+
+    def judge(job):
+        model, tid, src = job
+        p = data[tid]
+        ref_src = p["prompt"] + p["canonical_solution"]
+        try:
+            json.dumps(p["base_input"]); json.dumps(p["plus_input"][:400])
+        except TypeError:
+            return job, None
+        return job, _differential(ref_src, src, p["entry_point"], p.get("atol") or 0, p["base_input"], p["plus_input"][:400])
+
+    with ThreadPoolExecutor(max_workers=parallel) as ex:
+        judged = list(ex.map(judge, jobs))
+    bugs, good = [], []
+    seen = set()
+    for (model, tid, src), r in judged:
+        if not r or src.strip() in seen:
+            continue
+        seen.add(src.strip())
+        if r["base"] == 0 and r["plus"] > 0:
+            bugs.append((model, tid, src, r))
+        elif r["base"] == 0 and r["plus"] == 0:
+            good.append((model, tid, src, r))
+    log(f"  found {len(bugs)} real LLM false passes (pass official tests, fail EvalPlus) and {len(good)} fully-correct LLM solutions")
+    rng = random.Random(seed)
+    rng.shuffle(bugs)
+    bugs = sorted(bugs[:max_bugs], key=lambda x: (x[1], x[0]))
+    bug_tids = {b[1] for b in bugs}
+    good = [g for g in good if g[1] in bug_tids] + [g for g in good if g[1] not in bug_tids]  # prefer same problems
+    good = good[:max_correct]
+    cases = []
+    for model, tid, src, r in bugs + good:
+        p = data[tid]
+        entry, prompt = p["entry_point"], p["prompt"]
+        ref_src = prompt + p["canonical_solution"]
+        name = "he_" + tid.split("/")[-1]
+        spec = (f"# {tid}: `{entry}`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n"
+                f"```python\n{prompt.rstrip()}\n```\n")
+        base_files = {"solution.py": prompt.rstrip() + "\n    raise NotImplementedError\n", "tests/__init__.py": ""}
+        task = Task(name=name, title=f"HumanEval+ {tid} {entry}", module="solution.py", functions=[entry], spec=spec, base=base_files)
+        tests = _official_tests(entry, "solution.py", ref_src, p["base_input"], p.get("atol") or 0)
+        is_bug = r["plus"] > 0
+        cases.append(Case(task, "llm-bug" if is_bug else "llm-correct", "BLOCK" if is_bug else "MERGE", src,
+                          f"{model} solution" + (f", fails {r['plus']}/{min(400, len(p['plus_input']))} EvalPlus inputs" if is_bug else ""),
+                          plus_fail=r["plus"], meta={"tid": tid, "tests": tests, "model": model}))
+    return cases
+
+
+def run(n: int = 20, bugs_per: int = 2, seed: int = 0, parallel: int = 6, console=None, source: str = "mutants",
+        max_llm_bugs: int = 40, max_llm_correct: int = 20) -> dict:
     from rich.table import Table
     from .verifier.pipeline import verify
 
     say = console.print if console else print
     t0 = time.monotonic()
-    say(f"[bold]building HumanEval+ cases[/] (n={n}, bugs/problem={bugs_per}, seed={seed})")
-    cases = build_cases(n, bugs_per, seed, log=lambda s: say(f"[dim]{s}[/]"))
+    say(f"[bold]building HumanEval+ cases[/] (source={source}, seed={seed})")
+    log = lambda s: say(f"[dim]{s}[/]")
+    cases: list[Case] = []
+    if source in ("mutants", "both"):
+        cases += build_cases(n, bugs_per, seed, log=log)
+    if source in ("llm", "both"):
+        cases += build_llm_cases(max_llm_bugs, max_llm_correct, seed, log=log)
     say(f"[bold]{len(cases)} changes[/] ({sum(c.label == 'MERGE' for c in cases)} correct, {sum(c.label == 'BLOCK' for c in cases)} sneaky bugs). verifying...")
 
     def one(c: Case):
@@ -193,7 +290,7 @@ def run(n: int = 20, bugs_per: int = 2, seed: int = 0, parallel: int = 6, consol
         checks = {k.id: k for k in v.checks}
         blockers = [k.id for k in v.checks if k.blocking]
         ce = checks["property_tests"].details.get("counterexamples", [])
-        row = {"tid": c.meta["tid"], "variant": c.variant, "label": c.label, "decision": v.decision, "blocked_by": blockers,
+        row = {"tid": c.meta["tid"], "variant": c.variant, "model": c.meta.get("model", ""), "label": c.label, "decision": v.decision, "blocked_by": blockers,
                "bug": c.description, "evalplus_failures": c.plus_fail, "counterexample": (ce[0]["falsifying"] or ce[0]["message"][:120]) if ce else "",
                "run": rdir.name}
         rows.append(row)
@@ -211,6 +308,18 @@ def run(n: int = 20, bugs_per: int = 2, seed: int = 0, parallel: int = 6, consol
                 ok_correct += 1
     n_bug = caught + missed
     n_ok = fa + ok_correct
+    split = {}
+    for r in rows:
+        if r["decision"] == "ERROR":
+            continue
+        k = "llm" if r["variant"].startswith("llm") else "mutant"
+        d = split.setdefault(k, {"bugs": 0, "caught": 0, "correct": 0, "false_blocks": 0})
+        if r["label"] == "BLOCK":
+            d["bugs"] += 1
+            d["caught"] += r["decision"] == "BLOCK"
+        else:
+            d["correct"] += 1
+            d["false_blocks"] += r["decision"] == "BLOCK"
     summary = {
         "dataset": "HumanEval+ (EvalPlus) - canonical solutions + single-fault mutants that pass all official tests but fail EvalPlus",
         "problems": len({c.meta["tid"] for c in cases}),
@@ -219,11 +328,12 @@ def run(n: int = 20, bugs_per: int = 2, seed: int = 0, parallel: int = 6, consol
         "false_block_rate": round(fa / n_ok, 3) if n_ok else None,
         "official_tests_catch_rate": 0.0,
         "caught_by": by_check,
+        "by_source": split,
         "seed": seed, "minutes": round((time.monotonic() - t0) / 60, 1),
         "rows": rows,
     }
     BENCH_DIR.mkdir(exist_ok=True)
-    out = BENCH_DIR / f"humaneval_plus_n{summary['problems']}_seed{seed}.json"
+    out = BENCH_DIR / f"humaneval_plus_{source}_n{summary['problems']}_seed{seed}.json"
     out.write_text(json.dumps(summary, indent=2))
 
     table = Table(title="HumanEval+ benchmark: bugs the official tests miss")
@@ -238,5 +348,9 @@ def run(n: int = 20, bugs_per: int = 2, seed: int = 0, parallel: int = 6, consol
     say(f"[bold]catch rate[/] {caught}/{n_bug} = {summary['catch_rate']:.0%} of sneaky bugs blocked "
         f"(official HumanEval tests: 0% by construction)" if n_bug else "no buggy cases")
     say(f"[bold]false blocks[/] {fa}/{n_ok} = {summary['false_block_rate']:.0%} of correct solutions wrongly blocked" if n_ok else "")
+    for k, d in split.items():
+        label = "real LLM-written code (EvalPlus samples)" if k == "llm" else "single-fault mutants"
+        if d["bugs"]:
+            say(f"  {label}: caught {d['caught']}/{d['bugs']} bugs" + (f", false blocks {d['false_blocks']}/{d['correct']}" if d["correct"] else ""))
     say(f"[dim]saved {out} · {summary['minutes']} min · errors {errors}[/]")
     return summary
