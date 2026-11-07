@@ -104,12 +104,24 @@ def _official_tests(entry: str, module: str, ref_src: str, base: list, atol: flo
             rows.append((args, exp))
         except Exception:
             continue
-    lines = [f"import math\nfrom {module[:-3]} import {entry}\n\nCASES = {json.dumps(rows)}\n\n",
+    lines = [f"import json, math\nfrom {module[:-3]} import {entry}\n\nCASES = json.loads({json.dumps(rows)!r})\n\n",
              "def _eq(a, b):\n    if isinstance(a, float) or isinstance(b, float):\n"
              f"        return math.isclose(a, b, rel_tol=1e-6, abs_tol={max(atol or 0, 1e-6)})\n"
              "    if isinstance(a, tuple) or isinstance(b, tuple):\n        return list(a) == list(b)\n    return a == b\n\n",
              f"def test_official_humaneval_inputs():\n    for args, expected in CASES:\n        assert _eq({entry}(*args), expected), (args, expected)\n"]
     return "".join(lines)
+
+
+def _spec(tid: str, p: dict) -> str:
+    contract = "\n".join(l.split("# $_CONTRACT_$")[0].rstrip() for l in (p.get("contract") or "").splitlines()
+                         if l.strip() and "$_CONTRACT_$" in l)
+    spec = (f"# {tid}: `{p['entry_point']}`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n"
+            f"```python\n{p['prompt'].rstrip()}\n```\n")
+    if contract.strip():
+        import textwrap as _tw
+        spec += ("\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified "
+                 "(do not test outside them):\n```python\n" + _tw.dedent(contract) + "\n```\n")
+    return spec
 
 
 def build_cases(n: int = 20, bugs_per: int = 2, seed: int = 0, plus_cap: int = 400, log=print) -> list[Case]:
@@ -133,18 +145,16 @@ def build_cases(n: int = 20, bugs_per: int = 2, seed: int = 0, plus_cap: int = 4
             json.dumps(base); json.dumps(plus)
         except TypeError:
             continue
-        sneaky = []
-        for m in generate_mutants("solution.py", ref_src, max_mutants=60, seed=seed):
-            r = _differential(ref_src, m.source, entry, atol, base, plus)
-            if r and r["base"] == 0 and r["plus"] > 0:
-                sneaky.append((m, r))
+        muts = generate_mutants("solution.py", ref_src, max_mutants=40, seed=seed)
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            diffs = list(ex.map(lambda m: (m, _differential(ref_src, m.source, entry, atol, base, plus)), muts))
+        sneaky = [(m, r) for m, r in diffs if r and r["base"] == 0 and r["plus"] > 0]
         if not sneaky:
             continue
         rng = random.Random(f"{seed}:{tid}")
         picks = rng.sample(sneaky, min(bugs_per, len(sneaky)))
         name = "he_" + tid.split("/")[-1]
-        spec = (f"# {tid}: `{entry}`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n"
-                f"```python\n{prompt.rstrip()}\n```\n")
+        spec = _spec(tid, p)
         base_files = {"solution.py": prompt.rstrip() + "\n    raise NotImplementedError\n", "tests/__init__.py": ""}
         task = Task(name=name, title=f"HumanEval+ {tid} {entry}", module="solution.py", functions=[entry], spec=spec, base=base_files)
         tests = _official_tests(entry, "solution.py", ref_src, base, atol)
@@ -242,8 +252,7 @@ def build_llm_cases(max_bugs: int = 40, max_correct: int = 20, seed: int = 0, pa
         entry, prompt = p["entry_point"], p["prompt"]
         ref_src = prompt + p["canonical_solution"]
         name = "he_" + tid.split("/")[-1]
-        spec = (f"# {tid}: `{entry}`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n"
-                f"```python\n{prompt.rstrip()}\n```\n")
+        spec = _spec(tid, p)
         base_files = {"solution.py": prompt.rstrip() + "\n    raise NotImplementedError\n", "tests/__init__.py": ""}
         task = Task(name=name, title=f"HumanEval+ {tid} {entry}", module="solution.py", functions=[entry], spec=spec, base=base_files)
         tests = _official_tests(entry, "solution.py", ref_src, p["base_input"], p.get("atol") or 0)
