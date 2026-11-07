@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/122: `add_elements`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef add_elements(arr, k):\n    \"\"\"\n    Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at most two digits from the first k elements of arr.\n\n    Example:\n\n        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4\n        Output: 24 # sum of 21 + 3\n\n    Constraints:\n        1. 1 <= len(arr) <= 100\n        2. 1 <= k <= len(arr)\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert add_elements(extended, k) == ref(arr, k)\ndef ref(arr, k):\n    # Obviously-correct model: at most two digits <=> abs value <= 99\n    # (single digit 0-9, two digits 10-99, same for negatives ignoring sign)\n    return sum(x for x in arr[:k] if abs(x) <= 99)\n\n@given(st.lists(st.integers(min_value=-10000, max_value=10000), min_size=1, max_size=15),\n       st.data())\ndef test_first_k_slicing_property(arr, data):\n    k = data.draw(st.integers(min_value=1, max_value=len(arr)))\n    # elements beyond k must not affect result\n    suffix = data.draw(st.lists(st.integers(min_value=-10000, max_value=10000), min_size=0, max_size=5))\n    extended = arr + suffix\n    assert add_elements(extended, k) == ref(arr, k)",
+      "counterexample": "test_first_k_slicing_property(arr=[-100], data=data(...)",
+      "failure_output": "assert -100 == 0\n +  where -100 = add_elements([-100], 1)\n +  and   0 = ref([-100], 1)\nFailing test case: test_first_k_slicing_property(\n    arr=[-100],\n    data=data(...),\n)\nDraw 1: 1\nDraw 2: []\nadversary_tests/test_adversary.py:127: in test_first_k_slicing_property\n    st.data())\n            ^^^\nadversary_tests/test_adversary.py:133: in test_first_k_slicing_property\n    assert add_elements(extended, k) == ref(arr, k)\nE   assert -100 == 0\nE    +  where -100 = add_elements([-100], 1)\nE    +  and   0 = ref([-100], 1)\nE   Failing test case: test_first_k_slicing_property(\nE       arr=[-100],\nE       data=data(...),\nE   )\nE   Draw 1: 1\nE   Draw 2: []",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7970909476280212
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "ambiguous_spec",
+      "probabilities": {
+        "implementation_bug": 0.3309808075428009,
+        "test_asserts_unspecified": 0.2241634875535965,
+        "test_is_broken": 0.015650006011128426,
+        "ambiguous_spec": 0.42920583486557007
+      },
+      "confidence": 0.23894111315409342
+    }
+  },
+  "usage": {
+    "input_tokens": 960,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 2.110146250022808
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```",
+      "failing_test": "# failing line: with pytest.raises(Exception):\ndef ref_fib(n: int) -> int:\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n\ndef test_negative_raises_minus_5():\n    with pytest.raises(Exception):\n        fib(-5)",
+      "counterexample": "(none reported)",
+      "failure_output": "Failed: DID NOT RAISE Exception\nadversary_tests/test_adversary.py:119: in test_negative_raises_minus_5\n    with pytest.raises(Exception):\n         ^^^^^^^^^^^^^^^^^^^^^^^^\nE   Failed: DID NOT RAISE Exception",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.2977406680583954
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.009367379359900951,
+        "test_asserts_unspecified": 0.6914550065994263,
+        "test_is_broken": 0.005872327368706465,
+        "ambiguous_spec": 0.29330530762672424
+      },
+      "confidence": 0.5886066754659017
+    }
+  },
+  "usage": {
+    "input_tokens": 489,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 3.1465194170014
+}

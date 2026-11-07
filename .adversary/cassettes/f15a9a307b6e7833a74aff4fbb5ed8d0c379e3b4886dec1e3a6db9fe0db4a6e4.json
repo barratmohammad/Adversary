@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/122: `add_elements`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef add_elements(arr, k):\n    \"\"\"\n    Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at most two digits from the first k elements of arr.\n\n    Example:\n\n        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4\n        Output: 24 # sum of 21 + 3\n\n    Constraints:\n        1. 1 <= len(arr) <= 100\n        2. 1 <= k <= len(arr)\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert add_elements(modified, k) == base - arr[0]\ndef reference(arr, k):\n    \"\"\"Obviously-correct model: digits ignoring sign, so |x| <= 99.\"\"\"\n    return sum(x for x in arr[:k] if abs(x) < 100)\n\n@given(\n    arr=st.lists(st.integers(min_value=-99, max_value=99), min_size=1, max_size=10),\n    k=st.integers(min_value=1, max_value=10),\n)\ndef test_adding_large_offset_excludes_element(arr, k):\n    assume(1 <= k <= len(arr))\n    base = add_elements(arr, k)\n    # make first element large positive (>=1000, 4 digits) -> it must drop out\n    modified = [arr[0] + 1000 if arr[0] >= 0 else arr[0] - 1000] + arr[1:]\n    # original arr[0] was <=2 digits so was included; now excluded\n    assert add_elements(modified, k) == base - arr[0]",
+      "counterexample": "test_adding_large_offset_excludes_element(arr=[-1], k=1)",
+      "failure_output": "assert -1001 == (-1 - -1)\n +  where -1001 = add_elements([-1001], 1)\nFailing test case: test_adding_large_offset_excludes_element(\n    arr=[-1],\n    k=1,\n)\nadversary_tests/test_adversary.py:125: in test_adding_large_offset_excludes_element\n    arr=st.lists(st.integers(min_value=-99, max_value=99), min_size=1, max_size=10),\n               ^^^\nadversary_tests/test_adversary.py:134: in test_adding_large_offset_excludes_element\n    assert add_elements(modified, k) == base - arr[0]\nE   assert -1001 == (-1 - -1)\nE    +  where -1001 = add_elements([-1001], 1)\nE   Failing test case: test_adding_large_offset_excludes_element(\nE       arr=[-1],\nE       k=1,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8919857740402222
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.6269398331642151,
+        "test_asserts_unspecified": 0.21846015751361847,
+        "test_is_broken": 0.058719947934150696,
+        "ambiguous_spec": 0.09588008373975754
+      },
+      "confidence": 0.5025864442189535
+    }
+  },
+  "usage": {
+    "input_tokens": 963,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.350504041009117
+}

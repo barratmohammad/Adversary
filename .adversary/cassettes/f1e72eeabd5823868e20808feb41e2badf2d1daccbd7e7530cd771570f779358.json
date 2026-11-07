@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/118: `get_closest_vowel`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef get_closest_vowel(word):\n    \"\"\"You are given a word. Your task is to find the closest vowel that stands between \n    two consonants from the right side of the word (case sensitive).\n    \n    Vowels in the beginning and ending doesn't count. Return empty string if you didn't\n    find any vowel met the above condition. \n\n    You may assume that the given string contains English letter only.\n\n    Example:\n    get_closest_vowel(\"yogurt\") ==> \"u\"\n    get_closest_vowel(\"FULL\") ==> \"U\"\n    get_closest_vowel(\"quick\") ==> \"\"\n    get_closest_vowel(\"ab\") ==> \"\"\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert get_closest_vowel(w) == v\ndef reference(word):\n    # Obviously-correct model directly from spec:\n    # scan from right, indices 1..len-2, vowel between two consonants\n    for i in range(len(word) - 2, 0, -1):\n        if word[i] in VOWELS and word[i - 1] not in VOWELS and word[i + 1] not in VOWELS:\n            return word[i]\n    return \"\"\n\n\ndef test_case_sensitive_vowel_detection():\n    for v in [\"a\", \"e\", \"i\", \"o\", \"u\", \"A\", \"E\", \"I\", \"O\", \"U\"]:\n        w = \"b\" + v + \"b\"\n        assert get_closest_vowel(w) == v",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert 'a' == 'A'\n  \n  - A\n  + a\nadversary_tests/test_adversary.py:81: in test_case_sensitive_vowel_detection\n    assert get_closest_vowel(w) == v\nE   AssertionError: assert 'a' == 'A'\nE     \nE     - A\nE     + a",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.4368094801902771
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9540119767189026,
+        "test_asserts_unspecified": 0.02517998218536377,
+        "test_is_broken": 0.01757648214697838,
+        "ambiguous_spec": 0.0032315985299646854
+      },
+      "confidence": 0.9386826356252035
+    }
+  },
+  "usage": {
+    "input_tokens": 735,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.5200334579858463
+}

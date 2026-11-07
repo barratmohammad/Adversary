@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/44: `change_base`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef change_base(x: int, base: int):\n    \"\"\"Change numerical base of input number x to base.\n    return string representation after the conversion.\n    base numbers are less than 10.\n    >>> change_base(8, 3)\n    '22'\n    >>> change_base(8, 2)\n    '1000'\n    >>> change_base(7, 2)\n    '111'\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert s != \"\"\ndef reference_change_base(x: int, base: int) -> str:\n    if x == 0:\n        return \"0\"\n    digits = []\n    n = x\n    while n > 0:\n        digits.append(str(n % base))\n        n //= base\n    return \"\".join(reversed(digits))\n\n@given(x=st.integers(min_value=0, max_value=100000),\n       base=st.integers(min_value=2, max_value=9))\ndef test_roundtrip_value_preserved(x, base):\n    s = change_base(x, base)\n    assert isinstance(s, str)\n    assert s != \"\"\n    assert int(s, base) == x",
+      "counterexample": "test_roundtrip_value_preserved(x=0, base=2)",
+      "failure_output": "AssertionError: assert '' != ''\nFailing test case: test_roundtrip_value_preserved(\n    x=0,\n    base=2,\n)\nadversary_tests/test_adversary.py:65: in test_roundtrip_value_preserved\n    base=st.integers(min_value=2, max_value=9))\n            ^^^\nadversary_tests/test_adversary.py:69: in test_roundtrip_value_preserved\n    assert s != \"\"\nE   AssertionError: assert '' != ''\nE   Failing test case: test_roundtrip_value_preserved(\nE       x=0,\nE       base=2,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8801602125167847
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.5605656504631042,
+        "test_asserts_unspecified": 0.24698559939861298,
+        "test_is_broken": 0.0036730077117681503,
+        "ambiguous_spec": 0.18877574801445007
+      },
+      "confidence": 0.41408753395080566
+    }
+  },
+  "usage": {
+    "input_tokens": 735,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 2.051832125027431
+}

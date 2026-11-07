@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/22: `filter_integers`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List, Any\n\n\ndef filter_integers(values: List[Any]) -> List[int]:\n    \"\"\" Filter given list of any python values only for integers\n    >>> filter_integers(['a', 3.14, 5])\n    [5]\n    >>> filter_integers([1, 2, 3, 'abc', {}, []])\n    [1, 2, 3]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert filter_integers([True, False]) == []\ndef reference(values):\n    # Obviously-correct model: keep integers but NOT booleans,\n    # since True/False are not \"integers\" conceptually even though\n    # isinstance(True, int) is True in Python.\n    return [x for x in values if isinstance(x, int) and not isinstance(x, bool)]\n\n\ndef test_booleans_only_returns_empty():\n    assert filter_integers([True, False]) == []",
+      "counterexample": "(none reported)",
+      "failure_output": "assert [True, False] == []\n  \n  Left contains 2 more items, first extra item: True\n  Use -v to get more diff\nadversary_tests/test_adversary.py:80: in test_booleans_only_returns_empty\n    assert filter_integers([True, False]) == []\nE   assert [True, False] == []\nE     \nE     Left contains 2 more items, first extra item: True\nE     Use -v to get more diff",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.5093053579330444
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "ambiguous_spec",
+      "probabilities": {
+        "implementation_bug": 0.03771333023905754,
+        "test_asserts_unspecified": 0.28584933280944824,
+        "test_is_broken": 0.010484745725989342,
+        "ambiguous_spec": 0.6659526228904724
+      },
+      "confidence": 0.5546034971872965
+    }
+  },
+  "usage": {
+    "input_tokens": 621,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.42693866600166075
+}

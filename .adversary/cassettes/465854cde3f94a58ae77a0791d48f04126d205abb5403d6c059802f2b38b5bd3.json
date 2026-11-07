@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/124: `valid_date`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef valid_date(date):\n    \"\"\"You have to write a function which validates a given date string and\n    returns True if the date is valid otherwise False.\n    The date is valid if all of the following rules are satisfied:\n    1. The date string is not empty.\n    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.\n    3. The months should not be less than 1 or higher than 12.\n    4. The date should be in the format: mm-dd-yyyy\n\n    for example: \n    valid_date('03-11-2000') => True\n\n    valid_date('15-01-2012') => False\n\n    valid_date('04-0-2040') => False\n\n    valid_date('06-04-2020') => True\n\n    valid_date('06/04/2020') => False\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert valid_date(s) == ref_valid(s)\ndef ref_valid(date):\n    if not isinstance(date, str):\n        return False\n    if len(date) == 0:\n        return False\n    # format mm-dd-yyyy : exactly 10 chars, '-' at 2 and 5, ascii digits elsewhere\n    if len(date) != 10:\n        return False\n    if date[2] != \"-\" or date[5] != \"-\":\n        return False\n    mm = date[0:2]\n    dd = date[3:5]\n    yyyy = date[6:10]\n    ascii_digits = set(\"0123456789\")\n    if not (len(mm) == 2 and len(dd) == 2 and len(yyyy) == 4):\n        return False\n    if any(c not in ascii_digits for c in mm + dd + yyyy):\n        return False\n    m = int(mm)\n    d = int(dd)\n    # year value unconstrained by spec, only format matters\n    if m < 1 or m > 12:\n        return False\n    if m in (1, 3, 5, 7, 8, 10, 12):\n        if d < 1 or d > 31:\n            return False\n    elif m in (4, 6, 9, 11):\n        if d < 1 or d > 30:\n            return False\n    else:  # m == 2\n        if d < 1 or d > 29:\n            return False\n    return True\n\ndef max_day(m):\n    if m in (1, 3, 5, 7, 8, 10, 12):\n        return 31\n    if m in (4, 6, 9, 11):\n        return 30\n    return 29\n\n@given(\n    s=st.from_regex(r\"\\d{2}-\\d{2}-\\d{4}\", fullmatch=True),\n)\ndef test_equivalence_to_reference_on_shaped_strings(s):\n    assert valid_date(s) == ref_valid(s)",
+      "counterexample": "test_equivalence_to_reference_on_shaped_strings(s='01-0\u0661-0000')",
+      "failure_output": "AssertionError: assert True == False\n +  where True = valid_date('01-0\u0661-0000')\n +  and   False = ref_valid('01-0\u0661-0000')\nFailing test case: test_equivalence_to_reference_on_shaped_strings(\n    s='01-0\u0661-0000',\n)\nadversary_tests/test_adversary.py:281: in test_equivalence_to_reference_on_shaped_strings\n    s=st.from_regex(r\"\\d{2}-\\d{2}-\\d{4}\", fullmatch=True),\n               ^^^\nadversary_tests/test_adversary.py:284: in test_equivalence_to_reference_on_shaped_strings\n    assert valid_date(s) == ref_valid(s)\nE   AssertionError: assert True == False\nE    +  where True = valid_date('01-0\u0661-0000')\nE    +  and   False = ref_valid('01-0\u0661-0000')\nE   Failing test case: test_equivalence_to_reference_on_shaped_strings(\nE       s='01-0\u0661-0000',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7678471207618713
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.17976869642734528,
+        "test_asserts_unspecified": 0.5374066829681396,
+        "test_is_broken": 0.02384776435792446,
+        "ambiguous_spec": 0.2589767873287201
+      },
+      "confidence": 0.3832089106241862
+    }
+  },
+  "usage": {
+    "input_tokens": 1402,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0098840419959743
+}

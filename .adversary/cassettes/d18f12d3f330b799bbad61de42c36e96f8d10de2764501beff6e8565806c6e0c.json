@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/46: `fib4`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib4(n: int):\n    \"\"\"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:\n    fib4(0) -> 0\n    fib4(1) -> 0\n    fib4(2) -> 2\n    fib4(3) -> 0\n    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).\n    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.\n    >>> fib4(5)\n    4\n    >>> fib4(6)\n    8\n    >>> fib4(7)\n    14\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert not alive, \"fib4(100) did not complete within 1s: not efficient / likely recursive\"\ndef ref_fib4(n):\n    # Obviously-correct iterative reference model\n    if n == 0:\n        return 0\n    if n == 1:\n        return 0\n    if n == 2:\n        return 2\n    if n == 3:\n        return 0\n    a, b, c, d = 0, 0, 2, 0\n    for _ in range(4, n + 1):\n        e = a + b + c + d\n        a, b, c, d = b, c, d, e\n    return d\n\ndef _call_with_timeout(func, arg, timeout):\n    result = {}\n    error = {}\n\n    def target():\n        try:\n            result[\"value\"] = func(arg)\n        except BaseException as e:  # noqa: BLE001\n            error[\"error\"] = e\n\n    t = threading.Thread(target=target, daemon=True)\n    t.start()\n    t.join(timeout)\n    return t.is_alive(), result.get(\"value\", None), error.get(\"error\", None)\n\n\ndef test_efficient_large_n():\n    # Spec: \"efficiently compute\". Naive recursion is exponential and\n    # cannot compute fib4(100) in reasonable time. Run with a timeout\n    # so a defective exponential implementation fails instead of hanging.\n    expected = ref_fib4(100)\n    alive, value, err = _call_with_timeout(fib4, 100, timeout=1.0)\n    assert not alive, \"fib4(100) did not complete within 1s: not efficient / likely recursive\"\n    assert err is None, f\"fib4(100) raised {err!r}\"\n    assert value == expected",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: fib4(100) did not complete within 1s: not efficient / likely recursive\nassert not True\nadversary_tests/test_adversary.py:125: in test_efficient_large_n\n    assert not alive, \"fib4(100) did not complete within 1s: not efficient / likely recursive\"\nE   AssertionError: fib4(100) did not complete within 1s: not efficient / likely recursive\nE   assert not True",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.675840437412262
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9444549083709717,
+        "test_asserts_unspecified": 0.047353118658065796,
+        "test_is_broken": 0.0021801169496029615,
+        "ambiguous_spec": 0.006011865567415953
+      },
+      "confidence": 0.9259398778279623
+    }
+  },
+  "usage": {
+    "input_tokens": 1020,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.7961827499966603
+}

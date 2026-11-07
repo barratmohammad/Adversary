@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```",
+      "failing_test": "# failing line: return fib(n - 1) + fib(n - 2)\ndef ref_fib(n: int) -> int:\n    \"\"\"Obviously correct iterative reference: F0=0, F1=1.\"\"\"\n    assert isinstance(n, int) and n >= 0\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n@given(st.integers(min_value=-10, max_value=-1))\ndef test_negative_inputs_raise_value_error(n):\n    with pytest.raises(ValueError):\n        fib(n)",
+      "counterexample": "test_negative_inputs_raise_value_error(n=-1)",
+      "failure_output": "rsary_tests/test_adversary.py:107: in test_negative_inputs_raise_value_error\n    def test_negative_inputs_raise_value_error(n):\n                   ^^^\nadversary_tests/test_adversary.py:109: in test_negative_inputs_raise_value_error\n    fib(n)\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nE   RecursionError: maximum recursion depth exceeded\nE   Failing test case: test_negative_inputs_raise_value_error(\nE       n=-1,\nE   )\n!!! Recursion error detected, but the origin of the recursion could not be located.\n  Displaying first and last 10 stack frames out of 2002.\n  Pass `--full-trace` to see all frames.",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.3217413127422333
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.03431042283773422,
+        "test_asserts_unspecified": 0.8157534599304199,
+        "test_is_broken": 0.0034268121235072613,
+        "ambiguous_spec": 0.14650936424732208
+      },
+      "confidence": 0.7543379465738932
+    }
+  },
+  "usage": {
+    "input_tokens": 1208,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.8925559170020279
+}

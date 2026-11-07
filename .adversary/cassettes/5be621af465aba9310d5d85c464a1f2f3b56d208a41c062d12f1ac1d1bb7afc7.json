@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/147: `get_max_triples`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef get_max_triples(n):\n    \"\"\"\n    You are given a positive integer n. You have to create an integer array a of length n.\n        For each i (1 \u2264 i \u2264 n), the value of a[i] = i * i - i + 1.\n        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, \n    and a[i] + a[j] + a[k] is a multiple of 3.\n\n    Example :\n        Input: n = 5\n        Output: 1\n        Explanation: \n        a = [1, 3, 7, 13, 21]\n        The only valid triple is (1, 7, 13).\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert get_max_triples(n + 1) >= get_max_triples(n)\ndef reference(n: int) -> int:\n    a = [i * i - i + 1 for i in range(1, n + 1)]\n    count = 0\n    for i in range(n):\n        for j in range(i + 1, n):\n            for k in range(j + 1, n):\n                if (a[i] + a[j] + a[k]) % 3 == 0:\n                    count += 1\n    return count\n\ndef comb3(m: int) -> int:\n    if m < 3:\n        return 0\n    return m * (m - 1) * (m - 2) // 6\n\ndef expected_via_residues(n: int) -> int:\n    cnt0 = sum(1 for i in range(1, n + 1) if (i * i - i + 1) % 3 == 0)\n    cnt1 = sum(1 for i in range(1, n + 1) if (i * i - i + 1) % 3 == 1)\n    cnt2 = sum(1 for i in range(1, n + 1) if (i * i - i + 1) % 3 == 2)\n    assert cnt2 == 0\n    assert cnt0 + cnt1 == n\n    return comb3(cnt0) + comb3(cnt1)\n\n@given(st.integers(min_value=1, max_value=500))\ndef test_monotone_non_decreasing(n):\n    # adding an element cannot remove existing triples\n    assert get_max_triples(n + 1) >= get_max_triples(n)",
+      "counterexample": "test_monotone_non_decreasing(n=2)",
+      "failure_output": "assert 0 >= True\n +  where 0 = get_max_triples((2 + 1))\n +  and   True = get_max_triples(2)\nFailing test case: test_monotone_non_decreasing(\n    n=2,\n)\nadversary_tests/test_adversary.py:115: in test_monotone_non_decreasing\n    def test_monotone_non_decreasing(n):\n                   ^^^\nadversary_tests/test_adversary.py:117: in test_monotone_non_decreasing\n    assert get_max_triples(n + 1) >= get_max_triples(n)\nE   assert 0 >= True\nE    +  where 0 = get_max_triples((2 + 1))\nE    +  and   True = get_max_triples(2)\nE   Failing test case: test_monotone_non_decreasing(\nE       n=2,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8833380341529846
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8770662546157837,
+        "test_asserts_unspecified": 0.062317539006471634,
+        "test_is_broken": 0.058547940105199814,
+        "ambiguous_spec": 0.002068149857223034
+      },
+      "confidence": 0.8360883394877116
+    }
+  },
+  "usage": {
+    "input_tokens": 1088,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.7423779999953695
+}

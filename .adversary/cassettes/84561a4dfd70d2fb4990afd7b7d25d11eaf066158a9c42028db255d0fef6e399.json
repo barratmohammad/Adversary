@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/21: `rescale_to_unit`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List\n\n\ndef rescale_to_unit(numbers: List[float]) -> List[float]:\n    \"\"\" Given list of numbers (of at least two elements), apply a linear transform to that list,\n    such that the smallest number will become 0 and the largest will become 1\n    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])\n    [0.0, 0.25, 0.5, 0.75, 1.0]\n    \"\"\"\n```",
+      "failing_test": "# failing line: return [(num - min_num) / range_num for num in numbers]\n@given(st.lists(st.floats(min_value=-100, max_value=100, allow_nan=False, allow_infinity=False), min_size=2, max_size=8))\ndef test_affine_invariance_positive_scale(numbers):\n    assume(max(numbers) > min(numbers))\n    a = 2.5\n    b = -7.0\n    transformed = [a * x + b for x in numbers]\n    assert rescale_to_unit(transformed) == pytest.approx(rescale_to_unit(numbers))",
+      "counterexample": "test_affine_invariance_positive_scale(numbers=[0.0, 2.161300654691441e-271])",
+      "failure_output": "ZeroDivisionError: float division by zero\nFailing test case: test_affine_invariance_positive_scale(\n    numbers=[0.0, 2.161300654691441e-271],\n)\nadversary_tests/test_adversary.py:78: in test_affine_invariance_positive_scale\n    def test_affine_invariance_positive_scale(numbers):\n                   ^^^\nadversary_tests/test_adversary.py:83: in test_affine_invariance_positive_scale\n    assert rescale_to_unit(transformed) == pytest.approx(rescale_to_unit(numbers))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:13: in rescale_to_unit\n    return [(num - min_num) / range_num for num in numbers]\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   ZeroDivisionError: float division by zero\nE   Failing test case: test_affine_invariance_positive_scale(\nE       numbers=[0.0, 2.161300654691441e-271],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.5557469725608826
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.3770926296710968,
+        "test_asserts_unspecified": 0.23537392914295197,
+        "test_is_broken": 0.23410262167453766,
+        "ambiguous_spec": 0.15343090891838074
+      },
+      "confidence": 0.1694568395614624
+    }
+  },
+  "usage": {
+    "input_tokens": 857,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0611528750159778
+}

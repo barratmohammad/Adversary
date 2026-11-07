@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/13: `greatest_common_divisor`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef greatest_common_divisor(a: int, b: int) -> int:\n    \"\"\" Return a greatest common divisor of two integers a and b\n    >>> greatest_common_divisor(3, 5)\n    1\n    >>> greatest_common_divisor(25, 15)\n    5\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert greatest_common_divisor(5, 0) == 5\ndef test_zero_second_arg_is_first():\n    assert greatest_common_divisor(5, 0) == 5\n    assert greatest_common_divisor(15, 0) == 15\n    assert greatest_common_divisor(1, 0) == 1",
+      "counterexample": "(none reported)",
+      "failure_output": "assert 0 == 5\n +  where 0 = greatest_common_divisor(5, 0)\nadversary_tests/test_adversary.py:34: in test_zero_second_arg_is_first\n    assert greatest_common_divisor(5, 0) == 5\nE   assert 0 == 5\nE    +  where 0 = greatest_common_divisor(5, 0)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7270961999893188
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.7392399311065674,
+        "test_asserts_unspecified": 0.1289544403553009,
+        "test_is_broken": 0.011526448652148247,
+        "ambiguous_spec": 0.12027914077043533
+      },
+      "confidence": 0.6523199081420898
+    }
+  },
+  "usage": {
+    "input_tokens": 538,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.6209892080223653
+}

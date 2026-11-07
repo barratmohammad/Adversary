@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/13: `greatest_common_divisor`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef greatest_common_divisor(a: int, b: int) -> int:\n    \"\"\" Return a greatest common divisor of two integers a and b\n    >>> greatest_common_divisor(3, 5)\n    1\n    >>> greatest_common_divisor(25, 15)\n    5\n    \"\"\"\n```",
+      "failing_test": "@given(st.integers(min_value=-50, max_value=50), st.integers(min_value=-50, max_value=50))\ndef test_property_matches_math_gcd_reference(a, b):\n    assert greatest_common_divisor(a, b) == math.gcd(a, b)",
+      "counterexample": "test_property_matches_math_gcd_reference(| a=0, | b=-1, | )",
+      "failure_output": "ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n+ Exception Group Traceback (most recent call last):\n  |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-151527-2b4a96/work/adversary_tests/test_adversary.py\", line 57, in test_property_matches_math_gcd_reference\n  |     def test_property_matches_math_gcd_reference(a, b):\n  |                    ^^^\n  | ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n  +-+---------------- 1 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-151527-2b4a96/work/adversary_tests/test_adversary.py\", line 58, in test_property_matches_math_gcd_reference\n    |     assert greatest_common_divisor(a, b) == math.gcd(a, b)\n    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-151527-2b4a96/work/solution.py\", line 11, in greatest_common_divisor\n    |     raise ValueError(\"a and b must be non-negative\")\n    | ValueError: a and b must be non-negative\n    | Failing test case: test_property_matches_math_gcd_reference(\n    |     a=0,\n    |     b=-1,\n    | )\n    +---------------- 2 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-151527-2b4a96/work/adversary_tests/test_adversary.py\", line 58, in test_property_matches_math_gcd_reference\n    |     assert greatest_common_divisor(a, b) == math.gcd(a, b)\n    | AssertionError: assert 0 == 1\n    |  +  where 0 = greatest_common_divisor(0, 1)\n    |  +  and   1 = <built-in function gcd>(0, 1)\n    |  +    where <built-in function gcd> = math.gcd\n    | Failing test case: test_property_matches_math_gcd_reference(\n    |     a=0,\n    |     b=1,\n    | )\n    +------------------------------------",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8879659175872803
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.4061851501464844,
+        "test_asserts_unspecified": 0.2711441218852997,
+        "test_is_broken": 0.004471436142921448,
+        "ambiguous_spec": 0.3181993067264557
+      },
+      "confidence": 0.20824686686197916
+    }
+  },
+  "usage": {
+    "input_tokens": 1050,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.043198792001931
+}

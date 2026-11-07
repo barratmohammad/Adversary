@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/140: `fix_spaces`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef fix_spaces(text):\n    \"\"\"\n    Given a string text, replace all spaces in it with underscores, \n    and if a string has more than 2 consecutive spaces, \n    then replace all consecutive spaces with - \n    \n    fix_spaces(\"Example\") == \"Example\"\n    fix_spaces(\"Example 1\") == \"Example_1\"\n    fix_spaces(\" Example 2\") == \"_Example_2\"\n    fix_spaces(\" Example   3\") == \"_Example-3\"\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert fix_spaces(s) == reference_fix_spaces(s)\ndef reference_fix_spaces(text):\n    res = []\n    i = 0\n    n = len(text)\n    while i < n:\n        if text[i] != ' ':\n            res.append(text[i])\n            i += 1\n        else:\n            j = i\n            while j < n and text[j] == ' ':\n                j += 1\n            run = j - i\n            if run == 1:\n                res.append('_')\n            elif run == 2:\n                res.append('__')\n            else:\n                res.append('-')\n            i = j\n    return ''.join(res)\n\n@given(st.text(alphabet=st.sampled_from([\"a\", \"b\", \" \"]), min_size=0, max_size=15))\ndef test_property_equivalence_to_reference_model(s):\n    assert fix_spaces(s) == reference_fix_spaces(s)",
+      "counterexample": "test_property_equivalence_to_reference_model(s=' ')",
+      "failure_output": "AssertionError: assert '-_' == '-'\n  \n  - -\n  + -_\nFailing test case: test_property_equivalence_to_reference_model(\n    s='    ',\n)\nadversary_tests/test_adversary.py:147: in test_property_equivalence_to_reference_model\n    def test_property_equivalence_to_reference_model(s):\n                   ^^^\nadversary_tests/test_adversary.py:148: in test_property_equivalence_to_reference_model\n    assert fix_spaces(s) == reference_fix_spaces(s)\nE   AssertionError: assert '-_' == '-'\nE     \nE     - -\nE     + -_\nE   Failing test case: test_property_equivalence_to_reference_model(\nE       s='    ',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8856556415557861
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9181259274482727,
+        "test_asserts_unspecified": 0.03903054818511009,
+        "test_is_broken": 0.023971013724803925,
+        "ambiguous_spec": 0.018872588872909546
+      },
+      "confidence": 0.8908345699310303
+    }
+  },
+  "usage": {
+    "input_tokens": 815,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.064117834001081
+}

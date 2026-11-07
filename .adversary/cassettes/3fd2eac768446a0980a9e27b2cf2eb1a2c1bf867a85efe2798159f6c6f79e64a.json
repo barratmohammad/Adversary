@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/122: `add_elements`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef add_elements(arr, k):\n    \"\"\"\n    Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at most two digits from the first k elements of arr.\n\n    Example:\n\n        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4\n        Output: 24 # sum of 21 + 3\n\n    Constraints:\n        1. 1 <= len(arr) <= 100\n        2. 1 <= k <= len(arr)\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert add_elements([-100, -101, -123, -999], 4) == 0\ndef ref(arr, k):\n    # Obviously-correct model: at most two digits <=> abs value <= 99\n    # (single digit 0-9, two digits 10-99, same for negatives ignoring sign)\n    return sum(x for x in arr[:k] if abs(x) <= 99)\n\n\ndef test_negative_three_digits_excluded_range():\n    # every value in [-999, -100] has 3 digits -> excluded\n    assert add_elements([-100, -101, -123, -999], 4) == 0",
+      "counterexample": "(none reported)",
+      "failure_output": "assert -1323 == 0\n +  where -1323 = add_elements([-100, -101, -123, -999], 4)\nadversary_tests/test_adversary.py:73: in test_negative_three_digits_excluded_range\n    assert add_elements([-100, -101, -123, -999], 4) == 0\nE   assert -1323 == 0\nE    +  where -1323 = add_elements([-100, -101, -123, -999], 4)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7085825204849243
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.7885881662368774,
+        "test_asserts_unspecified": 0.08699103444814682,
+        "test_is_broken": 0.012648125179111958,
+        "ambiguous_spec": 0.11177275329828262
+      },
+      "confidence": 0.7181175549825033
+    }
+  },
+  "usage": {
+    "input_tokens": 758,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.128748082992388
+}

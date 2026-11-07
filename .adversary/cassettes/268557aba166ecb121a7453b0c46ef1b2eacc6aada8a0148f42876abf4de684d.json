@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/13: `greatest_common_divisor`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef greatest_common_divisor(a: int, b: int) -> int:\n    \"\"\" Return a greatest common divisor of two integers a and b\n    >>> greatest_common_divisor(3, 5)\n    1\n    >>> greatest_common_divisor(25, 15)\n    5\n    \"\"\"\n```",
+      "failing_test": "@given(\n    st.integers(min_value=-20, max_value=20),\n    st.integers(min_value=-20, max_value=20),\n    st.integers(min_value=1, max_value=10),\n)\ndef test_property_common_divisor_is_not_greater(a, b, d):\n    # Any common divisor cannot exceed the gcd (for non-zero pair).\n    g = greatest_common_divisor(a, b)\n    if a == 0 and b == 0:\n        return\n    if d != 0 and a % d == 0 and b % d == 0:\n        assert abs(d) <= g",
+      "counterexample": "test_property_common_divisor_is_not_greater(| a=0, | b=-1, | d=1, | )",
+      "failure_output": "ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n+ Exception Group Traceback (most recent call last):\n  |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-151527-2b4a96/work/adversary_tests/test_adversary.py\", line 88, in test_property_common_divisor_is_not_greater\n  |     st.integers(min_value=-20, max_value=20),\n  |                ^^^\n  | ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n  +-+---------------- 1 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-151527-2b4a96/work/adversary_tests/test_adversary.py\", line 94, in test_property_common_divisor_is_not_greater\n    |     g = greatest_common_divisor(a, b)\n    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-151527-2b4a96/work/solution.py\", line 11, in greatest_common_divisor\n    |     raise ValueError(\"a and b must be non-negative\")\n    | ValueError: a and b must be non-negative\n    | Failing test case: test_property_common_divisor_is_not_greater(\n    |     a=0,\n    |     b=-1,\n    |     d=1,\n    | )\n    +---------------- 2 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-151527-2b4a96/work/adversary_tests/test_adversary.py\", line 98, in test_property_common_divisor_is_not_greater\n    |     assert abs(d) <= g\n    | AssertionError: assert 1 <= 0\n    |  +  where 1 = abs(1)\n    | Failing test case: test_property_common_divisor_is_not_greater(\n    |     a=0,\n    |     b=1,\n    |     d=1,\n    | )\n    +------------------------------------",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8312167525291443
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.4044317305088043,
+        "test_asserts_unspecified": 0.24446441233158112,
+        "test_is_broken": 0.011234492994844913,
+        "ambiguous_spec": 0.3398693799972534
+      },
+      "confidence": 0.2059089740117391
+    }
+  },
+  "usage": {
+    "input_tokens": 1102,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.5149347090045922
+}

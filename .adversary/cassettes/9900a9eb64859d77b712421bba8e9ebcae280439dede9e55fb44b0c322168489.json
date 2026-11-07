@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/106: `f`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef f(n):\n    \"\"\" Implement the function f that takes n as a parameter,\n    and returns a list of size n, such that the value of the element at index i is the factorial of i if i is even\n    or the sum of numbers from 1 to i otherwise.\n    i starts from 1.\n    the factorial of i is the multiplication of the numbers from 1 to i (1 * 2 * ... * i).\n    Example:\n    f(5) == [1, 2, 6, 24, 15]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert len(result) == n\ndef reference(n):\n    \"\"\"Obviously-correct direct translation of spec.\"\"\"\n    return [\n        math.factorial(i) if i % 2 == 0 else i * (i + 1) // 2\n        for i in range(1, n + 1)\n    ]\n\n@given(st.integers(min_value=0, max_value=20))\ndef test_size_equals_n(n):\n    result = f(n)\n    assert isinstance(result, list)\n    assert len(result) == n",
+      "counterexample": "test_size_equals_n(n=0)",
+      "failure_output": "assert 2 == 0\n +  where 2 = len([1, 2])\nFailing test case: test_size_equals_n(\n    n=0,\n)\nadversary_tests/test_adversary.py:60: in test_size_equals_n\n    def test_size_equals_n(n):\n                   ^^^\nadversary_tests/test_adversary.py:63: in test_size_equals_n\n    assert len(result) == n\nE   assert 2 == 0\nE    +  where 2 = len([1, 2])\nE   Failing test case: test_size_equals_n(\nE       n=0,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9620544910430908
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9165784120559692,
+        "test_asserts_unspecified": 0.05788910761475563,
+        "test_is_broken": 0.006621880456805229,
+        "ambiguous_spec": 0.01891065016388893
+      },
+      "confidence": 0.8887712160746256
+    }
+  },
+  "usage": {
+    "input_tokens": 709,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.1407358339929488
+}

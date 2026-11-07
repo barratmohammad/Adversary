@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/147: `get_max_triples`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef get_max_triples(n):\n    \"\"\"\n    You are given a positive integer n. You have to create an integer array a of length n.\n        For each i (1 \u2264 i \u2264 n), the value of a[i] = i * i - i + 1.\n        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, \n    and a[i] + a[j] + a[k] is a multiple of 3.\n\n    Example :\n        Input: n = 5\n        Output: 1\n        Explanation: \n        a = [1, 3, 7, 13, 21]\n        The only valid triple is (1, 7, 13).\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert type(r) is int, f\"n={n} returned {r!r} of type {type(r)}\"\ndef brute_reference(n):\n    \"\"\"Obviously-correct brute force directly from spec.\"\"\"\n    a = [i * i - i + 1 for i in range(1, n + 1)]\n    count = 0\n    for i in range(n):\n        for j in range(i + 1, n):\n            for k in range(j + 1, n):\n                if (a[i] + a[j] + a[k]) % 3 == 0:\n                    count += 1\n    return count\n\ndef residue_reference(n):\n    \"\"\"Independent model: a[i] mod 3 is 0 iff i%3==2 else 1, so only\n    homogeneous triples count.\"\"\"\n    c0 = sum(1 for i in range(1, n + 1) if i % 3 == 2)\n    c1 = n - c0\n    return math.comb(c0, 3) + math.comb(c1, 3) if n >= 3 else 0\n\n\ndef test_returns_int_not_bool_for_small_n():\n    for n in [1, 2, 3]:\n        r = get_max_triples(n)\n        assert type(r) is int, f\"n={n} returned {r!r} of type {type(r)}\"\n        assert isinstance(r, int) and not isinstance(r, bool)",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: n=1 returned False of type <class 'bool'>\nassert <class 'bool'> is int\n +  where <class 'bool'> = type(False)\nadversary_tests/test_adversary.py:62: in test_returns_int_not_bool_for_small_n\n    assert type(r) is int, f\"n={n} returned {r!r} of type {type(r)}\"\nE   AssertionError: n=1 returned False of type <class 'bool'>\nE   assert <class 'bool'> is int\nE    +  where <class 'bool'> = type(False)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.5129556059837341
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.10969286412000656,
+        "test_asserts_unspecified": 0.8504947423934937,
+        "test_is_broken": 0.028941884636878967,
+        "ambiguous_spec": 0.01087053120136261
+      },
+      "confidence": 0.8006596565246582
+    }
+  },
+  "usage": {
+    "input_tokens": 950,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 2.2863867089909036
+}

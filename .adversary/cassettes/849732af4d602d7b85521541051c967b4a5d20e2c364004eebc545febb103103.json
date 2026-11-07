@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/21: `rescale_to_unit`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List\n\n\ndef rescale_to_unit(numbers: List[float]) -> List[float]:\n    \"\"\" Given list of numbers (of at least two elements), apply a linear transform to that list,\n    such that the smallest number will become 0 and the largest will become 1\n    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])\n    [0.0, 0.25, 0.5, 0.75, 1.0]\n    \"\"\"\n```",
+      "failing_test": "# failing line: raise InvalidArgument(\ndef reference(numbers):\n    lo = min(numbers)\n    hi = max(numbers)\n    return [(x - lo) / (hi - lo) for x in numbers]\n\n@given(lists, st.floats(min_value=0.1, max_value=100, allow_nan=False, allow_infinity=False, width=32))\ndef test_positive_scaling_invariance(numbers, scale):\n    assume(max(numbers) != min(numbers))\n    assume(all(abs(x * scale) < 1e9 for x in numbers))\n    a = rescale_to_unit(numbers)\n    b = rescale_to_unit([x * scale for x in numbers])\n    assert a == pytest.approx(b)",
+      "counterexample": "(none reported)",
+      "failure_output": "hypothesis.errors.InvalidArgument: min_value=0.1 cannot be exactly represented as a float of width 32 - use min_value=0.10000000149011612 instead.\nadversary_tests/test_adversary.py:123: in test_positive_scaling_invariance\n    def test_positive_scaling_invariance(numbers, scale):\n                   ^^^\n../../../.venv/lib/python3.12/site-packages/hypothesis/core.py:772: in process_arguments_to_given\n    s.validate()\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/strategies.py:560: in validate\n    self.do_validate()\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/lazy.py:166: in do_validate\n    w = self.wrapped_strategy\n        ^^^^^^^^^^^^^^^^^^^^^\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/lazy.py:131: in wrapped_strategy\n    base = self.function(*self.__args, **self.__kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/numbers.py:398: in floats\n    raise InvalidArgument(\nE   hypothesis.errors.InvalidArgument: min_value=0.1 cannot be exactly represented as a float of width 32 - use min_value=0.10000000149011612 instead.",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.004481131210923195
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_is_broken",
+      "probabilities": {
+        "implementation_bug": 0.0011141096474602818,
+        "test_asserts_unspecified": 0.0013494073646143079,
+        "test_is_broken": 0.997334361076355,
+        "ambiguous_spec": 0.00020212733943480998
+      },
+      "confidence": 0.9964458147684733
+    }
+  },
+  "usage": {
+    "input_tokens": 953,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 2.2534726659941953
+}

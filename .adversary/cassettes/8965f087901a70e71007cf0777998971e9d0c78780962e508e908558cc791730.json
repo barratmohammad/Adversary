@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/43: `pairs_sum_to_zero`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef pairs_sum_to_zero(l):\n    \"\"\"\n    pairs_sum_to_zero takes a list of integers as an input.\n    it returns True if there are two distinct elements in the list that\n    sum to zero, and False otherwise.\n    >>> pairs_sum_to_zero([1, 3, 5, 0])\n    False\n    >>> pairs_sum_to_zero([1, 3, -2, 1])\n    False\n    >>> pairs_sum_to_zero([1, 2, 3, 7])\n    False\n    >>> pairs_sum_to_zero([2, 4, -5, 3, 5, 7])\n    True\n    >>> pairs_sum_to_zero([1])\n    False\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert pairs_sum_to_zero(l) is reference(l)\ndef reference(l):\n    n = len(l)\n    for i in range(n):\n        for j in range(i + 1, n):\n            if l[i] + l[j] == 0:\n                return True\n    return False\n\n@given(st.lists(st.integers(min_value=-10, max_value=10), min_size=2, max_size=10))\ndef test_distinct_indices_not_distinct_values(l):\n    # reference explicitly requires i<j; result must match that, catching\n    # set-collapsing bugs around [0,0].\n    assert pairs_sum_to_zero(l) is reference(l)",
+      "counterexample": "test_distinct_indices_not_distinct_values(l=[0, 0])",
+      "failure_output": "assert False is True\n +  where False = pairs_sum_to_zero([0, 0])\n +  and   True = reference([0, 0])\nFailing test case: test_distinct_indices_not_distinct_values(\n    l=[0, 0],\n)\nadversary_tests/test_adversary.py:165: in test_distinct_indices_not_distinct_values\n    def test_distinct_indices_not_distinct_values(l):\n                   ^^^\nadversary_tests/test_adversary.py:168: in test_distinct_indices_not_distinct_values\n    assert pairs_sum_to_zero(l) is reference(l)\nE   assert False is True\nE    +  where False = pairs_sum_to_zero([0, 0])\nE    +  and   True = reference([0, 0])\nE   Failing test case: test_distinct_indices_not_distinct_values(\nE       l=[0, 0],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9734596014022827
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9054080247879028,
+        "test_asserts_unspecified": 0.05041639879345894,
+        "test_is_broken": 0.0061589498072862625,
+        "ambiguous_spec": 0.03801657631993294
+      },
+      "confidence": 0.8738773663838705
+    }
+  },
+  "usage": {
+    "input_tokens": 853,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.7205967090267222
+}

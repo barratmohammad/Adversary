@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/21: `rescale_to_unit`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List\n\n\ndef rescale_to_unit(numbers: List[float]) -> List[float]:\n    \"\"\" Given list of numbers (of at least two elements), apply a linear transform to that list,\n    such that the smallest number will become 0 and the largest will become 1\n    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])\n    [0.0, 0.25, 0.5, 0.75, 1.0]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert ys[i] < ys[j] or math.isclose(ys[i], ys[j]) is False and ys[i] <= ys[j]\ndef reference(numbers):\n    mn = min(numbers)\n    mx = max(numbers)\n    return [(x - mn) / (mx - mn) for x in numbers]\n\n@given(lists_distinct)\ndef test_order_preserved(xs):\n    ys = rescale_to_unit(xs)\n    for i in range(len(xs)):\n        for j in range(len(xs)):\n            if xs[i] < xs[j]:\n                assert ys[i] < ys[j] or math.isclose(ys[i], ys[j]) is False and ys[i] <= ys[j]\n                assert ys[i] <= ys[j]\n            elif xs[i] == xs[j]:\n                assert ys[i] == pytest.approx(ys[j])\n            else:\n                assert ys[i] >= ys[j]",
+      "counterexample": "test_order_preserved(xs=[0.0, 2.225073858507203e-309, -1.0])",
+      "failure_output": "assert (1.0 < 1.0 or (True is False))\n +  where True = <built-in function isclose>(1.0, 1.0)\n +    where <built-in function isclose> = math.isclose\nFailing test case: test_order_preserved(\n    xs=[0.0, 2.225073858507203e-309, -1.0],\n)\nadversary_tests/test_adversary.py:76: in test_order_preserved\n    def test_order_preserved(xs):\n                   ^^^\nadversary_tests/test_adversary.py:81: in test_order_preserved\n    assert ys[i] < ys[j] or math.isclose(ys[i], ys[j]) is False and ys[i] <= ys[j]\nE   assert (1.0 < 1.0 or (True is False))\nE    +  where True = <built-in function isclose>(1.0, 1.0)\nE    +    where <built-in function isclose> = math.isclose\nE   Failing test case: test_order_preserved(\nE       xs=[0.0, 2.225073858507203e-309, -1.0],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.37305861711502075
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.20026728510856628,
+        "test_asserts_unspecified": 0.5345816612243652,
+        "test_is_broken": 0.19437265396118164,
+        "ambiguous_spec": 0.07077846676111221
+      },
+      "confidence": 0.3794422149658203
+    }
+  },
+  "usage": {
+    "input_tokens": 976,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.776000916986959
+}

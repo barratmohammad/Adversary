@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/43: `pairs_sum_to_zero`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef pairs_sum_to_zero(l):\n    \"\"\"\n    pairs_sum_to_zero takes a list of integers as an input.\n    it returns True if there are two distinct elements in the list that\n    sum to zero, and False otherwise.\n    >>> pairs_sum_to_zero([1, 3, 5, 0])\n    False\n    >>> pairs_sum_to_zero([1, 3, -2, 1])\n    False\n    >>> pairs_sum_to_zero([1, 2, 3, 7])\n    False\n    >>> pairs_sum_to_zero([2, 4, -5, 3, 5, 7])\n    True\n    >>> pairs_sum_to_zero([1])\n    False\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert pairs_sum_to_zero([0, 0, 0]) is True\ndef reference(l):\n    n = len(l)\n    for i in range(n):\n        for j in range(i + 1, n):\n            if l[i] + l[j] == 0:\n                return True\n    return False\n\n\ndef test_three_zeros_is_true():\n    assert pairs_sum_to_zero([0, 0, 0]) is True",
+      "counterexample": "(none reported)",
+      "failure_output": "assert False is True\n +  where False = pairs_sum_to_zero([0, 0, 0])\nadversary_tests/test_adversary.py:65: in test_three_zeros_is_true\n    assert pairs_sum_to_zero([0, 0, 0]) is True\nE   assert False is True\nE    +  where False = pairs_sum_to_zero([0, 0, 0])",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9018731713294983
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9035200476646423,
+        "test_asserts_unspecified": 0.0518498420715332,
+        "test_is_broken": 0.020077120512723923,
+        "ambiguous_spec": 0.024553008377552032
+      },
+      "confidence": 0.8713600635528564
+    }
+  },
+  "usage": {
+    "input_tokens": 662,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.5201532909995876
+}

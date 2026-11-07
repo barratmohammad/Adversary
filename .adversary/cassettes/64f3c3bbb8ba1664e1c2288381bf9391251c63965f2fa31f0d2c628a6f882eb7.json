@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/106: `f`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef f(n):\n    \"\"\" Implement the function f that takes n as a parameter,\n    and returns a list of size n, such that the value of the element at index i is the factorial of i if i is even\n    or the sum of numbers from 1 to i otherwise.\n    i starts from 1.\n    the factorial of i is the multiplication of the numbers from 1 to i (1 * 2 * ... * i).\n    Example:\n    f(5) == [1, 2, 6, 24, 15]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert len(res) == 0, f\"negative n={n} must not yield list of length {len(res)}\"\ndef reference(n):\n    out = []\n    for i in range(1, n + 1):\n        if i % 2 == 0:\n            out.append(math.factorial(i))\n        else:\n            out.append(i * (i + 1) // 2)\n    return out\n\n@given(st.integers(min_value=-10, max_value=-1))\ndef test_negative_input_does_not_return_wrong_size(n):\n    # Spec requires list of size n; for n < 0 no list can satisfy it,\n    # so a spec-compliant implementation must raise or return empty.\n    # It must NOT return a non-empty list of wrong length (e.g. [1, 2]).\n    try:\n        res = f(n)\n    except (ValueError, TypeError, OverflowError):\n        return\n    assert isinstance(res, list)\n    assert len(res) == 0, f\"negative n={n} must not yield list of length {len(res)}\"",
+      "counterexample": "test_negative_input_does_not_return_wrong_size(n=-1)",
+      "failure_output": "AssertionError: negative n=-1 must not yield list of length 2\nassert 2 == 0\n +  where 2 = len([1, 2])\nFailing test case: test_negative_input_does_not_return_wrong_size(\n    n=-1,\n)\nadversary_tests/test_adversary.py:117: in test_negative_input_does_not_return_wrong_size\n    def test_negative_input_does_not_return_wrong_size(n):\n                   ^^^\nadversary_tests/test_adversary.py:126: in test_negative_input_does_not_return_wrong_size\n    assert len(res) == 0, f\"negative n={n} must not yield list of length {len(res)}\"\nE   AssertionError: negative n=-1 must not yield list of length 2\nE   assert 2 == 0\nE    +  where 2 = len([1, 2])\nE   Failing test case: test_negative_input_does_not_return_wrong_size(\nE       n=-1,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.6999400854110718
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.10508915781974792,
+        "test_asserts_unspecified": 0.4663269817829132,
+        "test_is_broken": 0.011028414592146873,
+        "ambiguous_spec": 0.41755539178848267
+      },
+      "confidence": 0.28843597571055096
+    }
+  },
+  "usage": {
+    "input_tokens": 911,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.805682792008156
+}

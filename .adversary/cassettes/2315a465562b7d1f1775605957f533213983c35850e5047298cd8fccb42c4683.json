@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/122: `add_elements`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef add_elements(arr, k):\n    \"\"\"\n    Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at most two digits from the first k elements of arr.\n\n    Example:\n\n        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4\n        Output: 24 # sum of 21 + 3\n\n    Constraints:\n        1. 1 <= len(arr) <= 100\n        2. 1 <= k <= len(arr)\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert add_elements(arr, k) == sum(arr)\ndef ref(arr, k):\n    \"\"\"Obviously-correct reference: at most two digits means abs(x) <= 99.\"\"\"\n    return sum(x for x in arr[:k] if abs(x) <= 99)\n\n@given(st.lists(st.integers(min_value=-99, max_value=99), min_size=1, max_size=20))\ndef test_property_all_two_digit_numbers_fully_summed(arr):\n    # everything has <= 2 digits so result must be plain sum of first k\n    k = len(arr)\n    assert add_elements(arr, k) == sum(arr)",
+      "counterexample": "test_property_all_two_digit_numbers_fully_summed(arr=[-10])",
+      "failure_output": "assert 0 == -10\n +  where 0 = add_elements([-10], 1)\n +  and   -10 = sum([-10])\nFailing test case: test_property_all_two_digit_numbers_fully_summed(\n    arr=[-10],\n)\nadversary_tests/test_adversary.py:112: in test_property_all_two_digit_numbers_fully_summed\n    def test_property_all_two_digit_numbers_fully_summed(arr):\n                   ^^^\nadversary_tests/test_adversary.py:115: in test_property_all_two_digit_numbers_fully_summed\n    assert add_elements(arr, k) == sum(arr)\nE   assert 0 == -10\nE    +  where 0 = add_elements([-10], 1)\nE    +  and   -10 = sum([-10])\nE   Failing test case: test_property_all_two_digit_numbers_fully_summed(\nE       arr=[-10],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8837202191352844
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.4889146089553833,
+        "test_asserts_unspecified": 0.13540592789649963,
+        "test_is_broken": 0.006539355963468552,
+        "ambiguous_spec": 0.3691401183605194
+      },
+      "confidence": 0.31855281194051105
+    }
+  },
+  "usage": {
+    "input_tokens": 833,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 3.89216945800581
+}

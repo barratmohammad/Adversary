@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/43: `pairs_sum_to_zero`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef pairs_sum_to_zero(l):\n    \"\"\"\n    pairs_sum_to_zero takes a list of integers as an input.\n    it returns True if there are two distinct elements in the list that\n    sum to zero, and False otherwise.\n    >>> pairs_sum_to_zero([1, 3, 5, 0])\n    False\n    >>> pairs_sum_to_zero([1, 3, -2, 1])\n    False\n    >>> pairs_sum_to_zero([1, 2, 3, 7])\n    False\n    >>> pairs_sum_to_zero([2, 4, -5, 3, 5, 7])\n    True\n    >>> pairs_sum_to_zero([1])\n    False\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert pairs_sum_to_zero(l + l) is reference(l + l)\ndef reference(l):\n    n = len(l)\n    for i in range(n):\n        for j in range(i + 1, n):\n            if l[i] + l[j] == 0:\n                return True\n    return False\n\n@given(st.lists(st.integers(min_value=-10, max_value=10), min_size=0, max_size=8))\ndef test_duplicating_list_preserves_result(l):\n    # idempotence-ish: l+l has a zero-sum pair iff l does, OR l contains 0\n    # (since duplication creates a second copy of 0). Check against reference.\n    assert pairs_sum_to_zero(l + l) is reference(l + l)\n    if 0 not in l:\n        assert pairs_sum_to_zero(l + l) is pairs_sum_to_zero(l)",
+      "counterexample": "test_duplicating_list_preserves_result(l=[0])",
+      "failure_output": "assert False is True\n +  where False = pairs_sum_to_zero(([0] + [0]))\n +  and   True = reference(([0] + [0]))\nFailing test case: test_duplicating_list_preserves_result(\n    l=[0],\n)\nadversary_tests/test_adversary.py:156: in test_duplicating_list_preserves_result\n    def test_duplicating_list_preserves_result(l):\n                   ^^^\nadversary_tests/test_adversary.py:159: in test_duplicating_list_preserves_result\n    assert pairs_sum_to_zero(l + l) is reference(l + l)\nE   assert False is True\nE    +  where False = pairs_sum_to_zero(([0] + [0]))\nE    +  and   True = reference(([0] + [0]))\nE   Failing test case: test_duplicating_list_preserves_result(\nE       l=[0],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9542662501335144
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8224920630455017,
+        "test_asserts_unspecified": 0.10139954090118408,
+        "test_is_broken": 0.008062978275120258,
+        "ambiguous_spec": 0.0680454671382904
+      },
+      "confidence": 0.7633227507273356
+    }
+  },
+  "usage": {
+    "input_tokens": 897,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0524104169744533
+}

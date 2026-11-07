@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/10: `make_palindrome`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef is_palindrome(string: str) -> bool:\n    \"\"\" Test if given string is a palindrome \"\"\"\n    return string == string[::-1]\n\n\ndef make_palindrome(string: str) -> str:\n    \"\"\" Find the shortest palindrome that begins with a supplied string.\n    Algorithm idea is simple:\n    - Find the longest postfix of supplied string that is a palindrome.\n    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.\n    >>> make_palindrome('')\n    ''\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cata')\n    'catac'\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert r == s + s[:i][::-1]\ndef reference(s: str) -> str:\n    \"\"\"Obviously-correct brute force: first i where suffix is palindrome.\"\"\"\n    if s == s[::-1]:\n        return s\n    for i in range(len(s)):\n        suffix = s[i:]\n        if suffix == suffix[::-1]:\n            return s + s[:i][::-1]\n    # single char suffix is always a palindrome; unreachable for non-empty\n    return s + s[:-1][::-1]\n\n@given(st.text(alphabet=st.sampled_from([\"a\", \"b\", \"c\"]), min_size=1, max_size=10))\ndef test_uses_longest_palindromic_suffix(s):\n    r = make_palindrome(s)\n    # appended part must be reverse of prefix before the palindromic suffix\n    k = len(r) - len(s)  # number of appended chars\n    i = len(s) - k\n    assert 0 <= i <= len(s)\n    assert r == s + s[:i][::-1]\n    assert is_palindrome(s[i:])\n    # longest: no smaller i gives palindromic suffix\n    for j in range(0, i):\n        assert not is_palindrome(s[j:])",
+      "counterexample": "test_uses_longest_palindromic_suffix(s='a')",
+      "failure_output": "AssertionError: assert 'a' == 'aa'\n  \n  - aa\n  + a\nFailing test case: test_uses_longest_palindromic_suffix(\n    s='a',\n)\nadversary_tests/test_adversary.py:103: in test_uses_longest_palindromic_suffix\n    def test_uses_longest_palindromic_suffix(s):\n                   ^^^\nadversary_tests/test_adversary.py:109: in test_uses_longest_palindromic_suffix\n    assert r == s + s[:i][::-1]\nE   AssertionError: assert 'a' == 'aa'\nE     \nE     - aa\nE     + a\nE   Failing test case: test_uses_longest_palindromic_suffix(\nE       s='a',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.1782161146402359
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_is_broken",
+      "probabilities": {
+        "implementation_bug": 0.21244992315769196,
+        "test_asserts_unspecified": 0.05418616905808449,
+        "test_is_broken": 0.7125630974769592,
+        "ambiguous_spec": 0.02080080285668373
+      },
+      "confidence": 0.6167507966359457
+    }
+  },
+  "usage": {
+    "input_tokens": 960,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.7404311660211533
+}

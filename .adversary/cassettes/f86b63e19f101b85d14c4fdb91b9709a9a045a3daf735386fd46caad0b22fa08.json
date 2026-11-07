@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/46: `fib4`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib4(n: int):\n    \"\"\"The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:\n    fib4(0) -> 0\n    fib4(1) -> 0\n    fib4(2) -> 2\n    fib4(3) -> 0\n    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).\n    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.\n    >>> fib4(5)\n    4\n    >>> fib4(6)\n    8\n    >>> fib4(7)\n    14\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert \"fib4\" not in fib4.__code__.co_names, (\ndef ref_fib4(n):\n    # Obviously-correct iterative reference model\n    if n == 0:\n        return 0\n    if n == 1:\n        return 0\n    if n == 2:\n        return 2\n    if n == 3:\n        return 0\n    a, b, c, d = 0, 0, 2, 0\n    for _ in range(4, n + 1):\n        e = a + b + c + d\n        a, b, c, d = b, c, d, e\n    return d\n\ndef _call_with_timeout(func, arg, timeout):\n    result = {}\n    error = {}\n\n    def target():\n        try:\n            result[\"value\"] = func(arg)\n        except BaseException as e:  # noqa: BLE001\n            error[\"error\"] = e\n\n    t = threading.Thread(target=target, daemon=True)\n    t.start()\n    t.join(timeout)\n    return t.is_alive(), result.get(\"value\", None), error.get(\"error\", None)\n\n\ndef test_no_recursion_self_reference():\n    # Spec: \"Do not use recursion.\" A recursive implementation\n    # loads its own global name to call itself.\n    assert \"fib4\" not in fib4.__code__.co_names, (\n        f\"fib4 appears to call itself recursively: co_names={fib4.__code__.co_names}\"\n    )\n    src = inspect.getsource(fib4).lower()\n    assert \"recursion\" not in src",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: fib4 appears to call itself recursively: co_names=('fib4',)\nassert 'fib4' not in ('fib4',)\n +  where ('fib4',) = <code object fib4 at 0x109615a10, file \"/Users/guru/Desktop/CVHACKS/runs/20261107-151843-1aabeb/work/solution.py\", line 3>.co_names\n +    where <code object fib4 at 0x109615a10, file \"/Users/guru/Desktop/CVHACKS/runs/20261107-151843-1aabeb/work/solution.py\", line 3> = fib4.__code__\nadversary_tests/test_adversary.py:88: in test_no_recursion_self_reference\n    assert \"fib4\" not in fib4.__code__.co_names, (\nE   AssertionError: fib4 appears to call itself recursively: co_names=('fib4',)\nE   assert 'fib4' not in ('fib4',)\nE    +  where ('fib4',) = <code object fib4 at 0x109615a10, file \"/Users/guru/Desktop/CVHACKS/runs/20261107-151843-1aabeb/work/solution.py\", line 3>.co_names\nE    +    where <code object fib4 at 0x109615a10, file \"/Users/guru/Desktop/CVHACKS/runs/20261107-151843-1aabeb/work/solution.py\", line 3> = fib4.__code__",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.4207676351070404
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9187416434288025,
+        "test_asserts_unspecified": 0.04322007670998573,
+        "test_is_broken": 0.036036282777786255,
+        "ambiguous_spec": 0.002001957269385457
+      },
+      "confidence": 0.8916555245717367
+    }
+  },
+  "usage": {
+    "input_tokens": 1253,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 2.2898518340080045
+}

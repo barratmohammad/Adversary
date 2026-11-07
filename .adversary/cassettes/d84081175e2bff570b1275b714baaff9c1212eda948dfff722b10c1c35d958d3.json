@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/31: `is_prime`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef is_prime(n):\n    \"\"\"Return true if a given number is prime, and false otherwise.\n    >>> is_prime(6)\n    False\n    >>> is_prime(101)\n    True\n    >>> is_prime(11)\n    True\n    >>> is_prime(13441)\n    True\n    >>> is_prime(61)\n    True\n    >>> is_prime(4)\n    False\n    >>> is_prime(1)\n    False\n    \"\"\"\n```",
+      "failing_test": "# failing line: for i in range(2, n):\ndef reference_is_prime(n):\n    \"\"\"Obviously-correct reference: prime iff integer >= 2 with no divisors.\"\"\"\n    # bool is subclass of int; True == 1, False == 0 -> both not prime\n    if isinstance(n, bool):\n        n = int(n)\n    if not isinstance(n, int):\n        return False\n    if n < 2:\n        return False\n    if n == 2:\n        return True\n    if n % 2 == 0:\n        return False\n    r = int(math.isqrt(n))\n    for d in range(3, r + 1, 2):\n        if n % d == 0:\n            return False\n    return True\n\n@given(st.floats(min_value=-100.0, max_value=100.0, allow_nan=False, allow_infinity=False).filter(lambda x: x != int(x)))\ndef test_property_arbitrary_non_integral_floats_are_not_prime(x):\n    assert is_prime(x) is False",
+      "counterexample": "test_property_arbitrary_non_integral_floats_are_not_prime(x=1.5)",
+      "failure_output": "TypeError: 'float' object cannot be interpreted as an integer\nFailing test case: test_property_arbitrary_non_integral_floats_are_not_prime(\n    x=1.5,\n)\nadversary_tests/test_adversary.py:153: in test_property_arbitrary_non_integral_floats_are_not_prime\n    def test_property_arbitrary_non_integral_floats_are_not_prime(x):\n                   ^^^\nadversary_tests/test_adversary.py:154: in test_property_arbitrary_non_integral_floats_are_not_prime\n    assert is_prime(x) is False\n           ^^^^^^^^^^^\nsolution.py:22: in is_prime\n    for i in range(2, n):\n             ^^^^^^^^^^^\nE   TypeError: 'float' object cannot be interpreted as an integer\nE   Failing test case: test_property_arbitrary_non_integral_floats_are_not_prime(\nE       x=1.5,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.40875008702278137
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.10567764937877655,
+        "test_asserts_unspecified": 0.5154948830604553,
+        "test_is_broken": 0.006965647917240858,
+        "ambiguous_spec": 0.37186187505722046
+      },
+      "confidence": 0.35399317741394043
+    }
+  },
+  "usage": {
+    "input_tokens": 874,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0478617080079857
+}

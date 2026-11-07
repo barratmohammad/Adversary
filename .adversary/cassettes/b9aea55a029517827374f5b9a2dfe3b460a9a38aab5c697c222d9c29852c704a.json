@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/6: `parse_nested_parens`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert parse_nested_parens(\" (()()) \") == [2]\ndef ref_max_depth(group: str) -> int:\n    depth = 0\n    best = 0\n    for c in group:\n        if c == \"(\":\n            depth += 1\n            if depth > best:\n                best = depth\n        else:\n            depth -= 1\n    return best\n\ndef ref(paren_string: str) -> List[int]:\n    # Obviously-correct model: split on single-space separator,\n    # ignoring empty tokens produced by leading/trailing/repeated spaces.\n    groups = [g for g in paren_string.split(\" \") if g != \"\"]\n    return [ref_max_depth(g) for g in groups]\n\n\ndef test_leading_trailing_spaces_ignored():\n    assert parse_nested_parens(\" (()()) \") == [2]\n    assert parse_nested_parens(\"  ((()))  \") == [3]\n    assert parse_nested_parens(\" () \") == [1]",
+      "counterexample": "(none reported)",
+      "failure_output": "assert [0, 2, 0] == [2]\n  \n  At index 0 diff: 0 != 2\n  Left contains 2 more items, first extra item: 2\n  Use -v to get more diff\nadversary_tests/test_adversary.py:81: in test_leading_trailing_spaces_ignored\n    assert parse_nested_parens(\" (()()) \") == [2]\nE   assert [0, 2, 0] == [2]\nE     \nE     At index 0 diff: 0 != 2\nE     Left contains 2 more items, first extra item: 2\nE     Use -v to get more diff",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.29038918018341064
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.08577240258455276,
+        "test_asserts_unspecified": 0.4752267897129059,
+        "test_is_broken": 0.014779176563024521,
+        "ambiguous_spec": 0.4242217242717743
+      },
+      "confidence": 0.3003023862838745
+    }
+  },
+  "usage": {
+    "input_tokens": 807,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.5759807910071686
+}

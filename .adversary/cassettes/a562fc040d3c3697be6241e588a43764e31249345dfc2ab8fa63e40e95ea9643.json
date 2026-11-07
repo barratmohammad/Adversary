@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/22: `filter_integers`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List, Any\n\n\ndef filter_integers(values: List[Any]) -> List[int]:\n    \"\"\" Filter given list of any python values only for integers\n    >>> filter_integers(['a', 3.14, 5])\n    [5]\n    >>> filter_integers([1, 2, 3, 'abc', {}, []])\n    [1, 2, 3]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert filter_integers(bools) == []\ndef reference(values):\n    # Obviously-correct model: keep values whose exact logical type is integer,\n    # excluding booleans (bool is a subclass of int but is not an integer value).\n    return [v for v in values if isinstance(v, int) and not isinstance(v, bool)]\n\n@given(st.lists(st.booleans(), min_size=1, max_size=20))\ndef test_bool_lists_always_empty(bools):\n    assert filter_integers(bools) == []",
+      "counterexample": "test_bool_lists_always_empty(bools=[False])",
+      "failure_output": "assert [False] == []\n  \n  Left contains one more item: False\n  Use -v to get more diff\nFailing test case: test_bool_lists_always_empty(\n    bools=[False],\n)\nadversary_tests/test_adversary.py:113: in test_bool_lists_always_empty\n    def test_bool_lists_always_empty(bools):\n                   ^^^\nadversary_tests/test_adversary.py:114: in test_bool_lists_always_empty\n    assert filter_integers(bools) == []\nE   assert [False] == []\nE     \nE     Left contains one more item: False\nE     Use -v to get more diff\nE   Failing test case: test_bool_lists_always_empty(\nE       bools=[False],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.4903898537158966
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "ambiguous_spec",
+      "probabilities": {
+        "implementation_bug": 0.03039027564227581,
+        "test_asserts_unspecified": 0.3283608555793762,
+        "test_is_broken": 0.005584309343248606,
+        "ambiguous_spec": 0.6356645226478577
+      },
+      "confidence": 0.5142193635304769
+    }
+  },
+  "usage": {
+    "input_tokens": 711,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.48949183302465826
+}

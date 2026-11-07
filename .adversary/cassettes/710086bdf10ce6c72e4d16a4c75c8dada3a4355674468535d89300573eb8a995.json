@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/10: `make_palindrome`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef is_palindrome(string: str) -> bool:\n    \"\"\" Test if given string is a palindrome \"\"\"\n    return string == string[::-1]\n\n\ndef make_palindrome(string: str) -> str:\n    \"\"\" Find the shortest palindrome that begins with a supplied string.\n    Algorithm idea is simple:\n    - Find the longest postfix of supplied string that is a palindrome.\n    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.\n    >>> make_palindrome('')\n    ''\n    >>> make_palindrome('cat')\n    'catac'\n    >>> make_palindrome('cata')\n    'catac'\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert len(r) == len(reference(s))\ndef reference(s: str) -> str:\n    \"\"\"Obviously-correct brute force: first i where suffix is palindrome.\"\"\"\n    if s == s[::-1]:\n        return s\n    for i in range(len(s)):\n        suffix = s[i:]\n        if suffix == suffix[::-1]:\n            return s + s[:i][::-1]\n    # single char suffix is always a palindrome; unreachable for non-empty\n    return s + s[:-1][::-1]\n\n@given(st.text(alphabet=st.sampled_from([\"a\", \"b\", \"c\"]), min_size=0, max_size=10))\ndef test_length_is_minimal_matches_reference_length(s):\n    r = make_palindrome(s)\n    assert len(r) == len(reference(s))",
+      "counterexample": "test_length_is_minimal_matches_reference_length(s='abb')",
+      "failure_output": "AssertionError: assert 5 == 4\n +  where 5 = len('abbba')\n +  and   4 = len('abba')\n +    where 'abba' = reference('abb')\nFailing test case: test_length_is_minimal_matches_reference_length(\n    s='abb',\n)\nadversary_tests/test_adversary.py:80: in test_length_is_minimal_matches_reference_length\n    def test_length_is_minimal_matches_reference_length(s):\n                   ^^^\nadversary_tests/test_adversary.py:82: in test_length_is_minimal_matches_reference_length\n    assert len(r) == len(reference(s))\nE   AssertionError: assert 5 == 4\nE    +  where 5 = len('abbba')\nE    +  and   4 = len('abba')\nE    +    where 'abba' = reference('abb')\nE   Failing test case: test_length_is_minimal_matches_reference_length(\nE       s='abb',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9418135285377502
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9614109992980957,
+        "test_asserts_unspecified": 0.02255938947200775,
+        "test_is_broken": 0.012570844031870365,
+        "ambiguous_spec": 0.003458756487816572
+      },
+      "confidence": 0.9485479990641276
+    }
+  },
+  "usage": {
+    "input_tokens": 897,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.1500582909793593
+}

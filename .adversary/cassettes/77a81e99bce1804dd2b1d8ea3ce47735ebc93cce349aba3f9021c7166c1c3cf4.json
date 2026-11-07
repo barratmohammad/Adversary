@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/44: `change_base`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef change_base(x: int, base: int):\n    \"\"\"Change numerical base of input number x to base.\n    return string representation after the conversion.\n    base numbers are less than 10.\n    >>> change_base(8, 3)\n    '22'\n    >>> change_base(8, 2)\n    '1000'\n    >>> change_base(7, 2)\n    '111'\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert len(s) == len(_ref_change_base(x, base))\ndef _ref_change_base(x: int, base: int) -> str:\n    # Obviously-correct reference model for non-negative x and base >= 2.\n    assert isinstance(x, int) and x >= 0\n    assert isinstance(base, int) and base >= 2\n    if x == 0:\n        return \"0\"\n    digits = []\n    v = x\n    while v > 0:\n        digits.append(str(v % base))\n        v //= base\n    return \"\".join(reversed(digits))\n\n@given(\n    x=st.integers(min_value=0, max_value=5000),\n    base=st.integers(min_value=2, max_value=9),\n)\ndef test_result_is_decimal_free_string(x, base):\n    s = change_base(x, base)\n    assert isinstance(s, str)\n    # must match reference length exactly (catches truncation/padding)\n    assert len(s) == len(_ref_change_base(x, base))",
+      "counterexample": "test_result_is_decimal_free_string(x=0, base=2)",
+      "failure_output": "AssertionError: assert 0 == 1\n +  where 0 = len('')\n +  and   1 = len('0')\n +    where '0' = _ref_change_base(0, 2)\nFailing test case: test_result_is_decimal_free_string(\n    x=0,\n    base=2,\n)\nadversary_tests/test_adversary.py:146: in test_result_is_decimal_free_string\n    x=st.integers(min_value=0, max_value=5000),\n               ^^^\nadversary_tests/test_adversary.py:153: in test_result_is_decimal_free_string\n    assert len(s) == len(_ref_change_base(x, base))\nE   AssertionError: assert 0 == 1\nE    +  where 0 = len('')\nE    +  and   1 = len('0')\nE    +    where '0' = _ref_change_base(0, 2)\nE   Failing test case: test_result_is_decimal_free_string(\nE       x=0,\nE       base=2,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8489357829093933
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.5405563712120056,
+        "test_asserts_unspecified": 0.23922346532344818,
+        "test_is_broken": 0.004656164441257715,
+        "ambiguous_spec": 0.21556399762630463
+      },
+      "confidence": 0.3874084949493408
+    }
+  },
+  "usage": {
+    "input_tokens": 915,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0940419579856098
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```",
+      "failing_test": "# failing line: return fib(n - 1) + fib(n - 2)\ndef ref_fib(n: int) -> int:\n    \"\"\"Obviously-correct 0-indexed reference: 0,1,1,2,3,5,...\"\"\"\n    assert isinstance(n, int) and n >= 0\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n\ndef test_negative_n_raises_value_error():\n    with pytest.raises(ValueError):\n        fib(-1)",
+      "counterexample": "(none reported)",
+      "failure_output": "RecursionError: maximum recursion depth exceeded\nadversary_tests/test_adversary.py:102: in test_negative_n_raises_value_error\n    fib(-1)\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:15: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nE   RecursionError: maximum recursion depth exceeded\n!!! Recursion error detected, but the origin of the recursion could not be located.\n  Displaying first and last 10 stack frames out of 968.\n  Pass `--full-trace` to see all frames.",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.49073803424835205
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.02652902714908123,
+        "test_asserts_unspecified": 0.8551049828529358,
+        "test_is_broken": 0.004362326581031084,
+        "ambiguous_spec": 0.11400355398654938
+      },
+      "confidence": 0.8068066438039144
+    }
+  },
+  "usage": {
+    "input_tokens": 1171,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 3.9959171669906937
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/6: `parse_nested_parens`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert parse_nested_parens(s) == ref(s) == [ref_max_depth(g) for g in groups]\ndef ref_max_depth(group: str) -> int:\n    depth = 0\n    best = 0\n    for c in group:\n        if c == \"(\":\n            depth += 1\n            if depth > best:\n                best = depth\n        else:\n            depth -= 1\n    return best\n\ndef ref(paren_string: str) -> List[int]:\n    # Obviously-correct model: split on single-space separator,\n    # ignoring empty tokens produced by leading/trailing/repeated spaces.\n    groups = [g for g in paren_string.split(\" \") if g != \"\"]\n    return [ref_max_depth(g) for g in groups]\n\n@given(st.lists(st.sampled_from(BALANCED_POOL), min_size=0, max_size=6))\ndef test_reference_model_equivalence_single_spaces(groups):\n    s = \" \".join(groups)\n    assert parse_nested_parens(s) == ref(s) == [ref_max_depth(g) for g in groups]",
+      "counterexample": "test_reference_model_equivalence_single_spaces(groups=[])",
+      "failure_output": "assert [0] == []\n  \n  Left contains one more item: 0\n  Use -v to get more diff\nFailing test case: test_reference_model_equivalence_single_spaces(\n    groups=[],\n)\nadversary_tests/test_adversary.py:101: in test_reference_model_equivalence_single_spaces\n    def test_reference_model_equivalence_single_spaces(groups):\n                   ^^^\nadversary_tests/test_adversary.py:103: in test_reference_model_equivalence_single_spaces\n    assert parse_nested_parens(s) == ref(s) == [ref_max_depth(g) for g in groups]\nE   assert [0] == []\nE     \nE     Left contains one more item: 0\nE     Use -v to get more diff\nE   Failing test case: test_reference_model_equivalence_single_spaces(\nE       groups=[],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.883202314376831
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.5775517821311951,
+        "test_asserts_unspecified": 0.3066061735153198,
+        "test_is_broken": 0.015622789971530437,
+        "ambiguous_spec": 0.10021931678056717
+      },
+      "confidence": 0.4367357095082601
+    }
+  },
+  "usage": {
+    "input_tokens": 872,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.2959800840180833
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/122: `add_elements`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef add_elements(arr, k):\n    \"\"\"\n    Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at most two digits from the first k elements of arr.\n\n    Example:\n\n        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4\n        Output: 24 # sum of 21 + 3\n\n    Constraints:\n        1. 1 <= len(arr) <= 100\n        2. 1 <= k <= len(arr)\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert add_elements(arr, len(arr)) == 0\ndef ref(arr, k):\n    # Obviously-correct model: at most two digits <=> abs value <= 99\n    # (single digit 0-9, two digits 10-99, same for negatives ignoring sign)\n    return sum(x for x in arr[:k] if abs(x) <= 99)\n\n@given(st.lists(st.integers(min_value=-10000, max_value=-100), min_size=1, max_size=10))\ndef test_all_large_negative_magnitude_excluded(arr):\n    # abs(x) >= 100 => at least 3 digits => excluded\n    assert add_elements(arr, len(arr)) == 0",
+      "counterexample": "test_all_large_negative_magnitude_excluded(arr=[-100])",
+      "failure_output": "assert -100 == 0\n +  where -100 = add_elements([-100], 1)\n +    where 1 = len([-100])\nFailing test case: test_all_large_negative_magnitude_excluded(\n    arr=[-100],\n)\nadversary_tests/test_adversary.py:142: in test_all_large_negative_magnitude_excluded\n    def test_all_large_negative_magnitude_excluded(arr):\n                   ^^^\nadversary_tests/test_adversary.py:144: in test_all_large_negative_magnitude_excluded\n    assert add_elements(arr, len(arr)) == 0\nE   assert -100 == 0\nE    +  where -100 = add_elements([-100], 1)\nE    +    where 1 = len([-100])\nE   Failing test case: test_all_large_negative_magnitude_excluded(\nE       arr=[-100],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9038544297218323
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.7265905141830444,
+        "test_asserts_unspecified": 0.1253310590982437,
+        "test_is_broken": 0.013341447338461876,
+        "ambiguous_spec": 0.13473697006702423
+      },
+      "confidence": 0.635454018910726
+    }
+  },
+  "usage": {
+    "input_tokens": 848,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 3.7044490419793874
+}
