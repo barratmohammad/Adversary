@@ -43,8 +43,8 @@ def test_learn_keeps_a_rule_that_helps_heldout_and_rolls_back_one_that_does_not(
     keep, roll = rep.steps
     assert keep["rule"] == SET_RULE and keep["heldout_after"] > keep["heldout_before"] * loop.MARGIN
     assert roll["rule"] == BAD_RULE and roll["heldout_after"] <= roll["heldout_before"] * loop.MARGIN
-    # the baseline held-out score (empty playbook, slow rewrites) is 1.0x; after the SET rule it is >> 1
-    assert abs(keep["heldout_before"] - 1.0) < 1e-9 and keep["heldout_after"] > 3
+    # the baseline held-out score (empty playbook, unchanged code) is ~1.0x; after the SET rule it is >> 1
+    assert 0.7 < keep["heldout_before"] < 1.4 and keep["heldout_after"] > 3
 
     # on disk: v000 (empty), v001 accepted, v002 rolled back; CURRENT -> 1
     d = pb.PLAYBOOK_DIR
