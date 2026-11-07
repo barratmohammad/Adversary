@@ -10,6 +10,7 @@ The verifier's suite runs hardened against tampering by the change under test:
 from __future__ import annotations
 
 import re
+import shutil
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -71,6 +72,10 @@ class SuiteResult:
         return [o for o in self.outcomes if o.status in ("failed", "error")]
 
     @property
+    def skipped(self) -> list[TestOutcome]:
+        return [o for o in self.outcomes if o.status == "skipped"]
+
+    @property
     def ok(self) -> bool:
         return not self.timed_out and not self.collection_error and not self.failed and bool(self.outcomes)
 
@@ -121,9 +126,19 @@ def _parse_junit(path: Path) -> list[TestOutcome]:
             nodeid=nodeid, name=name, status=status,
             message=message[:2000], detail=detail[-4000:],
             falsifying=_falsifying(message, detail),
-            duration=float(tc.get("time", 0) or 0),
+            duration=_safe_float(tc.get("time")),
         ))
     return outs
+
+
+def _safe_float(v) -> float:
+    try:
+        return float(v or 0)
+    except (TypeError, ValueError):   # attacker-written JUnit must not crash the verdict
+        return 0.0
+
+
+_PYTEST_SUMMARY = re.compile(r"\b\d+ (passed|failed|errors?|skipped|xfailed|xpassed|deselected|warnings?)\b|no tests ran")
 
 
 def run_suite(
@@ -165,11 +180,18 @@ def run_suite(
         res.collection_error = (rr.stdout + "\n" + rr.stderr).strip()[-3000:] or f"pytest exited {rr.returncode}"
     if rr.returncode == 5:
         res.collection_error = "no tests collected"
+    if rr.timed_out:
+        res.collection_error = f"timed out after {timeout}s (partial results discarded)"
+    elif hardened and res.outcomes and not _PYTEST_SUMMARY.search(rr.stdout or ""):
+        # A JUnit file exists but pytest never printed its summary: the process was killed from inside
+        # (os._exit after forging the report). Results are not trustworthy.
+        res.collection_error = "pytest did not finish normally (no summary line); results discarded"
     return res
 
 
 def install_verifier_suite(workdir: Path, test_files: dict[str, str]) -> None:
     d = workdir / VERIFIER_DIR
+    shutil.rmtree(d, ignore_errors=True)     # nothing the change shipped under this name survives
     d.mkdir(parents=True, exist_ok=True)
     (d / "pytest.ini").write_text(VERIFIER_INI)
     (d / "__init__.py").write_text("")

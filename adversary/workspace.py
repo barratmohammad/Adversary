@@ -30,6 +30,9 @@ def read_tree(root: Path) -> dict[str, str]:
 
 def write_tree(root: Path, files: dict[str, str]) -> None:
     for rel, content in files.items():
+        parts = Path(rel).parts
+        if Path(rel).is_absolute() or ".." in parts or not parts:
+            raise ValueError(f"refusing to write outside the tree: {rel!r}")
         dest = root / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(content)
