@@ -51,7 +51,8 @@ class _Completion:
 
 
 def _mock_chat(role, messages, temperature=0.0, max_tokens=8192, tag=""):
-    assert role == "verifier", f"only the verifier should be consulted by the gate, got {role}"
+    # the gate may consult the blind test author and the fresh-context reasoning judge; never the implementer
+    assert role in ("verifier", "judge"), f"unexpected role consulted by the gate: {role}"
     if tag.startswith("propgen"):
         return _Completion("```python\n" + BLIND_TESTS + "```")
     if tag.startswith("triage"):
