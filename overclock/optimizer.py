@@ -6,7 +6,8 @@ rules are what grant permission and supply patterns. The scaffold is identical i
 the only thing that changes between "before learning" and "after learning" is the rule list.
 
 Uses the same `implementer` role (Meta Muse by default) and record/replay cassette as the rest of
-the repo, so the optimizer and the Adversary verifier are guaranteed to be different model families.
+the repo. Which model fills each role is configuration (.env / .env.replay); the verdict records whether the
+optimizer and the verifier were different models and vendors, it never assumes it.
 """
 from __future__ import annotations
 

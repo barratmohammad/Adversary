@@ -27,6 +27,14 @@ from .workspace import ROOT, Change, Task
 
 BENCH_DIR = ROOT / "bench"
 
+
+def _require_evalplus():
+    try:
+        from evalplus.data import get_human_eval_plus
+    except ModuleNotFoundError:
+        raise SystemExit("adversary bench needs the 'bench' extra: uv pip install -e '.[bench]'  (or: uv sync --extra bench)") from None
+    return get_human_eval_plus
+
 _CHECK = r'''
 import json, math, sys, signal, copy, importlib.util
 def load(path, name):
@@ -125,7 +133,7 @@ def _spec(tid: str, p: dict) -> str:
 
 
 def build_cases(n: int = 20, bugs_per: int = 2, seed: int = 0, plus_cap: int = 400, log=print) -> list[Case]:
-    from evalplus.data import get_human_eval_plus
+    get_human_eval_plus = _require_evalplus()
     from .verifier.mutation import generate_mutants
 
     data = get_human_eval_plus()
@@ -200,7 +208,7 @@ def fetch_samples(log=print) -> dict[str, dict[str, str]]:
 def build_llm_cases(max_bugs: int = 40, max_correct: int = 20, seed: int = 0, parallel: int = 8, log=print) -> list[Case]:
     """Real LLM-written solutions. Buggy = passes every official HumanEval input but fails EvalPlus (the false passes
     that motivated EvalPlus). Correct = passes both - used to measure false blocks on realistic, non-canonical code."""
-    from evalplus.data import get_human_eval_plus
+    get_human_eval_plus = _require_evalplus()
 
     data = get_human_eval_plus()
     samples = fetch_samples(log)
