@@ -98,7 +98,8 @@ def show_verdict(v: Verdict, run_dir) -> None:
         body.append(Text(""))
         body.append(Text("counterexamples (reproducible with the pinned seed):", style="bold"))
         for c in ce.details["counterexamples"][:3]:
-            body.append(Text(f"  {c['test']}: {c['falsifying'] or c['message'][:160]}", style="yellow"))
+            first = (c["falsifying"] or c["message"]).strip().splitlines()[0][:150] if (c["falsifying"] or c["message"]).strip() else ""
+            body.append(Text(f"  {c['test']}: {first}", style="yellow"))
             if c.get("adjudication"):
                 body.append(Text(f"    adjudicator: {c['adjudication']}", style="dim"))
     if ce and ce.details.get("discarded"):
