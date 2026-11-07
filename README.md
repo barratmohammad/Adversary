@@ -103,6 +103,18 @@ tasks/<name>/           spec.md, base/ (repo before the change), fixtures/<varia
 docker/                 hash-pinned sandbox image
 ```
 
+## OVERCLOCK: the system that gets better (track 1)
+
+Adversary is also the gate for **[OVERCLOCK](OVERCLOCK.md)**, an optimizer that teaches itself to make Python code
+faster. The implementer LLM rewrites slow functions guided only by a versioned playbook of learned rules; every rewrite
+is verified by Adversary as a spec+diff PR before it is timed, each win becomes one general rule, and a rule is kept only
+if the speed-up on held-out functions improves, otherwise it is rolled back with the evidence left on disk.
+
+```bash
+uv run overclock learn --heldout-n 4      # watch rules get kept or rolled back, with the numbers
+uv run overclock demo                     # unseen function before/after learning, a rollback, a planted cheat
+```
+
 ## Built during the hackathon
 
 Everything in this repository was written on Nov 7, 2026 during the event. See the commit history.

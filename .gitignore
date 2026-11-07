@@ -10,3 +10,5 @@ runs/
 uv.lock
 .cache/
 playground/
+# sync-tool duplicates (e.g. "loop 2.py")
+* [0-9].*

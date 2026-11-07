@@ -14,6 +14,10 @@ from pathlib import Path
 PLAYBOOK_DIR = Path("playbook")
 
 
+def _dir(directory: Path | None) -> Path:
+    return Path(directory) if directory is not None else PLAYBOOK_DIR
+
+
 @dataclass
 class Rule:
     id: str
@@ -56,9 +60,10 @@ class Playbook:
         return cls(version=d["version"], status=d.get("status", "accepted"), parent=d.get("parent"),
                    rules=[Rule(**r) for r in d["rules"]])
 
-    def save(self, directory: Path = PLAYBOOK_DIR) -> Path:
-        directory.mkdir(parents=True, exist_ok=True)
-        path = directory / f"v{self.version:03d}.json"
+    def save(self, directory: Path | None = None) -> Path:
+        d = _dir(directory)
+        d.mkdir(parents=True, exist_ok=True)
+        path = d / f"v{self.version:03d}.json"
         path.write_text(json.dumps(self.to_dict(), indent=2))
         return path
 
@@ -67,51 +72,59 @@ def _current_path(directory: Path) -> Path:
     return directory / "CURRENT"
 
 
-def latest_version_number(directory: Path = PLAYBOOK_DIR) -> int:
-    nums = [int(p.stem[1:]) for p in directory.glob("v*.json")] if directory.exists() else []
+def latest_version_number(directory: Path | None = None) -> int:
+    d = _dir(directory)
+    nums = [int(p.stem[1:]) for p in d.glob("v*.json")] if d.exists() else []
     return max(nums, default=0)
 
 
-def load_current(directory: Path = PLAYBOOK_DIR) -> Playbook:
-    cur = _current_path(directory)
+def load_version(version: int, directory: Path | None = None) -> Playbook:
+    return Playbook.from_dict(json.loads((_dir(directory) / f"v{version:03d}.json").read_text()))
+
+
+def load_current(directory: Path | None = None) -> Playbook:
+    d = _dir(directory)
+    cur = _current_path(d)
     if not cur.exists():
         return Playbook()
-    v = int(cur.read_text().strip())
-    return Playbook.from_dict(json.loads((directory / f"v{v:03d}.json").read_text()))
+    return load_version(int(cur.read_text().strip()), d)
 
 
-def accept(candidate: Playbook, directory: Path = PLAYBOOK_DIR) -> Playbook:
+def accept(candidate: Playbook, directory: Path | None = None) -> Playbook:
+    d = _dir(directory)
     candidate.status = "accepted"
-    candidate.save(directory)
-    _current_path(directory).write_text(str(candidate.version))
+    candidate.save(d)
+    _current_path(d).write_text(str(candidate.version))
     return candidate
 
 
-def rollback(candidate: Playbook, directory: Path = PLAYBOOK_DIR) -> None:
+def rollback(candidate: Playbook, directory: Path | None = None) -> None:
     candidate.status = "rolled_back"
-    candidate.save(directory)        # keep the evidence; CURRENT is untouched
+    candidate.save(_dir(directory))        # keep the evidence; CURRENT is untouched
 
 
-def reset(directory: Path = PLAYBOOK_DIR) -> None:
-    if directory.exists():
-        for p in directory.glob("v*.json"):
+def reset(directory: Path | None = None) -> None:
+    d = _dir(directory)
+    if d.exists():
+        for p in d.glob("v*.json"):
             p.unlink()
         for name in ("CURRENT", "ledger.jsonl"):
-            (directory / name).unlink(missing_ok=True)
-    directory.mkdir(parents=True, exist_ok=True)
-    Playbook().save(directory)
+            (d / name).unlink(missing_ok=True)
+    d.mkdir(parents=True, exist_ok=True)
+    Playbook().save(d)
 
 
 # ---- ledger -------------------------------------------------------------------
-def log(entry: dict, directory: Path = PLAYBOOK_DIR) -> None:
-    directory.mkdir(parents=True, exist_ok=True)
+def log(entry: dict, directory: Path | None = None) -> None:
+    d = _dir(directory)
+    d.mkdir(parents=True, exist_ok=True)
     entry = {"ts": time.time(), **entry}
-    with (directory / "ledger.jsonl").open("a") as f:
-        f.write(json.dumps(entry) + "\n")
+    with (d / "ledger.jsonl").open("a") as f:
+        f.write(json.dumps(entry, default=str) + "\n")
 
 
-def read_ledger(directory: Path = PLAYBOOK_DIR) -> list[dict]:
-    p = directory / "ledger.jsonl"
+def read_ledger(directory: Path | None = None) -> list[dict]:
+    p = _dir(directory) / "ledger.jsonl"
     if not p.exists():
         return []
     return [json.loads(line) for line in p.read_text().splitlines() if line.strip()]
