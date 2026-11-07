@@ -35,14 +35,3 @@ class Vote(Model):
     stake: float
     veto: bool = False  # only the security specialist may set this (high-severity finding)
 
-
-class SwarmDecisionMsg(Model):
-    """Coordinator broadcast of the final decision (sent back to specialists as a receipt)."""
-
-    job_id: str
-    run_id: str
-    decision: str  # MERGE | BLOCK
-    block_mass: float
-    allow_mass: float
-    vetoed_by: str = ""
-    decision_sha256: str

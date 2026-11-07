@@ -90,6 +90,7 @@ class SwarmRuntime:
         agents: tuple[str, ...] = SPECIALISTS,
         on_event: EventSink | None = None,
         pace: float = 0.0,
+        job_delay: float = 0.0,
         vote_timeout: float = 10.0,
         threshold: float = DEFAULT_THRESHOLD,
         port: int | None = None,
@@ -100,6 +101,7 @@ class SwarmRuntime:
         self.agents = tuple(agents)
         self.emit = on_event or (lambda kind, payload: None)
         self.pace = pace
+        self.job_delay = job_delay
         self.vote_timeout = vote_timeout
         self.threshold = threshold
         self.port = port
@@ -195,6 +197,8 @@ class SwarmRuntime:
                     decision, settlements = decide(job, votes, self.ledger, self.agents, self.threshold)
                     results.append((decision, settlements))
                     self.emit("decision", {"job": job, "decision": decision, "settlements": settlements})
+                    if self.job_delay and i + 1 < len(jobs):
+                        await asyncio.sleep(self.job_delay)
             except Exception as e:  # surface, then stop the bureau
                 self.emit("error", {"error": f"{type(e).__name__}: {e}"})
                 raise
@@ -207,7 +211,7 @@ class SwarmRuntime:
             loop.create_task(drive(ctx))
 
         # Watchdog: never hang the CLI or the tests.
-        budget = 15.0 + len(jobs) * (self.vote_timeout + self.pace * (len(self.agents) + 1))
+        budget = 15.0 + len(jobs) * (self.vote_timeout + self.job_delay + self.pace * (len(self.agents) + 1))
 
         loop.call_later(budget, lambda: loop.create_task(_stop(bureau)))
         loop.run_until_complete(bureau.run_async())
