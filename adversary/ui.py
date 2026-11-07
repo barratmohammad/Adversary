@@ -44,6 +44,7 @@ class LiveChecks:
     def __exit__(self, *a):
         self.live.update(self._render())
         self.live.__exit__(*a)
+        console.print()
 
     def emit(self, cid: str, status: str, msg: str) -> None:
         if cid not in self.state:

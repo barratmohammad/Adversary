@@ -53,7 +53,7 @@ the discard is recorded in the verdict. If adjudication is unavailable, the fail
 
 ```bash
 uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -e .
-cp .env.example .env   # MODEL_API_KEY (Meta Model API) for the implementer, GEMINI_API_KEY for the verifier
+cp .env.example .env   # MODEL_API_KEY (Meta Model API) for the implementer, SUBQ_API_KEY (Subquadratic) for the verifier
 
 .venv/bin/adversary tasks
 .venv/bin/adversary run roman --fixture clean        # pre-recorded honest change      -> MERGE
@@ -72,7 +72,7 @@ Plant a bug by hand: copy `tasks/<task>/fixtures/clean` somewhere, edit it, then
 
 | Variable | Default | |
 |---|---|---|
-| `ADVERSARY_IMPLEMENTER_PROVIDER` | `meta` | `meta`, `gemini`, `subq`, `anthropic`, `openai`, `fireworks` |
+| `ADVERSARY_IMPLEMENTER_PROVIDER` | `meta` (Muse Spark) | `meta`, `gemini`, `subq`, `anthropic`, `openai`, `fireworks` |
 | `ADVERSARY_VERIFIER_PROVIDER` | first provider with a key that differs from the implementer's | |
 | `ADVERSARY_<ROLE>_MODEL` / `_BASE_URL` / `_API_KEY` | preset per provider | any OpenAI-compatible endpoint |
 | `ADVERSARY_LLM_MODE` | `auto` | `replay` = recorded completions only (offline, reproducible), `live` = never use the cassette |

@@ -5,7 +5,7 @@ should) run on *different model families* - the verifier must not share the impl
 blind spots.
 
   ADVERSARY_IMPLEMENTER_PROVIDER=meta      (default)  -> Meta Model API, muse-spark
-  ADVERSARY_VERIFIER_PROVIDER=gemini|subq|meta|...    -> first one with a key, preferring != implementer
+  ADVERSARY_VERIFIER_PROVIDER=subq|gemini|meta|...    -> first one with a key, preferring != implementer
 
 Per-role overrides: ADVERSARY_<ROLE>_BASE_URL / _API_KEY / _MODEL.
 
@@ -32,7 +32,7 @@ CASSETTE_DIR = Path(os.environ.get("ADVERSARY_CASSETTES", ROOT / ".adversary" / 
 PROVIDERS: dict[str, dict] = {
     "meta": {"base_url": "https://api.meta.ai/v1", "key_env": ["MODEL_API_KEY", "META_API_KEY"], "model": "muse-spark-1.3"},
     "gemini": {"base_url": "https://generativelanguage.googleapis.com/v1beta/openai", "key_env": ["GEMINI_API_KEY", "GOOGLE_API_KEY"], "model": "gemini-2.5-flash"},
-    "subq": {"base_url": "https://api.subq.ai/v1", "key_env": ["SUBQ_API_KEY"], "model": "subq-snap-1.1"},
+    "subq": {"base_url": "https://api.subq.ai/v1", "key_env": ["SUBQ_API_KEY", "SUBQUADRATIC_API_KEY"], "model": "subq-preview"},
     "fireworks": {"base_url": "https://api.fireworks.ai/inference/v1", "key_env": ["FIREWORKS_API_KEY"], "model": "accounts/fireworks/models/qwen3-coder-480b-a35b-instruct"},
     "openai": {"base_url": "https://api.openai.com/v1", "key_env": ["OPENAI_API_KEY"], "model": "gpt-4.1"},
     "anthropic": {"base_url": "https://api.anthropic.com/v1", "key_env": ["ANTHROPIC_API_KEY"], "model": "claude-sonnet-5-5"},
@@ -82,7 +82,7 @@ def config_for(role: str) -> ModelConfig:
             provider = "meta"
         else:
             impl = os.environ.get("ADVERSARY_IMPLEMENTER_PROVIDER", "meta")
-            ranked = [p for p in ("gemini", "subq", "anthropic", "openai", "fireworks", "meta") if p != impl] + [impl]
+            ranked = [p for p in ("subq", "gemini", "anthropic", "openai", "fireworks", "meta") if p != impl] + [impl]
             provider = next((p for p in ranked if _key_for(p)), ranked[0])
     preset = PROVIDERS.get(provider, {"base_url": "", "key_env": [], "model": ""})
     return ModelConfig(
