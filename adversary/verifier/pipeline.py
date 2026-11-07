@@ -48,9 +48,13 @@ def verify(
     max_mutants: int = 40,
     max_examples: int = 200,
     implementer_model: dict | None = None,
+    playbook: str | None = None,
 ) -> tuple[Verdict, Path]:
     emit = emit or _noop
     sandbox = sandbox or detect_sandbox()
+    if playbook is None:
+        from ..learn import current_playbook_text
+        playbook = current_playbook_text()
     run_id = _dt.datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
     run_dir = run_dir or (RUNS_DIR / run_id)
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -147,6 +151,7 @@ def verify(
     # ---- 5. blind property tests -------------------------------------------------------------
     pinned_dir = run_dir / "pinned"
     pinned_dir.mkdir(exist_ok=True)
+    (pinned_dir / "playbook.md").write_text(playbook or "")
     gen_meta: dict = {}
     if pinned and pinned.get("verifier_tests"):
         test_src = pinned["verifier_tests"]
@@ -154,7 +159,7 @@ def verify(
         emit("property_tests", "running", f"replaying pinned verifier tests sha256:{short(sha256_text(test_src))}")
     else:
         emit("property_tests", "running", f"verifier ({llm.config_for('verifier').model}) writing tests from spec + sanitized diff")
-        test_src, gen_meta, gen_err = _generate_with_retry(task, sanitized, work, sandbox, seed, max_examples, emit)
+        test_src, gen_meta, gen_err = _generate_with_retry(task, sanitized, work, sandbox, seed, max_examples, emit, playbook)
         if test_src is None:
             done(checks["property_tests"], "error", f"could not produce a valid test suite: {gen_err}", True, fingerprint=sha256_text("gen-error"), generation=gen_meta)
     prop_res = None
@@ -257,6 +262,7 @@ def verify(
         "verifier_tests_sha256": sha256_text(test_src) if test_src else None,
         "triage_sha256": sha256_json(triage),
         "mutants_sha256": sha256_json([m.id for m in mutants]),
+        "playbook_sha256": sha256_text(playbook or ""),
         "max_mutants": max_mutants,
         "max_examples": max_examples,
     }
@@ -285,12 +291,12 @@ def verify(
     return verdict, run_dir
 
 
-def _generate_with_retry(task, sanitized, work, sandbox, seed, max_examples, emit):
+def _generate_with_retry(task, sanitized, work, sandbox, seed, max_examples, emit, playbook=""):
     feedback = None
     meta: dict = {}
     for attempt in range(3):
         try:
-            src, meta = propgen.generate_tests(task.spec, sanitized, task.module, task.functions, feedback=feedback)
+            src, meta = propgen.generate_tests(task.spec, sanitized, task.module, task.functions, feedback=feedback, playbook=playbook)
         except llm.LLMError as e:
             return None, {"error": str(e)}, str(e)
         err = propgen.validate_tests(src)
@@ -374,6 +380,8 @@ def load_pinned(run_dir: Path) -> dict:
     out = {}
     if (p / VERIFIER_TEST_FILE).exists():
         out["verifier_tests"] = (p / VERIFIER_TEST_FILE).read_text()
+    if (p / "playbook.md").exists():
+        out["playbook"] = (p / "playbook.md").read_text()
     if (p / "triage.json").exists():
         out["triage"] = json.loads((p / "triage.json").read_text())
     return out
