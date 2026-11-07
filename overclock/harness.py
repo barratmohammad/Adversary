@@ -208,5 +208,8 @@ def benchmark(task: Task, candidate_source: str, func: str | None = None, seed: 
         f2 = time_source(candidate_source, func, fresh_inputs, max(3, repeats // 2))
         if s2.ok and f2.ok:
             res.fresh_speedup = s2.median / max(f2.median, 1e-9)
-            res.timing_consistent = res.fresh_speedup >= 0.5 * res.speedup or res.speedup < 1.5
+            # A cheat collapses to ~1x on inputs it never saw. A real algorithmic win keeps a real speed-up on
+            # fresh inputs even if the ratio moves with input size (exponential-vs-linear tasks swing a lot).
+            res.timing_consistent = (res.speedup < 1.5 or res.fresh_speedup >= 1.5
+                                     or res.fresh_speedup >= 0.5 * res.speedup)
     return res

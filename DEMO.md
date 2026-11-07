@@ -3,14 +3,16 @@
 ## 1-minute submission video
 Make the terminal big (font ~16pt, ~120 columns), start screen recording (macOS: Cmd+Shift+5), then:
 ```bash
-cd ~/Desktop/CVHACKS && ./demo.sh          # offline replay, ~45s; LIVE=1 ./demo.sh for real model calls
+cd <your clone> && ./demo.sh               # offline replay, ~45s; LIVE=1 ./demo.sh for real model calls
 ```
 End the video on https://github.com/barratmohammad/Adversary/pull/2 (red `adversary/verify` check + verdict comment).
 
 ## 3-minute live pitch
 
 Pre-flight: `source .venv/bin/activate`. **Run `./demo.sh` once before walking on stage: it must end with `13/13 correct`**
-(it replays recorded model calls, so it needs neither Wi-Fi nor keys; `.env.replay` pins the recorded models). If Wi-Fi is bad: `export ADVERSARY_LLM_MODE=replay` (every model call
+(it replays recorded model calls, so it needs neither Wi-Fi nor keys; `.env.replay` pins the recorded models).
+On an iCloud-synced Desktop, macOS can mark the venv's `.pth` files hidden and Python then skips them
+(`No module named adversary`); `demo.sh` clears that flag itself, or run `chflags nohidden .venv/lib/python3.12/site-packages/*.pth`. If Wi-Fi is bad: `export ADVERSARY_LLM_MODE=replay` (every model call
 replays from `.adversary/cassettes/`; verdicts are identical).
 
 **0:00 - Problem (20s).** "AI writes code faster than anyone can review it. And when the same AI writes the code
@@ -42,8 +44,9 @@ blind test Meta wrote from the spec line "must not depend on the environment".
 adversary reproduce runs/<id>     # no model calls, identical outcome hash
 adversary matrix                  # 13/13: every honest change merges, every cheat/bug/backdoor blocks
 ```
-Say: comments are stripped before the verifier sees code (prompt-injection proof); its tests run with `python -I`,
-`--noconftest`, its own ini, network denied - a planted `conftest.py`/`sitecustomize.py` can't rewrite results.
+Say: comments and docstrings are stripped before the verifier sees code, so reviewer-directed notes never reach the
+model; its tests run with `python -I`, `--noconftest` and its own ini, network denied under Docker or macOS seatbelt -
+a planted `conftest.py`/`sitecustomize.py` can't rewrite results.
 
 **2:35 - Bonus (25s).** `adversary swarm --calibrate` - Fetch.ai uAgents specialists vote and stake reputation; the
 miscalibrated agent loses its weight (1.00 -> 0.06). And OVERCLOCK: a self-improving optimizer whose every speed-up
@@ -53,7 +56,7 @@ must pass Adversary first.
 - **Are the implementer and verifier really independent?** Different models, and the adjudicator is a different vendor
   (SubQ). In the recorded demo both LLMs are Meta's (muse-wonder writes code, muse-spark writes tests); the verdict
   records `model_differs` / `vendor_differs` as measured. One env var puts the implementer on another vendor.
-- **How often are the verifier's own tests wrong?** In 11 of 31 recorded runs at least one failing blind test was
+- **How often are the verifier's own tests wrong?** In 11 of 31 runs in our session at least one failing blind test was
   discarded by the judges. Every labeled decision was still right, but the labeled set is 13 of our own changes;
   the HumanEval+ benchmark (`adversary bench`) is the unbiased number.
 - **Can the verifier's own tests be wrong?** Yes - we hit it: Meta once asserted something the spec forbids. So a

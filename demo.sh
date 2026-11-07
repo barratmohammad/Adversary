@@ -3,6 +3,8 @@
 # and works without Wi-Fi. LIVE=1 ./demo.sh makes real Meta + SubQ calls instead.
 set -uo pipefail   # adversary exits 1 on BLOCK by design; keep going
 cd "$(dirname "$0")"
+# iCloud-synced folders can mark the venv's .pth files hidden; Python 3.12 then skips them (No module named adversary).
+chflags nohidden .venv/lib/python*/site-packages/*.pth 2>/dev/null || true
 export COLUMNS=${COLUMNS:-120}
 [ "${LIVE:-0}" = "1" ] || export ADVERSARY_LLM_MODE=replay
 A=".venv/bin/adversary"

@@ -125,8 +125,10 @@ def learn(heldout_n: int = typer.Option(3, help="how many held-out tasks score e
           reset: bool = typer.Option(False, help="wipe the playbook and ledger first")) -> None:
     """Run the self-improvement loop."""
     if reset:
+        import shutil
         pb.reset()
-        con.print("[yellow]playbook reset to v000[/]")
+        shutil.rmtree(loop.CACHE, ignore_errors=True)
+        con.print("[yellow]playbook reset to v000; held-out score cache cleared[/]")
     learn_names = [s for s in tasks.split(",") if s] or None
     held_names = [s for s in heldout.split(",") if s] or None
     rep = loop.learn(learn_names, held_names, heldout_n=heldout_n, use_gate=not no_gate,

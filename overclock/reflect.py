@@ -1,6 +1,8 @@
 """Reflect: turn one verified speed-up into ONE general, reusable playbook rule."""
 from __future__ import annotations
 
+import re
+
 from adversary import llm
 from overclock.playbook import Playbook
 from overclock.tasks import Task
@@ -36,7 +38,17 @@ def propose_rule(task: Task, before: str, after: str, speedup: float, playbook: 
     user = USER_TMPL.format(speedup=speedup, spec=task.public_spec, before=before, after=after,
                             rules=playbook.render())
     comp = llm.chat("implementer", [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
-                    temperature=0.0, max_tokens=300, tag=f"overclock-reflect:{task.name}")
-    text = comp.text.strip().splitlines()
-    text = " ".join(line.strip() for line in text if line.strip())
-    return text.strip('"').strip()
+                    temperature=0.0, max_tokens=4000, tag=f"overclock-reflect:{task.name}")
+    return clean_rule(comp.text)
+
+
+_PREFIX = re.compile(r"^(\*\*)?\s*(new\s+)?rule\s*[:\-]?\s*(\*\*)?\s*|^\d+[.)]\s*|^[-*•]\s*", re.I)
+
+
+def clean_rule(text: str) -> str:
+    """Last non-empty paragraph, markdown and 'Rule:'/numbering prefixes stripped, one line."""
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text.strip()) if p.strip()]
+    para = paras[-1] if paras else text.strip()
+    line = " ".join(l.strip() for l in para.splitlines() if l.strip())
+    line = _PREFIX.sub("", line).replace("**", "").strip().strip('"').strip("'").strip()
+    return line

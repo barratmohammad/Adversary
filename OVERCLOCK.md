@@ -75,7 +75,9 @@ uv run overclock demo                                  # the 3-minute story
 ```
 
 Flags: `--no-gate` skips Adversary on learn tasks and `--no-gate-heldout` on held-out scoring (fast dev loop; the
-honest run uses both). All LLM calls go through the repo's record/replay cassette, so a demo replays offline.
+honest run uses both). All LLM calls go through the repo's record/replay cassette; once a `learn` has been recorded
+with a key, `overclock demo` replays offline. No optimizer completions are recorded yet, so today these commands need
+`MODEL_API_KEY`.
 
 ## Layout
 
@@ -90,7 +92,8 @@ overclock/
   loop.py       learn(): optimize -> verify -> time -> reflect -> held-out eval -> keep | rollback
   attacks.py    planted cheats (table / edge / escape) and what should catch each
   cli.py        terminal view (a log of decisions, not a dashboard)
-playbook/       the artifact that improves; committed so the history is inspectable
+playbook/       the artifact that improves (v000.json, v001.json, ..., CURRENT, ledger.jsonl); empty until the
+                first `overclock learn`, then committed so the history is inspectable
 ```
 
 Note: `adversary learn` / `adversary playbook` are the *verifier's* self-improving playbook of test tactics

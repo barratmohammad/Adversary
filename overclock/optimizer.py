@@ -6,7 +6,8 @@ rules are what grant permission and supply patterns. The scaffold is identical i
 the only thing that changes between "before learning" and "after learning" is the rule list.
 
 Uses the same `implementer` role (Meta Muse by default) and record/replay cassette as the rest of
-the repo, so the optimizer and the Adversary verifier are guaranteed to be different model families.
+the repo. Which model fills each role is configuration (.env / .env.replay); the verdict records whether the
+optimizer and the verifier were different models and vendors, it never assumes it.
 """
 from __future__ import annotations
 
@@ -68,15 +69,24 @@ class OptimizeResult:
     playbook_version: int
 
 
-_BLOCK = re.compile(r"```(?:python|py)?\s*\n(.*?)```", re.S)
+# Any fence tag (python / Python / py / python3 / none); an unclosed fence (truncated reply) runs to the end.
+_BLOCK = re.compile(r"```[ \t]*[A-Za-z0-9_+-]*[^\n]*\n(.*?)(?:```|\Z)", re.S)
 
 
 def extract_code(text: str, func: str) -> str | None:
-    for b in _BLOCK.findall(text):
-        if f"def {func}(" in b:
-            return b.strip() + "\n"
-    if f"def {func}(" in text:
-        return text.strip() + "\n"
+    """Return the candidate module source, or None when there is no code block defining `func`
+    (the caller then retries). With several blocks, the LAST one defining `func` wins (a reply that
+    echoes "before" then "after" yields the rewrite), and blocks holding helpers/imports are kept above it."""
+    blocks = [b.strip() for b in _BLOCK.findall(text) if b.strip()]
+    with_def = [b for b in blocks if f"def {func}(" in b]
+    if with_def:
+        main = with_def[-1]
+        helpers = [b for b in blocks if b is not main and f"def {func}(" not in b
+                   and re.search(r"^(def |class |import |from |@)", b, re.M)]
+        return "\n\n".join([*helpers, main]) + "\n"
+    stripped = text.strip()
+    if f"def {func}(" in stripped and re.match(r"^(def |from |import |@|#)", stripped):
+        return stripped + "\n"      # bare code without fences
     return None
 
 
@@ -92,13 +102,13 @@ def build_messages(task: Task, playbook: Playbook, explore: bool = False) -> lis
 def optimize(task: Task, playbook: Playbook, explore: bool = False) -> OptimizeResult:
     messages = build_messages(task, playbook, explore)
     tag = f"overclock{'-explore' if explore else ''}:{task.name}"
-    comp = llm.chat("implementer", messages, temperature=0.0, max_tokens=2048, tag=tag)
+    comp = llm.chat("implementer", messages, temperature=0.0, max_tokens=16000, tag=tag)
     src = extract_code(comp.text, task.func)
     if src is None:  # one retry with a nudge
         messages.append({"role": "assistant", "content": comp.text})
         messages.append({"role": "user", "content": f"Your reply had no ```python block defining `{task.func}`. "
                                                     "Reply with only the code block."})
-        comp = llm.chat("implementer", messages, temperature=0.0, max_tokens=2048, tag=f"overclock-retry:{task.name}")
+        comp = llm.chat("implementer", messages, temperature=0.0, max_tokens=16000, tag=f"overclock-retry:{task.name}")
         src = extract_code(comp.text, task.func) or (
             f"def {task.signature}:\n    raise RuntimeError('optimizer produced no code')\n")
     return OptimizeResult(task.name, src, comp.text, comp.model, comp.cached, playbook.version)
