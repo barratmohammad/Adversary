@@ -1,0 +1,5 @@
+AI wrote the PR. Its own tests passed. Adversary wrote its own tests from the spec, never seeing the coder's, and blocked the merge with the exact input that breaks it.
+
+Measured on real GPT-4 / ChatGPT / Code Llama / Mistral bugs that passed every official HumanEval test: 27 of 44 blocked. An adaptive attacker AI got 1 of 11 attacks through. Every verdict re-runs to the same hash.
+
+github.com/barratmohammad/Adversary

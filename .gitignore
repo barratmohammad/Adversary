@@ -13,3 +13,5 @@ playground/
 # sync-tool duplicates (e.g. "loop 2.py")
 * [0-9].*
 .adversary/evalplus_samples/
+brag-output/work/stills/
+brag-output/work/*.wav
