@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Merge intervals\n\nImplement in `intervals.py`:\n\n```python\ndef merge_intervals(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]: ...\n```\n\nMerge **closed integer intervals** `(start, end)` (both endpoints included) into the\nsmallest equivalent list of disjoint intervals.\n\n## Behavior\n- Every element is a 2-tuple of ints. If any element has `start > end`, raise `ValueError`.\n  Single-point intervals such as `(2, 2)` are valid.\n- Two intervals merge when they **overlap or touch**, i.e. share at least one point:\n  `(1, 3)` and `(3, 5)` become `(1, 5)`. An interval contained in another is absorbed by it.\n- Merely **adjacent** intervals do NOT merge: `(1, 3)` and `(4, 5)` share no point and stay separate.\n- Merging is transitive: a chain of overlapping/touching intervals collapses into one.\n- Input order is arbitrary and duplicates are allowed.\n- Returns a **new list of tuples**, sorted by start, where each interval's start is strictly\n  greater than the previous interval's end. The set of integer points covered by the output\n  equals the set covered by the input.\n- The input list and its elements are never mutated. Empty input returns `[]`.\n\n## Examples\n- `merge_intervals([(1, 3), (2, 6), (8, 10), (15, 18)]) == [(1, 6), (8, 10), (15, 18)]`\n- `merge_intervals([(1, 3), (3, 5)]) == [(1, 5)]`\n- `merge_intervals([(1, 3), (4, 5)]) == [(1, 3), (4, 5)]`\n- `merge_intervals([(5, 7), (1, 2)]) == [(1, 2), (5, 7)]`\n- `merge_intervals([]) == []`\n- `merge_intervals([(3, 1)])` raises `ValueError`",
+      "failing_test": "def point_set(intervals):\n    s = set()\n    for a, b in intervals:\n        s.update(range(a, b + 1))\n    return s\n\ndef reference_merge(intervals):\n    for a, b in intervals:\n        if a > b:\n            raise ValueError\n    pts = point_set(intervals)\n    if not pts:\n        return []\n    out = []\n    cur_start = cur_end = min(pts)\n    for p in sorted(pts):\n        if p == cur_start and p == cur_end:\n            continue\n        if p <= cur_end + 1 and p >= cur_start:\n            # p is next integer; check continuity: if gap, split\n            if p == cur_end + 1 or p <= cur_end:\n                cur_end = max(cur_end, p)\n            else:\n                out.append((cur_start, cur_end))\n                cur_start = cur_end = p\n        else:\n            out.append((cur_start, cur_end))\n            cur_start = cur_end = p\n        # simpler: if p > cur_end + 1 -> gap; but since we iterate sorted pts,\n        # gap means p > cur_end + 1\n    # Recompute correctly via gap scan to avoid logic slip:\n    out = []\n    sorted_pts = sorted(pts)\n    cur_start = sorted_pts[0]\n    cur_end = sorted_pts[0]\n    for p in sorted_pts[1:]:\n        if p == cur_end + 1 or p <= cur_end:\n            cur_end = max(cur_end, p)\n        else:\n            out.append((cur_start, cur_end))\n            cur_start = cur_end = p\n    out.append((cur_start, cur_end))\n    return out\n\n@given(valid_lists)\ndef test_property_equivalence_to_pointset_reference(intervals):\n    assert merge_intervals(intervals) == reference_merge(intervals)",
+      "counterexample": "test_property_equivalence_to_pointset_reference(intervals=[(0, 0)",
+      "failure_output": "assert [(0, 0), (1, 1)] == [(0, 1)]\n  \n  At index 0 diff: (0, 0) != (0, 1)\n  Left contains one more item: (1, 1)\n  Use -v to get more diff\nFailing test case: test_property_equivalence_to_pointset_reference(\n    intervals=[(0, 0), (1, 1)],\n)\nadversary_tests/test_adversary.py:186: in test_property_equivalence_to_pointset_reference\n    def test_property_equivalence_to_pointset_reference(intervals):\n                   ^^^\nadversary_tests/test_adversary.py:187: in test_property_equivalence_to_pointset_reference\n    assert merge_intervals(intervals) == reference_merge(intervals)\nE   assert [(0, 0), (1, 1)] == [(0, 1)]\nE     \nE     At index 0 diff: (0, 0) != (0, 1)\nE     Left contains one more item: (1, 1)\nE     Use -v to get more diff\nE   Failing test case: test_property_equivalence_to_pointset_reference(\nE       intervals=[(0, 0), (1, 1)],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.2336301952600479
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_is_broken",
+      "probabilities": {
+        "implementation_bug": 0.1580546498298645,
+        "test_asserts_unspecified": 0.09319765865802765,
+        "test_is_broken": 0.7344993352890015,
+        "ambiguous_spec": 0.014248325489461422
+      },
+      "confidence": 0.6459991137186686
+    }
+  },
+  "usage": {
+    "input_tokens": 1481,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.5664311250147875
+}

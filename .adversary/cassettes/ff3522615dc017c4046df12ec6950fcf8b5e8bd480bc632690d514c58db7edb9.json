@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Roman numerals\n\nImplement in `roman.py`:\n\n```python\ndef to_roman(n: int) -> str: ...\ndef from_roman(s: str) -> int: ...\n```\n\n## `to_roman(n)`\n- Returns the canonical uppercase Roman numeral for `n`, using I=1, V=5, X=10, L=50, C=100, D=500, M=1000 and only the subtractive pairs IV, IX, XL, XC, CD, CM (e.g. 4 is `\"IV\"`, never `\"IIII\"`).\n- Valid range is **1..3999 inclusive**. Any other int (0, negatives, 4000+) raises `ValueError`.\n- `n` must be an `int`; any other type (including `bool`, `float`, `str`) raises `TypeError`.\n\n## `from_roman(s)`\n- Strict inverse of `to_roman`: returns `n` if and only if `s == to_roman(n)` for some `n` in 1..3999.\n- Every other string raises `ValueError`. This includes the empty string, lowercase (`\"iv\"`), any whitespace (`\" X\"`, `\"X\\n\"`), non-canonical forms (`\"IIII\"`, `\"VV\"`, `\"IC\"`, `\"XM\"`, `\"IXI\"`), values above 3999 (`\"MMMM\"`) and unknown characters.\n- `s` must be a `str`; any other type raises `TypeError`.\n\n## Invariants\n- `from_roman(to_roman(n)) == n` for every `n` in 1..3999.\n- `to_roman(from_roman(s)) == s` for every string `s` that `from_roman` accepts.\n- Every result of `from_roman` is an int in 1..3999.\n\n## Examples\n- `to_roman(4) == \"IV\"`\n- `to_roman(1994) == \"MCMXCIV\"`\n- `to_roman(3999) == \"MMMCMXCIX\"`\n- `from_roman(\"LVIII\") == 58`\n- `from_roman(\"IIII\")` raises `ValueError`\n- `to_roman(0)` raises `ValueError`",
+      "failing_test": "def ref_to_roman(n: int) -> str:\n    out = []\n    for value, numeral in _REF_TABLE:\n        while n >= value:\n            out.append(numeral)\n            n -= value\n    return \"\".join(out)\n\ndef ref_parse_loose(s: str) -> int:\n    total = 0\n    prev = 0\n    for ch in reversed(s):\n        v = _REF_VALUES[ch]\n        if v < prev:\n            total -= v\n        else:\n            total += v\n            prev = v\n    return total\n\ndef ref_from_roman(s: str) -> int:\n    # strict: accept iff s == ref_to_roman(n) for some 1..3999\n    if not isinstance(s, str):\n        raise TypeError\n    if s == \"\":\n        raise ValueError\n    for ch in s:\n        if ch not in _REF_VALUES:\n            raise ValueError(f\"bad char {ch!r}\")\n    n = ref_parse_loose(s)\n    if not 1 <= n <= 3999:\n        raise ValueError\n    if ref_to_roman(n) != s:\n        raise ValueError\n    return n\n\n@pytest.mark.parametrize(\"s, expected\", [\n    (\"I\", 1), (\"II\", 2), (\"III\", 3), (\"VI\", 6), (\"VIII\", 8),\n    (\"XXX\", 30), (\"MMM\", 3000), (\"XL\", 40), (\"XC\", 90),\n    (\"CD\", 400), (\"CM\", 900), (\"IX\", 9), (\"XLIV\", 44),\n    (\"XCIX\", 99), (\"CDXLIV\", 444), (\"CMXCIX\", 999),\n    (\"LVIII\", 58), (\"XIV\", 14), (\"MCMXCIV\", 1994), (\"MMMCMXCIX\", 3999),\n])\ndef test_from_roman_subtractive_values(s, expected):\n    assert from_roman(s) == expected",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert 1221 == 999\n +  where 1221 = from_roman('CMXCIX')\nadversary_tests/test_adversary.py:171: in test_from_roman_subtractive_values\n    assert from_roman(s) == expected\nE   AssertionError: assert 1221 == 999\nE    +  where 1221 = from_roman('CMXCIX')",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8976914882659912
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9605432748794556,
+        "test_asserts_unspecified": 0.0044805509969592094,
+        "test_is_broken": 0.0335918627679348,
+        "ambiguous_spec": 0.0013842055341228843
+      },
+      "confidence": 0.9473910331726074
+    }
+  },
+  "usage": {
+    "input_tokens": 1411,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0032602090213913
+}

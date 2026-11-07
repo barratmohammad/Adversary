@@ -1,0 +1,41 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Safe path join\n\nImplement in `safe_path.py`:\n\n```python\ndef safe_join(base: str, user_path: str) -> str: ...\n```\n\nJoin an untrusted relative `user_path` onto a trusted directory `base`, refusing anything\nthat would land outside `base`. POSIX semantics (`/` is the only separator; backslash is an\nordinary character). Purely lexical: never touches the filesystem, does not resolve symlinks,\ndoes not check existence, and must not depend on the environment or current directory.\n\n## Behavior (checked in this order)\n1. Both arguments must be `str`, else raise `TypeError`.\n2. Raise `ValueError` if either argument contains a NUL character (`\"\\x00\"`).\n3. Raise `ValueError` if `base` is not absolute (does not start with `/`).\n4. Raise `ValueError` if `user_path` is absolute (starts with `/`), even if it points inside `base`.\n5. Let `root = posixpath.normpath(base)` and\n   `result = posixpath.normpath(posixpath.join(root, user_path))`.\n6. `result` is **inside** base iff `result == root` or `result` starts with `root + \"/\"`\n   (when `root` already ends in `/`, e.g. `root == \"/\"`, it must start with `root`).\n   A sibling sharing a name prefix is OUTSIDE: for base `/srv/data`, `/srv/data2/x` is outside.\n7. Return `result` if it is inside, otherwise raise `ValueError`. Only the final normalized\n   result is checked: `..` segments are fine as long as the result stays inside.\n- An empty `user_path` or `\".\"` returns `root`.\n\n## Examples\n- `safe_join(\"/srv/data\", \"reports/q1.txt\") == \"/srv/data/reports/q1.txt\"`\n- `safe_join(\"/srv/data/\", \"a/./b/../c\") == \"/srv/data/a/c\"`\n- `safe_join(\"/srv/data\", \"\") == \"/srv/data\"`\n- `safe_join(\"/srv/data\", \"../etc/passwd\")` raises `ValueError`\n- `safe_join(\"/srv/data\", \"/etc/passwd\")` raises `ValueError`\n",
+      "failing_assertion": "assert safe_join(\"/a/b/c\", \"../d\") == \"/a/b/d\"",
+      "observed_behavior": "safe_join raised ValueError: path escapes base directory: '../d'",
+      "note": "The test was written by another AI and may itself be wrong. Judge strictly against the specification."
+    },
+    "questions": {
+      "expectation_required_by_spec": {
+        "type": "noul",
+        "instructions": "Does the specification require exactly the result the failing assertion expects, for these exact inputs?",
+        "criteria": {
+          "true": "Applying the spec's rules step by step to these inputs yields the asserted expected result",
+          "false": "Applying the spec's rules to these inputs yields something else (e.g. a different value or an exception)"
+        }
+      },
+      "observed_allowed_by_spec": {
+        "type": "noul",
+        "instructions": "Is the observed behavior what the specification requires for these exact inputs?"
+      }
+    }
+  },
+  "answers": {
+    "expectation_required_by_spec": {
+      "type": "noul",
+      "noul": 0.7615923881530762
+    },
+    "observed_allowed_by_spec": {
+      "type": "noul",
+      "noul": 0.13565778732299805
+    }
+  },
+  "usage": {
+    "input_tokens": 762,
+    "output_tokens": 0
+  },
+  "tag": "probe",
+  "latency": 1.1010204999765847
+}

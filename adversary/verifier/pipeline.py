@@ -171,22 +171,47 @@ def verify(
         install_verifier_suite(work, {VERIFIER_TEST_FILE: HYPOTHESIS_HEADER + test_src})
         emit("property_tests", "running", "running blind property tests (seeded, hardened runner)")
         prop_res = run_suite(sandbox, work, VERIFIER_DIR, seed=seed, hardened=True, max_examples=max_examples, junit_name="props.xml")
-        if prop_res.collection_error and not prop_res.outcomes:
+        if _suite_broken(prop_res) and not pinned:
+            emit("property_tests", "running", "verifier suite is broken (NameError/ImportError in most tests); regenerating")
+            fb = "Most tests failed with NameError/ImportError - the file is broken. Import the module under test and define every helper you use.\n" + \
+                 "\n".join(f"{o.name}: {o.message[:160]}" for o in prop_res.failed[:5])
+            try:
+                src2, meta2 = propgen.generate_tests(task.spec, sanitized, task.module, task.functions, feedback=fb, playbook=playbook)
+                if propgen.validate_tests(src2) is None:
+                    test_src, gen_meta = src2, {**meta2, "regenerated": "broken suite"}
+                    (pinned_dir / VERIFIER_TEST_FILE).write_text(test_src)
+                    install_verifier_suite(work, {VERIFIER_TEST_FILE: HYPOTHESIS_HEADER + test_src})
+                    prop_res = run_suite(sandbox, work, VERIFIER_DIR, seed=seed, hardened=True, max_examples=max_examples, junit_name="props.xml")
+            except llm.LLMError:
+                pass
+        if _suite_broken(prop_res):
+            done(checks["property_tests"], "error", "verifier's own test suite is broken (NameError/ImportError); no evidence either way", True,
+                 output="\n".join(o.message[:200] for o in prop_res.failed[:5]), fingerprint=sha256_text("broken-suite"))
+            prop_res = None
+        elif prop_res.collection_error and not prop_res.outcomes:
             done(checks["property_tests"], "error", f"verifier suite failed to run: {prop_res.collection_error.splitlines()[-1][:200]}", True,
                  output=prop_res.collection_error[-1500:], fingerprint=sha256_text("collect-error"))
             prop_res = None
         else:
             # Adjudicate failures: is it a real spec violation or a bad test?
+            todo = [o for o in prop_res.failed if o.name not in triage]
+            if todo and pinned:
+                for o in todo:
+                    triage[o.name] = {"genuine": True, "reason": "no pinned adjudication; failing closed"}
+            elif todo:
+                emit("property_tests", "running", f"{len(todo)} failure(s): two judges (SubQ Snap + reasoning judge) adjudicating")
+
+                def _one(o):
+                    try:
+                        return o.name, _adjudicate(task.spec, test_src, o)
+                    except llm.LLMError as e:
+                        return o.name, {"genuine": True, "reason": f"adjudicator unavailable ({e}); failing closed"}
+                with ThreadPoolExecutor(max_workers=6) as ex:
+                    for name, t in ex.map(_one, todo[:12]):
+                        triage[name] = t
+                for o in todo[12:]:
+                    triage[o.name] = {"genuine": True, "reason": "not adjudicated (cap); failing closed"}
             for o in prop_res.failed:
-                if o.name not in triage:
-                    if pinned:
-                        triage[o.name] = {"genuine": True, "reason": "no pinned adjudication; failing closed"}
-                    else:
-                        emit("property_tests", "running", f"adjudicating failure: {o.name}")
-                        try:
-                            triage[o.name] = _adjudicate(task.spec, test_src, o)
-                        except llm.LLMError as e:
-                            triage[o.name] = {"genuine": True, "reason": f"adjudicator unavailable ({e}); failing closed"}
                 t = triage[o.name]
                 if t.get("genuine", True):
                     genuine.append({"test": o.name, "falsifying": o.falsifying, "message": (o.message or o.detail)[:600], "adjudication": t.get("reason", "")})
@@ -374,13 +399,32 @@ def _run_ver(sandbox, d, target, seed, kexpr):
     return res
 
 
+def _suite_broken(res) -> bool:
+    """A suite where most tests die with NameError/ImportError is a bug in the *verifier's* tests, not evidence."""
+    if not res or not res.outcomes:
+        return False
+    broken = [o for o in res.failed if o.message.startswith(("NameError", "ImportError", "ModuleNotFoundError"))]
+    return len(broken) >= max(2, 0.6 * len(res.outcomes))
+
+
 def _adjudicate(spec: str, test_src: str, o) -> dict:
-    """SubQ Snap (typed decision, separate vendor) when available; otherwise the verifier chat model."""
+    """Two independent judges must agree before an LLM-written test may block a merge:
+    SubQ Snap (typed decision, separate vendor, fast) and a step-by-step reasoning judge in a fresh context.
+    Either judge saying "the test is wrong" discards the failure."""
     from .. import decisions
+    failure = o.message + "\n" + o.detail
+    line = propgen.failing_line(failure)
+    reasoned = propgen.triage_failure(spec, test_src, o.name, failure, o.falsifying)
+    out = {"genuine": reasoned["genuine"], "judge": reasoned}
+    reason = f"judge: {reasoned.get('reason', '')}"
     if decisions.available():
         snippet = propgen.test_snippet(test_src, o.name)
-        return decisions.adjudicate_failure(spec, snippet, o.falsifying, (o.message + "\n" + o.detail))
-    return propgen.triage_failure(spec, test_src, o.name, o.message + "\n" + o.detail, o.falsifying)
+        snap = decisions.adjudicate_failure(spec, (f"# failing line: {line}\n" if line else "") + snippet, o.falsifying, failure)
+        out["subq"] = snap
+        out["genuine"] = reasoned["genuine"] and snap["p_genuine"] >= 0.5
+        reason = f"SubQ P(violation)={snap['p_genuine']:.2f} ({snap['cause']}) + {reason}"
+    out["reason"] = reason[:500]
+    return out
 
 
 def _finding(rule, path, lineno, severity, message, snippet):

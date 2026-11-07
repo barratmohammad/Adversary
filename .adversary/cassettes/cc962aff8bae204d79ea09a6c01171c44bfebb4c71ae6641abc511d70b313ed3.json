@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Roman numerals\n\nImplement in `roman.py`:\n\n```python\ndef to_roman(n: int) -> str: ...\ndef from_roman(s: str) -> int: ...\n```\n\n## `to_roman(n)`\n- Returns the canonical uppercase Roman numeral for `n`, using I=1, V=5, X=10, L=50, C=100, D=500, M=1000 and only the subtractive pairs IV, IX, XL, XC, CD, CM (e.g. 4 is `\"IV\"`, never `\"IIII\"`).\n- Valid range is **1..3999 inclusive**. Any other int (0, negatives, 4000+) raises `ValueError`.\n- `n` must be an `int`; any other type (including `bool`, `float`, `str`) raises `TypeError`.\n\n## `from_roman(s)`\n- Strict inverse of `to_roman`: returns `n` if and only if `s == to_roman(n)` for some `n` in 1..3999.\n- Every other string raises `ValueError`. This includes the empty string, lowercase (`\"iv\"`), any whitespace (`\" X\"`, `\"X\\n\"`), non-canonical forms (`\"IIII\"`, `\"VV\"`, `\"IC\"`, `\"XM\"`, `\"IXI\"`), values above 3999 (`\"MMMM\"`) and unknown characters.\n- `s` must be a `str`; any other type raises `TypeError`.\n\n## Invariants\n- `from_roman(to_roman(n)) == n` for every `n` in 1..3999.\n- `to_roman(from_roman(s)) == s` for every string `s` that `from_roman` accepts.\n- Every result of `from_roman` is an int in 1..3999.\n\n## Examples\n- `to_roman(4) == \"IV\"`\n- `to_roman(1994) == \"MCMXCIV\"`\n- `to_roman(3999) == \"MMMCMXCIX\"`\n- `from_roman(\"LVIII\") == 58`\n- `from_roman(\"IIII\")` raises `ValueError`\n- `to_roman(0)` raises `ValueError`",
+      "failing_test": "def ref_to_roman(n: int) -> str:\n    out = []\n    for value, numeral in _REF_TABLE:\n        while n >= value:\n            out.append(numeral)\n            n -= value\n    return \"\".join(out)\n\ndef ref_parse_loose(s: str) -> int:\n    total = 0\n    prev = 0\n    for ch in reversed(s):\n        v = _REF_VALUES[ch]\n        if v < prev:\n            total -= v\n        else:\n            total += v\n            prev = v\n    return total\n\ndef ref_from_roman(s: str) -> int:\n    # strict: accept iff s == ref_to_roman(n) for some 1..3999\n    if not isinstance(s, str):\n        raise TypeError\n    if s == \"\":\n        raise ValueError\n    for ch in s:\n        if ch not in _REF_VALUES:\n            raise ValueError(f\"bad char {ch!r}\")\n    n = ref_parse_loose(s)\n    if not 1 <= n <= 3999:\n        raise ValueError\n    if ref_to_roman(n) != s:\n        raise ValueError\n    return n\n\n@given(st.text(alphabet=\"IVXLCDM\", min_size=1, max_size=6))\ndef test_from_roman_agrees_with_reference_on_arbitrary_symbols(s):\n    try:\n        expected = ref_from_roman(s)\n    except ValueError:\n        with pytest.raises(ValueError):\n            from_roman(s)\n    else:\n        assert from_roman(s) == expected",
+      "counterexample": "test_from_roman_agrees_with_reference_on_arbitrary_symbols(| s='DD', | )",
+      "failure_output": "k (most recent call last):\n  |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-134013-ef761d/work/adversary_tests/test_adversary.py\", line 278, in test_from_roman_agrees_with_reference_on_arbitrary_symbols\n  |     def test_from_roman_agrees_with_reference_on_arbitrary_symbols(s):\n  |                    ^^^\n  | BaseExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n  +-+---------------- 1 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-134013-ef761d/work/adversary_tests/test_adversary.py\", line 280, in test_from_roman_agrees_with_reference_on_arbitrary_symbols\n    |     expected = ref_from_roman(s)\n    |                ^^^^^^^^^^^^^^^^^\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-134013-ef761d/work/adversary_tests/test_adversary.py\", line 67, in ref_from_roman\n    |     raise ValueError\n    | ValueError\n    | \n    | During handling of the above exception, another exception occurred:\n    | \n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-134013-ef761d/work/adversary_tests/test_adversary.py\", line 282, in test_from_roman_agrees_with_reference_on_arbitrary_symbols\n    |     with pytest.raises(ValueError):\n    |          ^^^^^^^^^^^^^^^^^^^^^^^^^\n    | Failed: DID NOT RAISE ValueError\n    | Failing test case: test_from_roman_agrees_with_reference_on_arbitrary_symbols(\n    |     s='DD',\n    | )\n    +---------------- 2 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-134013-ef761d/work/adversary_tests/test_adversary.py\", line 285, in test_from_roman_agrees_with_reference_on_arbitrary_symbols\n    |     assert from_roman(s) == expected\n    | AssertionError: assert 600 == 400\n    |  +  where 600 = from_roman('CD')\n    | Failing test case: test_from_roman_agrees_with_reference_on_arbitrary_symbols(\n    |     s='CD',\n    | )\n    +------------------------------------",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9586738348007202
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9613953232765198,
+        "test_asserts_unspecified": 0.01382492110133171,
+        "test_is_broken": 0.02298840880393982,
+        "ambiguous_spec": 0.0017913440242409706
+      },
+      "confidence": 0.9485270977020264
+    }
+  },
+  "usage": {
+    "input_tokens": 1837,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.471327499981271
+}

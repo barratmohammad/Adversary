@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Merge intervals\n\nImplement in `intervals.py`:\n\n```python\ndef merge_intervals(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]: ...\n```\n\nMerge **closed integer intervals** `(start, end)` (both endpoints included) into the\nsmallest equivalent list of disjoint intervals.\n\n## Behavior\n- Every element is a 2-tuple of ints. If any element has `start > end`, raise `ValueError`.\n  Single-point intervals such as `(2, 2)` are valid.\n- Two intervals merge when they **overlap or touch**, i.e. share at least one point:\n  `(1, 3)` and `(3, 5)` become `(1, 5)`. An interval contained in another is absorbed by it.\n- Merely **adjacent** intervals do NOT merge: `(1, 3)` and `(4, 5)` share no point and stay separate.\n- Merging is transitive: a chain of overlapping/touching intervals collapses into one.\n- Input order is arbitrary and duplicates are allowed.\n- Returns a **new list of tuples**, sorted by start, where each interval's start is strictly\n  greater than the previous interval's end. The set of integer points covered by the output\n  equals the set covered by the input.\n- The input list and its elements are never mutated. Empty input returns `[]`.\n\n## Examples\n- `merge_intervals([(1, 3), (2, 6), (8, 10), (15, 18)]) == [(1, 6), (8, 10), (15, 18)]`\n- `merge_intervals([(1, 3), (3, 5)]) == [(1, 5)]`\n- `merge_intervals([(1, 3), (4, 5)]) == [(1, 3), (4, 5)]`\n- `merge_intervals([(5, 7), (1, 2)]) == [(1, 2), (5, 7)]`\n- `merge_intervals([]) == []`\n- `merge_intervals([(3, 1)])` raises `ValueError`",
+      "failing_test": "def ref_merge(intervals):\n    for s, e in intervals:\n        if s > e:\n            raise ValueError(\"invalid\")\n    if not intervals:\n        return []\n    ordered = sorted(intervals, key=lambda iv: (iv[0], iv[1]))\n    out = [tuple(ordered[0])]\n    for s, e in ordered:\n        ls, le = out[-1]\n        if s <= le:  # overlap or touch (share a point)\n            out[-1] = (ls, max(le, e))\n        else:\n            out.append((s, e))\n    return out\n\ndef covered_set(intervals):\n    s = set()\n    for a, b in intervals:\n        s.update(range(a, b + 1))\n    return s\n\n@given(valid_lists)\ndef test_property_permutation_invariant(intervals):\n    inp = list(intervals)\n    rnd = random.Random(tuple(sorted(inp)) + (len(inp),))\n    shuffled = list(inp)\n    rnd.shuffle(shuffled)\n    assert merge_intervals(shuffled) == merge_intervals(inp)",
+      "counterexample": "test_property_permutation_invariant(intervals=[])",
+      "failure_output": "TypeError: The only supported seed types are: None,\nint, float, str, bytes, and bytearray.\nFailing test case: test_property_permutation_invariant(\n    intervals=[],\n)\nadversary_tests/test_adversary.py:216: in test_property_permutation_invariant\n    def test_property_permutation_invariant(intervals):\n                   ^^^\nadversary_tests/test_adversary.py:218: in test_property_permutation_invariant\n    rnd = random.Random(tuple(sorted(inp)) + (len(inp),))\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/Users/guru/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/random.py:132: in __init__\n    self.seed(x)\n/Users/guru/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/random.py:167: in seed\n    raise TypeError('The only supported seed types are: None,\\n'\nE   TypeError: The only supported seed types are: None,\nE   int, float, str, bytes, and bytearray.\nE   Failing test case: test_property_permutation_invariant(\nE       intervals=[],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.0007362292963080108
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_is_broken",
+      "probabilities": {
+        "implementation_bug": 0.004198768176138401,
+        "test_asserts_unspecified": 0.0005363273667171597,
+        "test_is_broken": 0.9951335787773132,
+        "ambiguous_spec": 0.00013131929154042155
+      },
+      "confidence": 0.993511438369751
+    }
+  },
+  "usage": {
+    "input_tokens": 1300,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.2127055829914752
+}
