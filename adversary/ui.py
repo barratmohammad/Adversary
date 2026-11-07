@@ -101,6 +101,8 @@ def show_verdict(v: Verdict, run_dir) -> None:
             body.append(Text(f"  {c['test']}: {c['falsifying'] or c['message'][:160]}", style="yellow"))
             if c.get("adjudication"):
                 body.append(Text(f"    adjudicator: {c['adjudication']}", style="dim"))
+    if ce and ce.details.get("discarded"):
+        body.append(Text(f"  discarded as not spec-backed by the adjudicator: {', '.join(ce.details['discarded'])}", style="dim"))
     for cid in ("security", "cheat"):
         c = checks.get(cid)
         if c and c.status in ("fail", "warn"):
@@ -112,6 +114,10 @@ def show_verdict(v: Verdict, run_dir) -> None:
         body.append(Text("mutants only the adversary caught:", style="bold"))
         for m in mu.details["only_adversary_caught"][:3]:
             body.append(Text(f"  {m['description']}", style="dim"))
+    so = (v.independence or {}).get("second_opinion")
+    if so and "risk" in so:
+        body.append(Text(""))
+        body.append(Text(f"second opinion (SubQ Snap, advisory): merge risk {so['risk']:.2f}/3 \"{so['risk_label']}\" · P(gamed) {so['p_gamed']:.2f}", style="bold"))
     body.append(Text(""))
     env = v.environment
     body.append(Text(f"seed {v.seed} · sandbox {env['sandbox']['kind']} (network {env['sandbox']['network']}) · python {env['python']} · lock {short(env['lock_sha256'])}", style="dim"))

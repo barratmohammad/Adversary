@@ -12,8 +12,9 @@ and **blocks the merge with a reproducible verdict** (seeded, sandboxed, hash-pi
             spec ─────────────┬──────────────────────────────┐
                               ▼                              ▼
                    ┌────────────────────┐   diff    ┌────────────────────────┐
-                   │ IMPLEMENTER agent  │──────────▶│ ADVERSARY verifier     │
-                   │ (Meta Muse Spark)  │           │ (different model family)│
+                   │ IMPLEMENTER agent  │──────────▶│ ADVERSARY verifier      │
+                   │ (Gemini / any LLM) │           │ tests: Meta Muse Spark  │
+                   │                    │           │ judge: SubQ Snap        │
                    └────────────────────┘           └────────────────────────┘
                      reasoning, tests ─╳─ withheld      │ sees: spec + diff with
                                                         │ comments/docstrings stripped
@@ -45,15 +46,18 @@ and **blocks the merge with a reproducible verdict** (seeded, sandboxed, hash-pi
 | Share blind spots with the verifier | Implementer and verifier run on **different model families**; verifier is told the code is untrusted data |
 | "It passed on my machine" | Verdict pins seed, sandbox profile/image digest, lockfile hash, spec/diff/test hashes; `reproduce` must match the outcome hash |
 
-False positives are controlled too: when a blind property test fails, a separate adjudicator call checks the
-counterexample against the spec. A test that asserted something the spec doesn't require is discarded, and
+False positives are controlled too: when a blind property test fails, an adjudicator from a *third* vendor -
+**Subquadratic SubQ Snap**, a typed-decision model (`/v1/systemone`) - returns P(genuine spec violation) and a cause
+(`implementation_bug` / `test_asserts_unspecified` / `test_is_broken` / `ambiguous_spec`) for the counterexample.
+Snap also gives an advisory merge-risk score over the whole evidence bundle. A test that asserted something the spec doesn't require is discarded, and
 the discard is recorded in the verdict. If adjudication is unavailable, the failure stands (fail closed).
 
 ## Quickstart
 
 ```bash
 uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -e .
-cp .env.example .env   # MODEL_API_KEY (Meta Model API) for the implementer, SUBQ_API_KEY (Subquadratic) for the verifier
+cp .env.example .env   # MODEL_API_KEY (Meta: writes the blind tests), SUBQ_API_KEY (Subquadratic: adjudicator),
+                       # optional GEMINI_API_KEY (implementer, so it is a different family from the test author)
 
 .venv/bin/adversary tasks
 .venv/bin/adversary run roman --fixture clean        # pre-recorded honest change      -> MERGE

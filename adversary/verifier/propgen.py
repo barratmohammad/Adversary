@@ -90,17 +90,26 @@ def generate_tests(spec: str, sanitized: dict[str, str], module: str, functions:
     return src, {"request_hash": comp.request_hash, "cached": comp.cached, "model": comp.model, "latency": round(comp.latency, 2)}
 
 
-def triage_failure(spec: str, test_src: str, test_name: str, failure: str, falsifying: str) -> dict:
-    # Pull just the failing test function's source to keep the prompt focused.
-    snippet = test_src
+def test_snippet(test_src: str, test_name: str) -> str:
+    """The failing test function's source (plus module-level helpers it may reference) - keeps adjudication focused."""
     try:
         tree = ast.parse(test_src)
-        for n in ast.walk(tree):
-            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == test_name.split("[")[0]:
-                snippet = ast.get_source_segment(test_src, n) or test_src
-                break
     except SyntaxError:
-        pass
+        return test_src
+    target = test_name.split("[")[0]
+    helpers, body = [], None
+    for n in tree.body:
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            seg = ast.get_source_segment(test_src, n) or ""
+            if n.name == target:
+                body = "\n".join(ast.get_source_segment(test_src, d) and "@" + ast.get_source_segment(test_src, d) or "" for d in n.decorator_list) + "\n" + seg
+            elif not n.name.startswith("test"):
+                helpers.append(seg)
+    return ("\n\n".join(helpers + [body or test_src])).strip()
+
+
+def triage_failure(spec: str, test_src: str, test_name: str, failure: str, falsifying: str) -> dict:
+    snippet = test_snippet(test_src, test_name)
     messages = [
         {"role": "system", "content": TRIAGE_SYSTEM},
         {"role": "user", "content": f"# SPECIFICATION\n{spec.strip()}\n\n# FAILING TEST\n```python\n{snippet}\n```\n\n"

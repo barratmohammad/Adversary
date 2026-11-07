@@ -184,7 +184,7 @@ def verify(
                     else:
                         emit("property_tests", "running", f"adjudicating failure: {o.name}")
                         try:
-                            triage[o.name] = propgen.triage_failure(task.spec, test_src, o.name, o.message + "\n" + o.detail, o.falsifying)
+                            triage[o.name] = _adjudicate(task.spec, test_src, o)
                         except llm.LLMError as e:
                             triage[o.name] = {"genuine": True, "reason": f"adjudicator unavailable ({e}); failing closed"}
                 t = triage[o.name]
@@ -255,6 +255,15 @@ def verify(
     # ---- decision ----------------------------------------------------------------------------
     blocking = [c for c in checks.values() if c.blocking]
     decision = "BLOCK" if blocking else "MERGE"
+    second_opinion = None
+    from .. import decisions
+    if decisions.available():
+        try:
+            second_opinion = decisions.merge_risk(task.spec, {
+                c.id: {"status": c.status, "summary": c.summary} for c in checks.values()
+            })
+        except llm.LLMError as e:
+            second_opinion = {"error": str(e)[:200]}
     reasons = [f"{c.title}: {c.summary}" for c in blocking] or ["all checks passed"]
     vcfg = llm.config_for("verifier").describe()
     impl_cfg = implementer_model or change.meta.get("model_desc") or llm.config_for("implementer").describe()
@@ -276,12 +285,13 @@ def verify(
         inputs=inputs,
         pinned=pinned_hashes,
         environment=environment_fingerprint(sandbox.describe()),
-        models={"implementer": impl_cfg, "verifier": vcfg},
+        models={"implementer": impl_cfg, "verifier": vcfg, "adjudicator": decisions.describe() if decisions.available() else vcfg},
         independence={
             "verifier_saw": ["spec.md", "changed implementation files (comments + docstrings stripped)"],
             "withheld_from_verifier": ["implementer reasoning", "implementer tests", "code comments/docstrings", "plant instructions"],
             "model_family_differs": impl_cfg.get("provider") != vcfg.get("provider"),
             "verifier_view_sha256": inputs["sanitized_view_sha256"],
+            "second_opinion": second_opinion,
         },
         created_at=_dt.datetime.now(_dt.timezone.utc).isoformat(),
         reproduce=f"adversary reproduce {run_dir}",
@@ -362,6 +372,15 @@ def _run_ver(sandbox, d, target, seed, kexpr):
     if not res.outcomes and rr.returncode not in (0, 5) and not rr.timed_out:
         res.collection_error = (rr.stdout + rr.stderr)[-500:]
     return res
+
+
+def _adjudicate(spec: str, test_src: str, o) -> dict:
+    """SubQ Snap (typed decision, separate vendor) when available; otherwise the verifier chat model."""
+    from .. import decisions
+    if decisions.available():
+        snippet = propgen.test_snippet(test_src, o.name)
+        return decisions.adjudicate_failure(spec, snippet, o.falsifying, (o.message + "\n" + o.detail))
+    return propgen.triage_failure(spec, test_src, o.name, o.message + "\n" + o.detail, o.falsifying)
 
 
 def _finding(rule, path, lineno, severity, message, snippet):
