@@ -44,13 +44,23 @@ class LLMError(RuntimeError):
     pass
 
 
+def _read_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        m = re.match(r"\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$", line)
+        if m and m.group(1) not in os.environ:
+            os.environ[m.group(1)] = m.group(2).strip().strip('"').strip("'")
+
+
 def _load_dotenv() -> None:
-    env = ROOT / ".env"
-    if env.exists():
-        for line in env.read_text().splitlines():
-            m = re.match(r"\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$", line)
-            if m and m.group(1) not in os.environ:
-                os.environ[m.group(1)] = m.group(2).strip().strip('"').strip("'")
+    _read_env_file(ROOT / ".env")
+    # .env.replay pins the roles to the providers/models the committed cassettes were recorded with.
+    # It applies in replay mode, and on a machine with no API key at all (which can only replay anyway),
+    # so a clean clone shows the same models and hits the same recordings as the machine that made them.
+    any_key = any(os.environ.get(k) for p in PROVIDERS.values() for k in p["key_env"])
+    if os.environ.get("ADVERSARY_LLM_MODE") == "replay" or not any_key:
+        _read_env_file(ROOT / ".env.replay")
 
 
 _load_dotenv()
@@ -124,6 +134,12 @@ def chat(role: str, messages: list[dict], temperature: float = 0.0, max_tokens: 
     if mode in ("auto", "replay") and path.exists():
         data = json.loads(path.read_text())
         return Completion(data["text"], h, True, cfg.model, 0.0)
+    if mode == "replay" or (mode == "auto" and not cfg.api_key):
+        # Same prompt recorded under another provider/model name (a clone without the recording machine's
+        # .env): replay it and report the model that actually answered.
+        rec = _find_recorded(req)
+        if rec is not None:
+            return Completion(rec["text"], rec["hash"], True, rec["model"], 0.0)
     if mode == "replay":
         raise LLMError(f"[{role}] no recorded completion for request {h[:12]} (ADVERSARY_LLM_MODE=replay)")
     if not cfg.api_key:
@@ -167,6 +183,30 @@ def chat(role: str, messages: list[dict], temperature: float = 0.0, max_tokens: 
     CASSETTE_DIR.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"request": req, "text": text, "tag": tag, "latency": latency}, indent=2))
     return Completion(text, h, False, cfg.model, latency)
+
+
+_CONTENT_INDEX: dict[str, dict] | None = None
+
+
+def _content_key(req: dict) -> str:
+    return sha256_json({k: v for k, v in req.items() if k not in ("provider", "model")})
+
+
+def _find_recorded(req: dict) -> dict | None:
+    """Look a request up in the cassettes by content, ignoring provider/model."""
+    global _CONTENT_INDEX
+    if _CONTENT_INDEX is None:
+        _CONTENT_INDEX = {}
+        if CASSETTE_DIR.exists():
+            for p in sorted(CASSETTE_DIR.glob("*.json")):
+                try:
+                    d = json.loads(p.read_text())
+                    r = d.get("request") or {}
+                    if "messages" in r and "text" in d:
+                        _CONTENT_INDEX.setdefault(_content_key(r), {"text": d["text"], "model": r.get("model", ""), "hash": p.stem})
+                except (OSError, ValueError):
+                    continue
+    return _CONTENT_INDEX.get(_content_key(req))
 
 
 def extract_code(text: str, lang: str = "python") -> str:

@@ -113,6 +113,7 @@ Plant a bug by hand: copy `tasks/<task>/fixtures/clean` somewhere, edit it, then
 | `ADVERSARY_VERIFIER_PROVIDER` | first provider with a key that differs from the implementer's | |
 | `ADVERSARY_<ROLE>_MODEL` / `_BASE_URL` / `_API_KEY` | preset per provider | any OpenAI-compatible endpoint |
 | `ADVERSARY_LLM_MODE` | `auto` | `replay` = recorded completions only (offline, reproducible), `live` = never use the cassette |
+| `.env.replay` | committed | the providers/models the cassettes were recorded with; loaded in `replay` mode or when no key is set, so a clean clone replays the demo offline. A recording made under another provider name is still found by prompt content |
 | `ADVERSARY_SANDBOX` | auto | `docker` (needs `docker build -t adversary-sandbox -f docker/Dockerfile docker/`), `seatbelt` (macOS), `local` |
 | `MONGODB_URI` | unset | verdict ledger in MongoDB; otherwise `runs/ledger.jsonl` |
 
