@@ -144,7 +144,15 @@ def run_suite(
     if hardened:
         args += ["-I", "-m", "pytest", "-c", f"{VERIFIER_DIR}/pytest.ini", "--rootdir", VERIFIER_DIR, "--noconftest"]
     else:
-        args += ["-m", "pytest"]
+        # The implementer's suite runs "as submitted" (its own ini/conftest), but pytest must never walk
+        # up out of the workspace and pick up a config from wherever the workspace happens to live.
+        ini = next((n for n in ("pytest.ini", ".pytest.ini", "tox.ini", "setup.cfg") if (workdir / n).exists()), None)
+        if ini is None and (workdir / "pyproject.toml").exists() and "[tool.pytest" in (workdir / "pyproject.toml").read_text():
+            ini = "pyproject.toml"
+        if ini is None:
+            (workdir / ".tmp" / "pytest.ini").write_text("[pytest]\n")
+            ini = ".tmp/pytest.ini"
+        args += ["-m", "pytest", "-c", ini, "--rootdir", "."]
     args += [
         "-q", "-p", "no:cacheprovider", "-p", "no:randomly",
         f"--hypothesis-seed={seed}", f"--junitxml={junit}",
