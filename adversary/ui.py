@@ -123,13 +123,16 @@ def show_verdict(v: Verdict, run_dir) -> None:
         body.append(Text(f"second opinion (SubQ Snap, advisory): merge risk {so['risk']:.2f}/3 \"{so['risk_label']}\" · P(gamed) {so['p_gamed']:.2f}", style="bold"))
     ind = v.independence or {}
     if "model_differs" in ind:
-        parts = [
-            f"implementer {ind.get('implementer_model')} vs verifier {ind.get('verifier_model')}: "
-            + ("different models" if ind["model_differs"] else "SAME MODEL"),
-            "different vendors" if ind.get("vendor_differs") else "same vendor",
-            "adjudicator from a different vendor" if ind.get("adjudicator_vendor_differs") else "adjudicator shares the verifier's vendor",
-        ]
-        body.append(Text("independence: " + " · ".join(parts), style="dim" if ind["model_differs"] else "bold yellow"))
+        if ind["model_differs"] is None:
+            parts = [f"implementer: pre-recorded change (no model) · verifier {ind.get('verifier_model')}"]
+        else:
+            parts = [
+                f"implementer {ind.get('implementer_model')} vs verifier {ind.get('verifier_model')}: "
+                + ("different models" if ind["model_differs"] else "SAME MODEL"),
+                "different vendors" if ind.get("vendor_differs") else "same vendor",
+            ]
+        parts.append("adjudicator from a different vendor" if ind.get("adjudicator_vendor_differs") else "adjudicator shares the verifier's vendor")
+        body.append(Text("independence: " + " · ".join(parts), style="dim" if ind["model_differs"] is not False else "bold yellow"))
     body.append(Text(""))
     env = v.environment
     body.append(Text(f"seed {v.seed} · sandbox {env['sandbox']['kind']} (network {env['sandbox']['network']}) · python {env['python']} · lock {short(env['lock_sha256'])}", style="dim"))

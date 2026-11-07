@@ -315,8 +315,9 @@ def verify(
             "verifier_saw": ["spec.md", "changed implementation files (comments + docstrings stripped)"],
             "withheld_from_verifier": ["implementer reasoning", "implementer tests", "code comments/docstrings", "plant instructions"],
             "model_family_differs": impl_cfg.get("provider") != vcfg.get("provider"),
-            "model_differs": (impl_cfg.get("model"), impl_cfg.get("provider")) != (vcfg.get("model"), vcfg.get("provider")),
-            "vendor_differs": impl_cfg.get("provider") != vcfg.get("provider"),
+            # None when the change was pre-recorded (no implementer model to compare against)
+            "model_differs": ((impl_cfg.get("model"), impl_cfg.get("provider")) != (vcfg.get("model"), vcfg.get("provider"))) if impl_cfg.get("provider") else None,
+            "vendor_differs": (impl_cfg.get("provider") != vcfg.get("provider")) if impl_cfg.get("provider") else None,
             "adjudicator_vendor_differs": ("subq" if decisions.available() else vcfg.get("provider")) != vcfg.get("provider"),
             "implementer_model": impl_cfg.get("model"), "verifier_model": vcfg.get("model"),
             "verifier_view_sha256": inputs["sanitized_view_sha256"],
