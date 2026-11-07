@@ -117,8 +117,9 @@ class ReviewView:
             w = self.weights.get(a, self.ledger.weight(a))
             vote = self.votes.get(a)
             if vote is None:
-                waiting = Spinner("dots", text=Text(" reviewing…", style="cyan"), style="cyan") if self.job else Text("")
-                t.add_row("", Text(a, style="bold"), _addr(self.addresses.get(a, "")), f"{w:.2f}", waiting, "", "", Text(ROLES.get(a, ""), style="dim"))
+                waiting = Spinner("dots", style="cyan") if self.job else Text("")
+                note = Text(f"reviewing… ({ROLES.get(a, '')})", style="cyan") if self.job else Text(ROLES.get(a, ""), style="dim")
+                t.add_row("", Text(a, style="bold"), _addr(self.addresses.get(a, "")), f"{w:.2f}", waiting, "", "", note)
                 continue
             label, style = VOTE_STYLE[vote["decision"]]
             if vote.get("veto"):
