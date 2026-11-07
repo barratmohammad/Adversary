@@ -24,7 +24,13 @@ def _verify_and_show(task, change, private, args, pinned=None, run_dir=None):
     sandbox = detect_sandbox(args.sandbox)
     vcfg = llm.config_for("verifier")
     icfg = llm.config_for("implementer")
-    impl_desc = icfg.describe() if change.meta.get("source") == "llm" else {"role": "implementer", "provider": "fixture", "model": "pre-recorded change"}
+    src = change.meta.get("source")
+    if src == "llm":
+        impl_desc = icfg.describe()
+    elif src == "github":
+        impl_desc = {"role": "implementer", "provider": "github", "model": f"PR #{change.meta.get('pr')} @ {str(change.meta.get('sha', ''))[:10]}"}
+    else:
+        impl_desc = {"role": "implementer", "provider": "fixture", "model": "pre-recorded change"}
     ui.banner(task.title, f"{impl_desc['provider']}/{impl_desc['model']}", f"{vcfg.provider}/{vcfg.model}", sandbox.kind)
     if not args.quiet:
         ui.show_diff(change.diff(), max_lines=args.diff_lines)
