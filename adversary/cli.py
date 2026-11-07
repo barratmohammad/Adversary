@@ -201,6 +201,12 @@ def cmd_matrix(args) -> int:
     return 0 if correct == len(results) else 1
 
 
+def cmd_bench(args) -> int:
+    from . import bench
+    s = bench.run(n=args.n, bugs_per=args.bugs, seed=args.seed, parallel=args.parallel, console=ui.console)
+    return 0 if s.get("catch_rate") is not None else 1
+
+
 def cmd_learn(args) -> int:
     from . import learn
     learn.learn([t.strip() for t in args.train.split(",") if t.strip()], [t.strip() for t in args.heldout.split(",") if t.strip()],
@@ -259,6 +265,12 @@ def main(argv: list[str] | None = None) -> int:
     mx.add_argument("--parallel", type=int, default=3)
     common(mx)
     mx.set_defaults(fn=cmd_matrix)
+    bn = sub.add_parser("bench", help="HumanEval+ benchmark: catch rate on bugs the official tests miss, false-block rate on correct code")
+    bn.add_argument("--n", type=int, default=20, help="number of HumanEval problems")
+    bn.add_argument("--bugs", type=int, default=2, help="sneaky bugs per problem")
+    bn.add_argument("--seed", type=int, default=0)
+    bn.add_argument("--parallel", type=int, default=6)
+    bn.set_defaults(fn=cmd_bench)
     ln = sub.add_parser("learn", help="improve the verifier's playbook; adopt only held-out-validated tactics")
     ln.add_argument("--train", required=True, help="comma-separated task names to learn from")
     ln.add_argument("--heldout", required=True, help="comma-separated held-out task names")

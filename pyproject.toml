@@ -13,6 +13,7 @@ dependencies = [
 
 [project.optional-dependencies]
 mongo = ["pymongo>=4.6"]
+bench = ["evalplus>=0.3"]
 swarm = ["uagents>=0.26,<0.27"]
 
 [project.scripts]
