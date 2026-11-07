@@ -208,6 +208,12 @@ def cmd_bench(args) -> int:
     return 0 if s.get("catch_rate") is not None else 1
 
 
+def cmd_redteam(args) -> int:
+    from . import redteam
+    redteam.run([t.strip() for t in args.tasks.split(",") if t.strip()], rounds=args.rounds, seed=args.seed, console=ui.console)
+    return 0
+
+
 def cmd_learn(args) -> int:
     from . import learn
     learn.learn([t.strip() for t in args.train.split(",") if t.strip()], [t.strip() for t in args.heldout.split(",") if t.strip()],
@@ -276,6 +282,11 @@ def main(argv: list[str] | None = None) -> int:
     bn.add_argument("--llm-bugs", type=int, default=40)
     bn.add_argument("--llm-correct", type=int, default=20)
     bn.set_defaults(fn=cmd_bench)
+    rt = sub.add_parser("redteam", help="adaptive attacker LLM tries to get a provably-wrong change past Adversary")
+    rt.add_argument("--tasks", default="roman,intervals,safe_path")
+    rt.add_argument("--rounds", type=int, default=4)
+    rt.add_argument("--seed", type=int, default=1337)
+    rt.set_defaults(fn=cmd_redteam)
     ln = sub.add_parser("learn", help="improve the verifier's playbook; adopt only held-out-validated tactics")
     ln.add_argument("--train", required=True, help="comma-separated task names to learn from")
     ln.add_argument("--heldout", required=True, help="comma-separated held-out task names")
