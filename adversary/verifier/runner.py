@@ -84,7 +84,18 @@ class SuiteResult:
         }
 
 
-FALSIFY_RE = re.compile(r"Falsifying (?:explicit )?example:\s*(.*?)(?:\n\s*\n|\n(?=[A-Z_a-z]+Error)|\Z)", re.S)
+FALSIFY_RE = re.compile(r"(?:Falsifying (?:explicit )?example|Failing test case):\s*(\w+\((?:.|\n)*?\n?\s*\))", re.S)
+
+
+def _falsifying(*texts: str) -> str:
+    for t in texts:
+        if not t:
+            continue
+        clean = re.sub(r"(?m)^E\s{0,3}", "", t)
+        m = FALSIFY_RE.search(clean)
+        if m:
+            return re.sub(r"\s+", " ", m.group(1)).replace("( ", "(").replace(", )", ")")[:800]
+    return ""
 
 
 def _parse_junit(path: Path) -> list[TestOutcome]:
@@ -106,11 +117,10 @@ def _parse_junit(path: Path) -> list[TestOutcome]:
                 message = el.get("message", "") or ""
                 detail = el.text or ""
                 break
-        m = FALSIFY_RE.search(detail) or FALSIFY_RE.search(message)
         outs.append(TestOutcome(
             nodeid=nodeid, name=name, status=status,
             message=message[:2000], detail=detail[-4000:],
-            falsifying=(m.group(1).strip()[:800] if m else ""),
+            falsifying=_falsifying(message, detail),
             duration=float(tc.get("time", 0) or 0),
         ))
     return outs

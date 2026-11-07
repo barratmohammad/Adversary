@@ -257,6 +257,8 @@ def verify(
         "verifier_tests_sha256": sha256_text(test_src) if test_src else None,
         "triage_sha256": sha256_json(triage),
         "mutants_sha256": sha256_json([m.id for m in mutants]),
+        "max_mutants": max_mutants,
+        "max_examples": max_examples,
     }
     verdict = Verdict(
         run_id=run_dir.name,
