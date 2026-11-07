@@ -160,10 +160,7 @@ def playbook() -> None:
     con.print(tb)
 
 
-@app.command()
-def attack(task: str = "t02_membership", kind: str = typer.Option("edge", help="table | edge | escape"),
-           no_gate: bool = typer.Option(False, "--no-gate")) -> None:
-    """Plant a cheating rewrite and watch it get caught."""
+def _attack(task: str, kind: str, use_gate: bool) -> loop.TaskRun:
     t = load(task)
     src = attacks.build(kind, t)
     con.print(Panel(Syntax(src if len(src) < 2500 else src[:1200] + "\n# … (answer table elided) …\n" + src[-500:],
@@ -174,10 +171,18 @@ def attack(task: str = "t02_membership", kind: str = typer.Option("edge", help="
     real = _opt.optimize
     try:
         _opt.optimize = lambda tk, book_: _opt.OptimizeResult(tk.name, src, src, "planted", True, book_.version)
-        run = loop.run_task(t, book, use_gate=not no_gate, emit=emit, label=f"attack-{kind}")
+        run = loop.run_task(t, book, use_gate=use_gate, emit=emit, label=f"attack-{kind}")
     finally:
         _opt.optimize = real
     con.print(f"outcome: {_st(run.status)}" + (f"  speed-up {_x(run.speedup)}" if run.speedup else ""))
+    return run
+
+
+@app.command()
+def attack(task: str = typer.Argument("t02_membership"), kind: str = typer.Option("edge", help="table | edge | escape"),
+           no_gate: bool = typer.Option(False, "--no-gate")) -> None:
+    """Plant a cheating rewrite and watch it get caught."""
+    _attack(task, kind, not no_gate)
 
 
 @app.command()
@@ -202,7 +207,7 @@ def demo(unseen: str = "h02_common_elements", heldout_n: int = 3) -> None:
     con.print(Panel(f"{t.func}: {_x(before.speedup)} with an empty playbook  ->  [bold]{_x(after.speedup)}[/] after learning",
                     title="the learning effect", border_style="green"))
     con.rule("[bold]5. a planted cheat[/]")
-    attack(unseen if unseen in attacks._EDGE else "t02_membership", "edge")
+    _attack(unseen if unseen in attacks._EDGE else "t02_membership", "edge", True)
 
 
 if __name__ == "__main__":
