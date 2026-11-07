@@ -1,7 +1,7 @@
 """Minimal OpenAI-compatible chat client with role-separated config and a record/replay cassette.
 
 Roles are configured independently so the implementer and the verifier can (and by default
-should) run on *different model families* - the verifier must not share the implementer's
+should) run on *different models, ideally different vendors* - the verifier must not share the implementer's
 blind spots.
 
   verifier (writes the blind tests)   -> Meta Model API, muse-spark      (ADVERSARY_VERIFIER_PROVIDER)
@@ -90,7 +90,7 @@ def config_for(role: str) -> ModelConfig:
     provider = os.environ.get(f"ADVERSARY_{R}_PROVIDER")
     if not provider:
         if role == "implementer":
-            # implementer: a different family from the verifier's test author (Meta) when possible
+            # implementer: a different vendor from the verifier's test author (Meta) when a key for one exists
             provider = next((p for p in ("gemini", "anthropic", "openai", "fireworks") if _key_for(p)), "meta")
         else:
             impl = config_for("implementer").provider

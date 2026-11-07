@@ -189,10 +189,12 @@ def attack(task: str = typer.Argument("t02_membership"), kind: str = typer.Optio
 @app.command()
 def demo(unseen: str = "h02_common_elements", heldout_n: int = 3) -> None:
     """The 3-minute story: unseen task before learning, learn, show a rollback, same task after, then an attack."""
-    con.rule("[bold]1. unseen function, EMPTY playbook[/]")
+    con.rule("[bold]1. unseen function, EMPTY playbook (deployment policy)[/]")
     t = load(unseen)
     empty = pb.Playbook()
     before = loop.run_task(t, empty, emit=emit)
+    con.rule("[bold]1b. same function, EMPTY playbook, UNCONSTRAINED exploration (the baseline a skeptic asks for)[/]")
+    free = loop.run_task(t, empty, emit=emit, explore=True, label="baseline-explore")
     con.rule("[bold]2. learn[/]")
     rep = loop.learn(None, None, heldout_n=heldout_n, emit=emit)
     con.rule("[bold]3. one rule that failed held-out and was rolled back[/]")
@@ -205,8 +207,18 @@ def demo(unseen: str = "h02_common_elements", heldout_n: int = 3) -> None:
         con.print("[dim]no rollback this run; see `overclock playbook` for history[/]")
     con.rule(f"[bold]4. same unseen function, LEARNED playbook v{pb.load_current().version}[/]")
     after = loop.run_task(t, pb.load_current(), emit=emit)
-    con.print(Panel(f"{t.func}: {_x(before.speedup)} with an empty playbook  ->  [bold]{_x(after.speedup)}[/] after learning",
-                    title="the learning effect", border_style="green"))
+    learned = after.speedup or 0
+    beats_free = learned > (free.speedup or 0)
+    con.print(Panel(
+        f"{t.func}\n"
+        f"  empty playbook, deployment policy : {_x(before.speedup)}\n"
+        f"  empty playbook, unconstrained     : {_x(free.speedup)}   <- the skeptic's baseline\n"
+        f"  learned playbook, deployment policy: [bold]{_x(after.speedup)}[/]\n\n"
+        + ("[green]The learned playbook beats even the unconstrained optimizer: the gain comes from learned rules, "
+           "not from relaxing the policy.[/]" if beats_free else
+           "[yellow]The learned playbook does NOT beat the unconstrained optimizer on this function: the honest read is "
+           "that the rules transfer the policy's permissions, not new knowledge.[/]"),
+        title="the learning effect", border_style="green" if beats_free else "yellow"))
     con.rule("[bold]5. a planted cheat[/]")
     _attack(unseen if unseen in attacks._EDGE else "t02_membership", "edge", True)
 

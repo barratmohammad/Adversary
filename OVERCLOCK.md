@@ -11,7 +11,7 @@ functions it has never learned from; otherwise it is rolled back. The rolled-bac
   slow function ──────────────▶ OPTIMIZER (implementer LLM) ──▶ candidate rewrite        │
                                                       │                                 │
    1. differential check: same answers as the reference on seeded inputs   (harness)   │  any failure:
-   2. ADVERSARY verdict: spec + diff only, different model family, blind    (gate)     │  nothing is timed,
+   2. ADVERSARY verdict: spec + diff only, a different model, blind         (gate)     │  nothing is timed,
       property tests, cheat detector, security pass, mutation testing                   │  nothing is learned
    3. stopwatch: median of 7, then RE-TIMED on a fresh random seed          (harness)   │
                                                       │ win (>= 1.5x)                   │
@@ -35,7 +35,16 @@ There are two optimizer policies, and which one applies is decided by the task s
   permission and supply the pattern ("when a list is only used for membership tests, build a set first").
 
 So on an unseen function the prompt scaffold and policy are identical before and after learning; the *only* thing
-that differs is the rule list. That is what the before/after measurement isolates. Exploration wins that the
+that differs is the rule list. That is what the before/after measurement isolates.
+
+Because a conservative baseline could be accused of manufacturing the effect, `overclock demo` reports a **second
+baseline**: the same unseen function optimized in unconstrained exploration mode with an empty playbook. The learned
+playbook has to beat *that* too for the learning claim to stand; if it doesn't, the demo says so.
+
+**Status at submission:** the loop has not yet been run against a live model (no key on the machine that built it),
+so there are no playbook versions or speed-up numbers in this repository yet. Everything above is implemented and
+covered by offline tests (`tests/test_loop.py`, `tests/test_overclock_gate*.py`); the numbers appear here after the
+first `overclock learn`. Exploration wins that the
 reflection step fails to turn into a rule that helps held-out tasks are rolled back like any other.
 
 ## Honesty rules (never cut)

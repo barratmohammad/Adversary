@@ -9,7 +9,8 @@ End the video on https://github.com/barratmohammad/Adversary/pull/2 (red `advers
 
 ## 3-minute live pitch
 
-Pre-flight: `source .venv/bin/activate`. If Wi-Fi is bad: `export ADVERSARY_LLM_MODE=replay` (every model call
+Pre-flight: `source .venv/bin/activate`. **Run `./demo.sh` once before walking on stage: it must end with `13/13 correct`**
+(it replays recorded model calls, so it needs neither Wi-Fi nor keys; `.env.replay` pins the recorded models). If Wi-Fi is bad: `export ADVERSARY_LLM_MODE=replay` (every model call
 replays from `.adversary/cassettes/`; verdicts are identical).
 
 **0:00 - Problem (20s).** "AI writes code faster than anyone can review it. And when the same AI writes the code
@@ -49,6 +50,12 @@ miscalibrated agent loses its weight (1.00 -> 0.06). And OVERCLOCK: a self-impro
 must pass Adversary first.
 
 ## Q&A crib
+- **Are the implementer and verifier really independent?** Different models, and the adjudicator is a different vendor
+  (SubQ). In the recorded demo both LLMs are Meta's (muse-wonder writes code, muse-spark writes tests); the verdict
+  records `model_differs` / `vendor_differs` as measured. One env var puts the implementer on another vendor.
+- **How often are the verifier's own tests wrong?** In 11 of 31 recorded runs at least one failing blind test was
+  discarded by the judges. Every labeled decision was still right, but the labeled set is 13 of our own changes;
+  the HumanEval+ benchmark (`adversary bench`) is the unbiased number.
 - **Can the verifier's own tests be wrong?** Yes - we hit it: Meta once asserted something the spec forbids. So a
   failing test only blocks if SubQ Snap *and* a step-by-step reasoning judge both call it a genuine violation.
   Discards are recorded in the verdict.
