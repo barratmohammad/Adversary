@@ -26,11 +26,17 @@ functions it has never learned from; otherwise it is rolled back. The rolled-bac
 
 ## The one rule that matters: it learns, it doesn't just optimize
 
-The optimizer's prompt scaffold is identical in every run. With an **empty playbook** it follows a conservative
-policy: local, obviously-safe edits only; no new imports, no algorithm swaps, no caching. Playbook rules are what
-grant permission and supply patterns ("when a list is only used for membership tests, build a set first"). So the
-*only* thing that differs between "before learning" and "after learning" is the rule list, and the proof is the same
-unseen function measured under both.
+There are two optimizer policies, and which one applies is decided by the task split, never by the model:
+
+- **Exploration (learn tasks only):** the optimizer may restructure freely (algorithms, data structures, stdlib,
+  memoisation) to *find* a win. This is training. Nothing from here is shipped directly.
+- **Deployment (held-out and unseen tasks, always):** a fixed, conservative policy: local, obviously-safe edits only;
+  no new imports, no algorithm swaps, no caching, *unless a playbook rule explicitly permits it*. Rules grant
+  permission and supply the pattern ("when a list is only used for membership tests, build a set first").
+
+So on an unseen function the prompt scaffold and policy are identical before and after learning; the *only* thing
+that differs is the rule list. That is what the before/after measurement isolates. Exploration wins that the
+reflection step fails to turn into a rule that helps held-out tasks are rolled back like any other.
 
 ## Honesty rules (never cut)
 

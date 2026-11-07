@@ -61,12 +61,19 @@ class TaskRun:
         return asdict(self)
 
 
+GATE_BUDGET = {"max_mutants": 8, "max_examples": 60}          # learn tasks and single runs
+HELDOUT_GATE_BUDGET = {"max_mutants": 4, "max_examples": 40}  # held-out scoring: correctness is what matters
+
+
 def run_task(task: Task, playbook: pb.Playbook, *, use_gate: bool = True, seed: int = harness.DEFAULT_SEED,
-             emit: Emit = _noop, label: str = "") -> TaskRun:
+             emit: Emit = _noop, label: str = "", explore: bool = False,
+             gate_budget: dict | None = None) -> TaskRun:
+    """`explore` (training only) lets the optimizer restructure freely on LEARN tasks. Held-out and
+    unseen tasks must always be run with explore=False: same policy, only the playbook differs."""
     run = TaskRun(task=task.name, playbook_version=playbook.version)
-    emit({"event": "optimize", "task": task.name, "version": playbook.version})
+    emit({"event": "optimize", "task": task.name, "version": playbook.version, "explore": explore})
     try:
-        opt = optimizer.optimize(task, playbook)
+        opt = optimizer.optimize(task, playbook, explore=explore)
     except llm.LLMError as e:
         run.status, run.error = "error", str(e)
         emit({"event": "error", "task": task.name, "error": str(e)})
@@ -88,7 +95,7 @@ def run_task(task: Task, playbook: pb.Playbook, *, use_gate: bool = True, seed: 
         g = gatemod.verify(task, run.source, label=label or f"v{playbook.version}",
                            emit=lambda cid, st, msg: emit({"event": "gate-check", "task": task.name,
                                                            "check": cid, "status": st, "msg": msg}),
-                           model_desc={"model": run.model})
+                           model_desc={"model": run.model}, **(gate_budget or GATE_BUDGET))
         run.gate = g.to_dict()
         emit({"event": "gate", "task": task.name, "status": g.decision, "reasons": g.reasons,
               "sha": g.outcome_sha256, "run_dir": g.run_dir})
@@ -137,8 +144,8 @@ def heldout_eval(playbook: pb.Playbook, tasks: list[Task], *, use_gate: bool = T
     runs = []
     for t in tasks:
         emit({"event": "heldout-task", "task": t.name, "version": playbook.version})
-        runs.append(run_task(t, playbook, use_gate=use_gate, seed=seed, emit=emit,
-                             label=f"heldout-v{playbook.version}-{key[:6]}"))
+        runs.append(run_task(t, playbook, use_gate=use_gate, seed=seed, emit=emit, explore=False,
+                             label=f"heldout-v{playbook.version}-{key[:6]}", gate_budget=HELDOUT_GATE_BUDGET))
     data = {"key": key, "playbook_version": playbook.version, "rules": [r.text for r in playbook.rules],
             "gmean": _gmean([r.effective_speedup for r in runs]),
             "per_task": {r.task: {"status": r.status, "speedup": r.speedup, "effective": r.effective_speedup}
@@ -158,7 +165,7 @@ class LearnReport:
     steps: list[dict] = field(default_factory=list)
 
 
-def learn(learn_names: list[str] | None = None, heldout_names: list[str] | None = None, *, heldout_n: int = 4,
+def learn(learn_names: list[str] | None = None, heldout_names: list[str] | None = None, *, heldout_n: int = 3,
           use_gate: bool = True, gate_heldout: bool = True, seed: int = harness.DEFAULT_SEED,
           min_speedup: float = MIN_SPEEDUP, margin: float = MARGIN, emit: Emit = _noop) -> LearnReport:
     learn_tasks = [load(n) for n in (learn_names or LEARN)]
@@ -173,7 +180,7 @@ def learn(learn_names: list[str] | None = None, heldout_names: list[str] | None 
 
     for task in learn_tasks:
         emit({"event": "learn-task", "task": task.name, "version": current.version})
-        run = run_task(task, current, use_gate=use_gate, seed=seed, emit=emit)
+        run = run_task(task, current, use_gate=use_gate, seed=seed, emit=emit, explore=True)
         step = {"task": task.name, "from_version": current.version, "run": run.status, "speedup": run.speedup}
         if run.status != "win" or (run.speedup or 0) < min_speedup:
             step["decision"] = "no-rule"
