@@ -211,8 +211,14 @@ def build_llm_cases(max_bugs: int = 40, max_correct: int = 20, seed: int = 0, pa
             return job, None
         return job, _differential(ref_src, src, p["entry_point"], p.get("atol") or 0, p["base_input"], p["plus_input"][:400])
 
+    cache = SAMPLES_DIR / "judged.json"
+    cached = json.loads(cache.read_text()) if cache.exists() else {}
+    todo = [j for j in jobs if f"{j[0]}|{j[1]}" not in cached]
     with ThreadPoolExecutor(max_workers=parallel) as ex:
-        judged = list(ex.map(judge, jobs))
+        for (model, tid, _src), r in ex.map(judge, todo):
+            cached[f"{model}|{tid}"] = r
+    cache.write_text(json.dumps(cached))
+    judged = [(j, cached.get(f"{j[0]}|{j[1]}")) for j in jobs]
     bugs, good = [], []
     seen = set()
     for (model, tid, src), r in judged:
