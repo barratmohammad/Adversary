@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/6: `parse_nested_parens`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(paren_string) == str, \"invalid inputs\"\ncnt = 0\nfor ch in paren_string:\n    assert ch in [\"(\", \")\", \" \"], \"invalid inputs\"\n    if ch == \"(\": cnt += 1\n    if ch == \")\": cnt -= 1\n    assert cnt >= 0, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert parse_nested_parens(\" ()\") == [1]\ndef _max_depth(group: str) -> int:\n    depth = 0\n    best = 0\n    for ch in group:\n        if ch == \"(\":\n            depth += 1\n            if depth > best:\n                best = depth\n        else:  # ch == \")\"\n            depth -= 1\n    return best\n\ndef _reference(paren_string: str):\n    # Groups are non-empty maximal runs of parens separated by spaces.\n    # Empty tokens from leading / trailing / consecutive spaces are not groups.\n    groups = [g for g in paren_string.split(\" \") if g != \"\"]\n    return [_max_depth(g) for g in groups]\n\ndef _balanced_group_strategy():\n    # concatenation of 1-3 small balanced blocks, optionally wrapped in k layers\n    base = st.lists(st.sampled_from(_BLOCKS), min_size=1, max_size=3).map(\"\".join)\n    def wrap(pair):\n        core, k = pair\n        return \"(\" * k + core + \")\" * k\n    return st.tuples(base, st.integers(min_value=0, max_value=3)).map(wrap)\n\ndef _spaced_join_strategy():\n    groups = st.lists(_balanced_group_strategy(), min_size=0, max_size=5)\n    sep = st.integers(min_value=1, max_value=3).map(lambda n: \" \" * n)\n    edge = st.integers(min_value=0, max_value=2).map(lambda n: \" \" * n)\n    return st.tuples(groups, st.lists(sep, min_size=0, max_size=6), edge, edge).map(\n        lambda t: t[2] + \" \".join([]) if False else _join(t)\n    )\n\ndef _join(t):\n    groups, seps, lead, trail = t\n    if not groups:\n        # spaces-only case (still valid: cnt stays 0)\n        n = len(seps)\n        if n == 0:\n            return lead + trail if (lead or trail) else \"\"\n        # need at least one space to be non-empty; use lead/trail/seps\n        s = lead + (\" \" * max(1, n)) + trail\n        if s == \"\":\n            return \" \"\n        return s\n    out = lead\n    for i, g in enumerate(groups):\n        if i > 0:\n            out += seps[(i - 1) % len(seps)] if seps else \" \"\n        out += g\n    out += trail\n    return out\n\n\ndef test_leading_and_trailing_spaces_ignored():\n    assert parse_nested_parens(\" ()\") == [1]\n    assert parse_nested_parens(\"() \") == [1]\n    assert parse_nested_parens(\"  ()  \") == [1]\n    assert parse_nested_parens(\"  (()()) ((()))  \") == [2, 3]\n    assert parse_nested_parens(\"  (()()) ((())) () ((())()())  \") == [2, 3, 1, 3]",
+      "counterexample": "(none reported)",
+      "failure_output": "assert [0, 1] == [1]\n  \n  At index 0 diff: 0 != 1\n  Left contains one more item: 1\n  Use -v to get more diff\nadversary_tests/test_adversary.py:73: in test_leading_and_trailing_spaces_ignored\n    assert parse_nested_parens(\" ()\") == [1]\nE   assert [0, 1] == [1]\nE     \nE     At index 0 diff: 0 != 1\nE     Left contains one more item: 1\nE     Use -v to get more diff",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7906149625778198
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.43237048387527466,
+        "test_asserts_unspecified": 0.3026142716407776,
+        "test_is_broken": 0.01082302164286375,
+        "ambiguous_spec": 0.2541922628879547
+      },
+      "confidence": 0.24316064516703287
+    }
+  },
+  "usage": {
+    "input_tokens": 1401,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.1772035419999156
+}

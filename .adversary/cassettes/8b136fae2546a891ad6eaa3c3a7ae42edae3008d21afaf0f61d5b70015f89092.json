@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/97: `multiply`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef multiply(a, b):\n    \"\"\"Complete the function that takes two integers and returns \n    the product of their unit digits.\n    Assume the input is always valid.\n    Examples:\n    multiply(148, 412) should return 16.\n    multiply(19, 28) should return 72.\n    multiply(2020, 1851) should return 0.\n    multiply(14,-15) should return 20.\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(a) == type(b) == int, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert multiply(-11, 2) == 2\ndef _expected(a, b):\n    # Obviously-correct reference: unit digit is last digit of absolute value.\n    return abs(a) % 10 * (abs(b) % 10)\n\n\ndef test_negative_ending_1_to_9():\n    # every negative -11..-19 must behave like positive 11..19\n    assert multiply(-11, 2) == 2\n    assert multiply(-12, 3) == 6\n    assert multiply(-13, 3) == 9\n    assert multiply(-16, 7) == 42\n    assert multiply(-17, -18) == 56",
+      "counterexample": "(none reported)",
+      "failure_output": "assert 18 == 2\n +  where 18 = multiply(-11, 2)\nadversary_tests/test_adversary.py:58: in test_negative_ending_1_to_9\n    assert multiply(-11, 2) == 2\nE   assert 18 == 2\nE    +  where 18 = multiply(-11, 2)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8640515208244324
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8246971368789673,
+        "test_asserts_unspecified": 0.10189901292324066,
+        "test_is_broken": 0.036702364683151245,
+        "ambiguous_spec": 0.03670143708586693
+      },
+      "confidence": 0.7662628491719564
+    }
+  },
+  "usage": {
+    "input_tokens": 724,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.190443708008388
+}

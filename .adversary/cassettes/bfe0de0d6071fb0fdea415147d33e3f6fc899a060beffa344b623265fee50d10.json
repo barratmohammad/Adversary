@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/22: `filter_integers`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List, Any\n\n\ndef filter_integers(values: List[Any]) -> List[int]:\n    \"\"\" Filter given list of any python values only for integers\n    >>> filter_integers(['a', 3.14, 5])\n    [5]\n    >>> filter_integers([1, 2, 3, 'abc', {}, []])\n    [1, 2, 3]\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(values) == list, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert all(type(x) is int for x in filter_integers([True, False, 1, \"2\", 3.0, None]))\ndef ref_filter(values):\n    # Obviously correct reference: exact type int only.\n    # bool is a distinct type (type(True) is bool, not int),\n    # so booleans are not \"integers\" for filtering purposes.\n    return [x for x in values if type(x) is int]\n\n\ndef test_result_contains_only_exact_ints():\n    assert all(type(x) is int for x in filter_integers([True, False, 1, \"2\", 3.0, None]))",
+      "counterexample": "(none reported)",
+      "failure_output": "assert False\n +  where False = all(<generator object test_result_contains_only_exact_ints.<locals>.<genexpr> at 0x1071eacf0>)\nadversary_tests/test_adversary.py:58: in test_result_contains_only_exact_ints\n    assert all(type(x) is int for x in filter_integers([True, False, 1, \"2\", 3.0, None]))\nE   assert False\nE    +  where False = all(<generator object test_result_contains_only_exact_ints.<locals>.<genexpr> at 0x1071eacf0>)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.5024054050445557
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.45467960834503174,
+        "test_asserts_unspecified": 0.15181395411491394,
+        "test_is_broken": 0.01805991493165493,
+        "ambiguous_spec": 0.3754465878009796
+      },
+      "confidence": 0.2729061444600423
+    }
+  },
+  "usage": {
+    "input_tokens": 730,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.48820608397363685
+}

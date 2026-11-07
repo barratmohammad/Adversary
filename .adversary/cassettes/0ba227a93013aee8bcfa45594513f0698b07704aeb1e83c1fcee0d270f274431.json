@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/122: `add_elements`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef add_elements(arr, k):\n    \"\"\"\n    Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at most two digits from the first k elements of arr.\n\n    Example:\n\n        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4\n        Output: 24 # sum of 21 + 3\n\n    Constraints:\n        1. 1 <= len(arr) <= 100\n        2. 1 <= k <= len(arr)\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(arr) == list, \"invalid inputs\"\nassert all(type(x) == int for x in arr), \"invalid inputs\"\nassert 1 <= len(arr) <= 100, \"invalid inputs\"\nassert type(k) == int, \"invalid inputs\"\nassert 1 <= k <= len(arr), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert add_elements(arr, k + 1) == add_elements(arr, k) + expected_delta\ndef ref(arr, k):\n    # Obviously correct reference: at most two digits means |x| <= 99.\n    # Minus sign is not a digit. 0 has one digit.\n    return sum(x for x in arr[:k] if abs(x) <= 99)\n\n@given(st.data())\ndef test_prefix_extension_adds_at_most_one_element(data):\n    arr = data.draw(\n        st.lists(st.integers(min_value=-2000, max_value=2000), min_size=1, max_size=10)\n    )\n    k = data.draw(st.integers(min_value=1, max_value=len(arr) - 1) if len(arr) > 1 else st.just(1))\n    if k >= len(arr):\n        return\n    nxt = arr[k]\n    expected_delta = nxt if abs(nxt) <= 99 else 0\n    assert add_elements(arr, k + 1) == add_elements(arr, k) + expected_delta",
+      "counterexample": "test_prefix_extension_adds_at_most_one_element(data=data(...)",
+      "failure_output": "assert -100 == (0 + 0)\n +  where -100 = add_elements([0, -100], (1 + 1))\n +  and   0 = add_elements([0, -100], 1)\nFailing test case: test_prefix_extension_adds_at_most_one_element(\n    data=data(...),\n)\nDraw 1: [0, -100]\nDraw 2: 1\nadversary_tests/test_adversary.py:107: in test_prefix_extension_adds_at_most_one_element\n    def test_prefix_extension_adds_at_most_one_element(data):\n                   ^^^\nadversary_tests/test_adversary.py:116: in test_prefix_extension_adds_at_most_one_element\n    assert add_elements(arr, k + 1) == add_elements(arr, k) + expected_delta\nE   assert -100 == (0 + 0)\nE    +  where -100 = add_elements([0, -100], (1 + 1))\nE    +  and   0 = add_elements([0, -100], 1)\nE   Failing test case: test_prefix_extension_adds_at_most_one_element(\nE       data=data(...),\nE   )\nE   Draw 1: [0, -100]\nE   Draw 2: 1",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.6999300718307495
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.5625613927841187,
+        "test_asserts_unspecified": 0.10713934153318405,
+        "test_is_broken": 0.038037389516830444,
+        "ambiguous_spec": 0.29226189851760864
+      },
+      "confidence": 0.4167485237121582
+    }
+  },
+  "usage": {
+    "input_tokens": 1123,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.5777328749827575
+}

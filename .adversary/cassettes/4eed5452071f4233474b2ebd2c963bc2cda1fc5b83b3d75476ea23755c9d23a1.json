@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/122: `add_elements`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef add_elements(arr, k):\n    \"\"\"\n    Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at most two digits from the first k elements of arr.\n\n    Example:\n\n        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4\n        Output: 24 # sum of 21 + 3\n\n    Constraints:\n        1. 1 <= len(arr) <= 100\n        2. 1 <= k <= len(arr)\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(arr) == list, \"invalid inputs\"\nassert all(type(x) == int for x in arr), \"invalid inputs\"\nassert 1 <= len(arr) <= 100, \"invalid inputs\"\nassert type(k) == int, \"invalid inputs\"\nassert 1 <= k <= len(arr), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert add_elements(arr, k) == sum(arr[:k])\ndef ref(arr, k):\n    # Obviously-correct model: number of digits ignores sign,\n    # i.e. len(str(abs(x))) <= 2  <=>  -99 <= x <= 99\n    return sum(x for x in arr[:k] if -99 <= x <= 99)\n\n@given(st.data())\ndef test_property_negative_two_digit_range_fully_included(data):\n    # Every element in [-99, -10] has exactly two digits, so sum == sum of slice\n    arr = data.draw(\n        st.lists(st.integers(min_value=-99, max_value=-10), min_size=1, max_size=30)\n    )\n    k = data.draw(st.integers(min_value=1, max_value=len(arr)))\n    assert add_elements(arr, k) == sum(arr[:k])",
+      "counterexample": "test_property_negative_two_digit_range_fully_included(data=data(...)",
+      "failure_output": "assert 0 == -10\n +  where 0 = add_elements([-10], 1)\n +  and   -10 = sum([-10])\nFailing test case: test_property_negative_two_digit_range_fully_included(\n    data=data(...),\n)\nDraw 1: [-10]\nDraw 2: 1\nadversary_tests/test_adversary.py:87: in test_property_negative_two_digit_range_fully_included\n    def test_property_negative_two_digit_range_fully_included(data):\n                   ^^^\nadversary_tests/test_adversary.py:93: in test_property_negative_two_digit_range_fully_included\n    assert add_elements(arr, k) == sum(arr[:k])\nE   assert 0 == -10\nE    +  where 0 = add_elements([-10], 1)\nE    +  and   -10 = sum([-10])\nE   Failing test case: test_property_negative_two_digit_range_fully_included(\nE       data=data(...),\nE   )\nE   Draw 1: [-10]\nE   Draw 2: 1",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8840180039405823
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.6123402714729309,
+        "test_asserts_unspecified": 0.14700119197368622,
+        "test_is_broken": 0.010175500065088272,
+        "ambiguous_spec": 0.2304830253124237
+      },
+      "confidence": 0.4831203619639079
+    }
+  },
+  "usage": {
+    "input_tokens": 1031,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0740204580069985
+}

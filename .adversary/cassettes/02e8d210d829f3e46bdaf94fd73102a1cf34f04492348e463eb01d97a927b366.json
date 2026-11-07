@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Merge intervals\n\nImplement in `intervals.py`:\n\n```python\ndef merge_intervals(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]: ...\n```\n\nMerge **closed integer intervals** `(start, end)` (both endpoints included) into the\nsmallest equivalent list of disjoint intervals.\n\n## Behavior\n- Every element is a 2-tuple of ints. If any element has `start > end`, raise `ValueError`.\n  Single-point intervals such as `(2, 2)` are valid.\n- Two intervals merge when they **overlap or touch**, i.e. share at least one point:\n  `(1, 3)` and `(3, 5)` become `(1, 5)`. An interval contained in another is absorbed by it.\n- Merely **adjacent** intervals do NOT merge: `(1, 3)` and `(4, 5)` share no point and stay separate.\n- Merging is transitive: a chain of overlapping/touching intervals collapses into one.\n- Input order is arbitrary and duplicates are allowed.\n- Returns a **new list of tuples**, sorted by start, where each interval's start is strictly\n  greater than the previous interval's end. The set of integer points covered by the output\n  equals the set covered by the input.\n- The input list and its elements are never mutated. Empty input returns `[]`.\n\n## Examples\n- `merge_intervals([(1, 3), (2, 6), (8, 10), (15, 18)]) == [(1, 6), (8, 10), (15, 18)]`\n- `merge_intervals([(1, 3), (3, 5)]) == [(1, 5)]`\n- `merge_intervals([(1, 3), (4, 5)]) == [(1, 3), (4, 5)]`\n- `merge_intervals([(5, 7), (1, 2)]) == [(1, 2), (5, 7)]`\n- `merge_intervals([]) == []`\n- `merge_intervals([(3, 1)])` raises `ValueError`",
+      "failing_test": "# failing line: assert merge_intervals(ivs) == [(0, 1), (2, 3)]\ndef reference_merge(intervals):\n    # Obviously-correct reference: sort then merge iff overlap/touch (start <= cur_end).\n    for s, e in intervals:\n        if s > e:\n            raise ValueError(\"bad\")\n    if not intervals:\n        return []\n    ordered = sorted(intervals, key=lambda x: (x[0], x[1]))\n    out = []\n    cs, ce = ordered[0]\n    for s, e in ordered[1:]:\n        if s <= ce:\n            if e > ce:\n                ce = e\n        else:\n            out.append((cs, ce))\n            cs, ce = s, e\n    out.append((cs, ce))\n    return out\n\ndef coverage(intervals):\n    pts = set()\n    for s, e in intervals:\n        for p in range(s, e + 1):\n            pts.add(p)\n    return pts\n\n\ndef test_large_mixed_adjacent_and_overlap():\n    ivs = [(0, 1)] * 20 + [(2, 3)] * 25\n    # (0,1) and (2,3) are adjacent, not overlapping -> two groups\n    assert merge_intervals(ivs) == [(0, 1), (2, 3)]",
+      "counterexample": "(none reported)",
+      "failure_output": "assert [(0, 3)] == [(0, 1), (2, 3)]\n  \n  At index 0 diff: (0, 3) != (0, 1)\n  Right contains one more item: (2, 3)\n  Use -v to get more diff\nadversary_tests/test_adversary.py:143: in test_large_mixed_adjacent_and_overlap\n    assert merge_intervals(ivs) == [(0, 1), (2, 3)]\nE   assert [(0, 3)] == [(0, 1), (2, 3)]\nE     \nE     At index 0 diff: (0, 3) != (0, 1)\nE     Right contains one more item: (2, 3)\nE     Use -v to get more diff",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9415799975395203
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9657965898513794,
+        "test_asserts_unspecified": 0.018438879400491714,
+        "test_is_broken": 0.014342455193400383,
+        "ambiguous_spec": 0.0014221133897081017
+      },
+      "confidence": 0.9543954531351725
+    }
+  },
+  "usage": {
+    "input_tokens": 1251,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.7146665830223355
+}

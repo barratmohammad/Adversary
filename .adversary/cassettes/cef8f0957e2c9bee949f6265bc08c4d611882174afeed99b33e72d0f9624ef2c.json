@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/124: `valid_date`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef valid_date(date):\n    \"\"\"You have to write a function which validates a given date string and\n    returns True if the date is valid otherwise False.\n    The date is valid if all of the following rules are satisfied:\n    1. The date string is not empty.\n    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.\n    3. The months should not be less than 1 or higher than 12.\n    4. The date should be in the format: mm-dd-yyyy\n\n    for example: \n    valid_date('03-11-2000') => True\n\n    valid_date('15-01-2012') => False\n\n    valid_date('04-0-2040') => False\n\n    valid_date('06-04-2020') => True\n\n    valid_date('06/04/2020') => False\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(date, str), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert valid_date('00-15-2000') is False\ndef reference(date):\n    # Obviously-correct model derived directly from spec rules 1-4\n    if date == \"\":\n        return False\n    if len(date) != 10:\n        return False\n    if date[2] != \"-\" or date[5] != \"-\":\n        return False\n    m_s, d_s, y_s = date[:2], date[3:5], date[6:]\n    digits = set(\"0123456789\")\n    if not (m_s[0] in digits and m_s[1] in digits):\n        return False\n    if not (d_s[0] in digits and d_s[1] in digits):\n        return False\n    for c in y_s:\n        if c not in digits:\n            return False\n    m = int(m_s)\n    d = int(d_s)\n    if not (1 <= m <= 12):\n        return False\n    if m in (1, 3, 5, 7, 8, 10, 12):\n        max_d = 31\n    elif m in (4, 6, 9, 11):\n        max_d = 30\n    else:  # m == 2\n        max_d = 29\n    if not (1 <= d <= max_d):\n        return False\n    return True\n\n\ndef test_month_boundaries():\n    assert valid_date('01-15-2000') is True\n    assert valid_date('12-15-2000') is True\n    assert valid_date('13-15-2000') is False\n    assert valid_date('00-15-2000') is False",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert True is False\n +  where True = valid_date('00-15-2000')\nadversary_tests/test_adversary.py:93: in test_month_boundaries\n    assert valid_date('00-15-2000') is False\nE   AssertionError: assert True is False\nE    +  where True = valid_date('00-15-2000')",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8636742234230042
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9579241871833801,
+        "test_asserts_unspecified": 0.026761749759316444,
+        "test_is_broken": 0.00735202431678772,
+        "ambiguous_spec": 0.00796209741383791
+      },
+      "confidence": 0.9438989162445068
+    }
+  },
+  "usage": {
+    "input_tokens": 1165,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0374216249911115
+}

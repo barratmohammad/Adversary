@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/118: `get_closest_vowel`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef get_closest_vowel(word):\n    \"\"\"You are given a word. Your task is to find the closest vowel that stands between \n    two consonants from the right side of the word (case sensitive).\n    \n    Vowels in the beginning and ending doesn't count. Return empty string if you didn't\n    find any vowel met the above condition. \n\n    You may assume that the given string contains English letter only.\n\n    Example:\n    get_closest_vowel(\"yogurt\") ==> \"u\"\n    get_closest_vowel(\"FULL\") ==> \"U\"\n    get_closest_vowel(\"quick\") ==> \"\"\n    get_closest_vowel(\"ab\") ==> \"\"\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(word, str), \"invalid inputs\"\nassert word == \"\" or word.isalpha(), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert found, f\"result {r!r} not between consonants in {word!r}\"\ndef reference(word):\n    for i in range(len(word) - 2, 0, -1):\n        if word[i] in VOWELS and word[i - 1] not in VOWELS and word[i + 1] not in VOWELS:\n            return word[i]\n    return \"\"\n\n@given(letters)\ndef test_property_result_between_two_consonants(word):\n    r = get_closest_vowel(word)\n    if r != \"\":\n        # find rightmost occurrence equal to r that satisfies condition in reference sense\n        # at minimum: there exists a qualifying position holding exactly r\n        found = False\n        for i in range(1, len(word) - 1):\n            if word[i] == r and word[i] in VOWELS and word[i - 1] not in VOWELS and word[i + 1] not in VOWELS:\n                found = True\n                break\n        assert found, f\"result {r!r} not between consonants in {word!r}\"",
+      "counterexample": "test_property_result_between_two_consonants(word='BAB')",
+      "failure_output": "AssertionError: result 'a' not between consonants in 'BAB'\nassert False\nFailing test case: test_property_result_between_two_consonants(\n    word='BAB',\n)\nadversary_tests/test_adversary.py:52: in test_property_result_between_two_consonants\n    def test_property_result_between_two_consonants(word):\n                   ^^^\nadversary_tests/test_adversary.py:62: in test_property_result_between_two_consonants\n    assert found, f\"result {r!r} not between consonants in {word!r}\"\nE   AssertionError: result 'a' not between consonants in 'BAB'\nE   assert False\nE   Failing test case: test_property_result_between_two_consonants(\nE       word='BAB',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8254773616790771
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.7641344666481018,
+        "test_asserts_unspecified": 0.05000855773687363,
+        "test_is_broken": 0.1527383029460907,
+        "ambiguous_spec": 0.03311866894364357
+      },
+      "confidence": 0.6855126221974691
+    }
+  },
+  "usage": {
+    "input_tokens": 968,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.2977330000139773
+}

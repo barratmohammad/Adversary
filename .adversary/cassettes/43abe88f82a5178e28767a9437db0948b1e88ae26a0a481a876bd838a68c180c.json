@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Safe path join\n\nImplement in `safe_path.py`:\n\n```python\ndef safe_join(base: str, user_path: str) -> str: ...\n```\n\nJoin an untrusted relative `user_path` onto a trusted directory `base`, refusing anything\nthat would land outside `base`. POSIX semantics (`/` is the only separator; backslash is an\nordinary character). Purely lexical: never touches the filesystem, does not resolve symlinks,\ndoes not check existence, and must not depend on the environment or current directory.\n\n## Behavior (checked in this order)\n1. Both arguments must be `str`, else raise `TypeError`.\n2. Raise `ValueError` if either argument contains a NUL character (`\"\\x00\"`).\n3. Raise `ValueError` if `base` is not absolute (does not start with `/`).\n4. Raise `ValueError` if `user_path` is absolute (starts with `/`), even if it points inside `base`.\n5. Let `root = posixpath.normpath(base)` and\n   `result = posixpath.normpath(posixpath.join(root, user_path))`.\n6. `result` is **inside** base iff `result == root` or `result` starts with `root + \"/\"`\n   (when `root` already ends in `/`, e.g. `root == \"/\"`, it must start with `root`).\n   A sibling sharing a name prefix is OUTSIDE: for base `/srv/data`, `/srv/data2/x` is outside.\n7. Return `result` if it is inside, otherwise raise `ValueError`. Only the final normalized\n   result is checked: `..` segments are fine as long as the result stays inside.\n- An empty `user_path` or `\".\"` returns `root`.\n\n## Examples\n- `safe_join(\"/srv/data\", \"reports/q1.txt\") == \"/srv/data/reports/q1.txt\"`\n- `safe_join(\"/srv/data/\", \"a/./b/../c\") == \"/srv/data/a/c\"`\n- `safe_join(\"/srv/data\", \"\") == \"/srv/data\"`\n- `safe_join(\"/srv/data\", \"../etc/passwd\")` raises `ValueError`\n- `safe_join(\"/srv/data\", \"/etc/passwd\")` raises `ValueError`",
+      "failing_test": "# failing line: raise source.error(\"missing ), unterminated subpattern\",\ndef ref_safe_join(base: str, user_path: str) -> str:\n    if not isinstance(base, str) or not isinstance(user_path, str):\n        raise TypeError(\"both arguments must be str\")\n    if \"\\x00\" in base or \"\\x00\" in user_path:\n        raise ValueError(\"NUL\")\n    if not base.startswith(\"/\"):\n        raise ValueError(\"base must be absolute\")\n    if user_path.startswith(\"/\"):\n        raise ValueError(\"user_path must be relative\")\n    root = posixpath.normpath(base)\n    result = posixpath.normpath(posixpath.join(root, user_path))\n    if result == root or result.startswith(root + \"/\" if not root.endswith(\"/\") else root):\n        return result\n    raise ValueError(\"escapes base\")\n\n\ndef test_regex_chars_never_raise_re_error():\n    for base in [\"/srv/(data\", \"/srv/[\", \"/srv/a(\", \"/srv/a\\\\b\", \"/srv/a+\"]:\n        got = safe_join(base, \"x\")\n        assert got == posixpath.normpath(posixpath.join(posixpath.normpath(base), \"x\"))",
+      "counterexample": "(none reported)",
+      "failure_output": "re.error: missing ), unterminated subpattern at position 5\nadversary_tests/test_adversary.py:176: in test_regex_chars_never_raise_re_error\n    got = safe_join(base, \"x\")\n          ^^^^^^^^^^^^^^^^^^^^\nsafe_path.py:17: in safe_join\n    if re.match(prefix + r'(?:/|$)', result) is None:\n       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/Users/guru/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/re/__init__.py:167: in match\n    return _compile(pattern, flags).match(string)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n/Users/guru/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/re/__init__.py:307: in _compile\n    p = _compiler.compile(pattern, flags)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/Users/guru/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/re/_compiler.py:750: in compile\n    p = _parser.parse(p, flags)\n        ^^^^^^^^^^^^^^^^^^^^^^^\n/Users/guru/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/re/_parser.py:979: in parse\n    p = _parse_sub(source, state, flags & SRE_FLAG_VERBOSE, 0)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/Users/guru/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/re/_parser.py:460: in _parse_sub\n    itemsappend(_parse(source, state, verbose, nested + 1,\n/Users/guru/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/re/_parser.py:864: in _parse\n    raise source.error(\"missing ), unterminated subpattern\",\nE   re.error: missing ), unterminated subpattern at position 5",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8911018371582031
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9649529457092285,
+        "test_asserts_unspecified": 0.029960643500089645,
+        "test_is_broken": 0.0033703939989209175,
+        "ambiguous_spec": 0.0017159853596240282
+      },
+      "confidence": 0.9532705942789713
+    }
+  },
+  "usage": {
+    "input_tokens": 1592,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.037745375011582
+}

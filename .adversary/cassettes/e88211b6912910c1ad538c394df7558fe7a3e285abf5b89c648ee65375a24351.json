@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/59: `largest_prime_factor`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef largest_prime_factor(n: int):\n    \"\"\"Return the largest prime factor of n. Assume n > 1 and is not a prime.\n    >>> largest_prime_factor(13195)\n    29\n    >>> largest_prime_factor(2048)\n    2\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert largest_prime_factor(n) == 2\ndef is_prime_ref(k: int) -> bool:\n    if k < 2:\n        return False\n    if k % 2 == 0:\n        return k == 2\n    r = int(math.isqrt(k))\n    for d in range(3, r + 1, 2):\n        if k % d == 0:\n            return False\n    return True\n\ndef largest_prime_factor_ref(n: int) -> int:\n    best = None\n    d = 2\n    m = n\n    while d * d <= m:\n        if m % d == 0:\n            best = d\n            while m % d == 0:\n                m //= d\n        d += 1 if d == 2 else 2\n    if m > 1:\n        best = m if best is None else max(best, m)\n    return best\n\ndef is_composite(n: int) -> bool:\n    return n > 1 and not is_prime_ref(n)\n\n@given(st.integers(min_value=2, max_value=10).filter(lambda e: e >= 2))\ndef test_prime_powers_of_two(e):\n    n = 2 ** e\n    assert largest_prime_factor(n) == 2",
+      "counterexample": "test_prime_powers_of_two(e=3)",
+      "failure_output": "assert 4 == 2\n +  where 4 = largest_prime_factor(8)\nFailing test case: test_prime_powers_of_two(\n    e=3,\n)\nadversary_tests/test_adversary.py:114: in test_prime_powers_of_two\n    def test_prime_powers_of_two(e):\n                   ^^^\nadversary_tests/test_adversary.py:116: in test_prime_powers_of_two\n    assert largest_prime_factor(n) == 2\nE   assert 4 == 2\nE    +  where 4 = largest_prime_factor(8)\nE   Failing test case: test_prime_powers_of_two(\nE       e=3,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9791877865791321
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9771561622619629,
+        "test_asserts_unspecified": 0.014010054990649223,
+        "test_is_broken": 0.006657375488430262,
+        "ambiguous_spec": 0.002176462672650814
+      },
+      "confidence": 0.9695415496826172
+    }
+  },
+  "usage": {
+    "input_tokens": 831,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0742718749970663
+}

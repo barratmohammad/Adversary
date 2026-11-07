@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/129: `minPath`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef minPath(grid, k):\n    \"\"\"\n    Given a grid with N rows and N columns (N >= 2) and a positive integer k, \n    each cell of the grid contains a value. Every integer in the range [1, N * N]\n    inclusive appears exactly once on the cells of the grid.\n\n    You have to find the minimum path of length k in the grid. You can start\n    from any cell, and in each step you can move to any of the neighbor cells,\n    in other words, you can go to cells which share an edge with you current\n    cell.\n    Please note that a path of length k means visiting exactly k cells (not\n    necessarily distinct).\n    You CANNOT go off the grid.\n    A path A (of length k) is considered less than a path B (of length k) if\n    after making the ordered lists of the values on the cells that A and B go\n    through (let's call them lst_A and lst_B), lst_A is lexicographically less\n    than lst_B, in other words, there exist an integer index i (1 <= i <= k)\n    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have\n    lst_A[j] = lst_B[j].\n    It is guaranteed that the answer is unique.\n    Return an ordered list of the values on the cells that the minimum path go through.\n\n    Examples:\n\n        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3\n        Output: [1, 2, 1]\n\n        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1\n        Output: [1]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert abs(ia - ib) + abs(ja - jb) == 1, (\ndef _positions(grid):\n    pos = {}\n    for i, row in enumerate(grid):\n        for j, v in enumerate(row):\n            pos[v] = (i, j)\n    return pos\n\ndef brute_min_path(grid, k):\n    N = len(grid)\n    best = None\n    # enumerate all start cells\n    def dfs(i, j, path):\n        nonlocal best\n        # prune: if prefix already larger than best prefix, stop\n        if best is not None:\n            # compare up to len(path)\n            if path > best[:len(path)]:\n                return\n        if len(path) == k:\n            if best is None or path < best:\n                best = list(path)\n            return\n        for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):\n            ni, nj = i + di, j + dj\n            if 0 <= ni < N and 0 <= nj < N:\n                path.append(grid[ni][nj])\n                dfs(ni, nj, path)\n                path.pop()\n\n    for i in range(N):\n        for j in range(N):\n            dfs(i, j, [grid[i][j]])\n    return best\n\ndef _random_grid(N, seed):\n    vals = list(range(1, N * N + 1))\n    rng = random.Random(seed)\n    rng.shuffle(vals)\n    return [vals[i * N:(i + 1) * N] for i in range(N)]\n\ndef _assert_valid_path(grid, k, result):\n    N = len(grid)\n    assert isinstance(result, list), \"result must be a list\"\n    assert len(result) == k, \"path length must be k\"\n    pos = _positions(grid)\n    for v in result:\n        assert v in pos, f\"value {v} not in grid\"\n    for a, b in zip(result, result[1:]):\n        ia, ja = pos[a]\n        ib, jb = pos[b]\n        assert abs(ia - ib) + abs(ja - jb) == 1, (\n            f\"consecutive values {a}->{b} are not edge-neighbors\"\n        )\n\n@given(st.integers(2, 3), st.integers(1, 5), st.integers(0, 999999))\ndef test_path_is_valid_walk(N, k, seed):\n    grid = _random_grid(N, seed)\n    result = minPath(grid, k)\n    _assert_valid_path(grid, k, result)",
+      "counterexample": "test_path_is_valid_walk(N=3, k=2, seed=3002)",
+      "failure_output": "AssertionError: consecutive values 1->4 are not edge-neighbors\nassert (0 + 2) == 1\n +  where 0 = abs((2 - 2))\n +  and   2 = abs((0 - 2))\nFailing test case: test_path_is_valid_walk(\n    N=3,\n    k=2,\n    seed=3002,\n)\nadversary_tests/test_adversary.py:137: in test_path_is_valid_walk\n    def test_path_is_valid_walk(N, k, seed):\n                   ^^^\nadversary_tests/test_adversary.py:140: in test_path_is_valid_walk\n    _assert_valid_path(grid, k, result)\nadversary_tests/test_adversary.py:78: in _assert_valid_path\n    assert abs(ia - ib) + abs(ja - jb) == 1, (\nE   AssertionError: consecutive values 1->4 are not edge-neighbors\nE   assert (0 + 2) == 1\nE    +  where 0 = abs((2 - 2))\nE    +  and   2 = abs((0 - 2))\nE   Failing test case: test_path_is_valid_walk(\nE       N=3,\nE       k=2,\nE       seed=3002,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9966191053390503
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9898316264152527,
+        "test_asserts_unspecified": 0.005486165173351765,
+        "test_is_broken": 0.0042105126194655895,
+        "ambiguous_spec": 0.00047173764323815703
+      },
+      "confidence": 0.9864421685536703
+    }
+  },
+  "usage": {
+    "input_tokens": 1654,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.5776700830028858
+}

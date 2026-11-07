@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/109: `move_one_ball`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef move_one_ball(arr):\n    \"\"\"We have an array 'arr' of N integers arr[1], arr[2], ..., arr[N].The\n    numbers in the array will be randomly ordered. Your task is to determine if\n    it is possible to get an array sorted in non-decreasing order by performing \n    the following operation on the given array:\n        You are allowed to perform right shift operation any number of times.\n    \n    One right shift operation means shifting all elements of the array by one\n    position in the right direction. The last element of the array will be moved to\n    the starting position in the array i.e. 0th index. \n\n    If it is possible to obtain the sorted array by performing the above operation\n    then return True else return False.\n    If the given array is empty then return True.\n\n    Note: The given list is guaranteed to have unique elements.\n\n    For Example:\n    \n    move_one_ball([3, 4, 5, 1, 2])==>True\n    Explanation: By performin 2 right shift operations, non-decreasing order can\n                 be achieved for the given array.\n    move_one_ball([3, 5, 4, 1, 2])==>False\n    Explanation:It is not possible to get non-decreasing order for the given\n                array by performing any number of right shift operations.\n                \n    \"\"\"\n```",
+      "failing_test": "# failing line: assert move_one_ball(list(arr)) == reference(list(arr))\ndef reference(arr):\n    \"\"\"Obviously-correct model: True iff some right-shift yields sorted order.\"\"\"\n    if len(arr) == 0:\n        return True\n    s = sorted(arr)\n    n = len(arr)\n    if arr == s:\n        return True\n    for k in range(1, n):\n        # right shift by k\n        if arr[-k:] + arr[:-k] == s:\n            return True\n    return False\n\ndef right_rotate(arr, k):\n    n = len(arr)\n    if n == 0:\n        return []\n    k = k % n\n    if k == 0:\n        return list(arr)\n    return list(arr[-k:] + arr[:-k])\n\n@given(st.lists(st.integers(min_value=-20, max_value=20), min_size=0, max_size=8, unique=True))\ndef test_property_agrees_with_reference_model(arr):\n    assert move_one_ball(list(arr)) == reference(list(arr))",
+      "counterexample": "test_property_agrees_with_reference_model(arr=[1, 0])",
+      "failure_output": "assert False == True\n +  where False = move_one_ball([1, 0])\n +    where [1, 0] = list([1, 0])\n +  and   True = reference([1, 0])\n +    where [1, 0] = list([1, 0])\nFailing test case: test_property_agrees_with_reference_model(\n    arr=[1, 0],\n)\nadversary_tests/test_adversary.py:96: in test_property_agrees_with_reference_model\n    def test_property_agrees_with_reference_model(arr):\n                   ^^^\nadversary_tests/test_adversary.py:97: in test_property_agrees_with_reference_model\n    assert move_one_ball(list(arr)) == reference(list(arr))\nE   assert False == True\nE    +  where False = move_one_ball([1, 0])\nE    +    where [1, 0] = list([1, 0])\nE    +  and   True = reference([1, 0])\nE    +    where [1, 0] = list([1, 0])\nE   Failing test case: test_property_agrees_with_reference_model(\nE       arr=[1, 0],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.996696949005127
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9872433543205261,
+        "test_asserts_unspecified": 0.005463805049657822,
+        "test_is_broken": 0.0054199411533772945,
+        "ambiguous_spec": 0.0018729448784142733
+      },
+      "confidence": 0.9829911390940348
+    }
+  },
+  "usage": {
+    "input_tokens": 1161,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 2.6792620409978554
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/140: `fix_spaces`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef fix_spaces(text):\n    \"\"\"\n    Given a string text, replace all spaces in it with underscores, \n    and if a string has more than 2 consecutive spaces, \n    then replace all consecutive spaces with - \n    \n    fix_spaces(\"Example\") == \"Example\"\n    fix_spaces(\"Example 1\") == \"Example_1\"\n    fix_spaces(\" Example 2\") == \"_Example_2\"\n    fix_spaces(\" Example   3\") == \"_Example-3\"\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(text, str), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert fix_spaces(s) == \"\".join(expected_parts)\ndef reference(text: str) -> str:\n    out = []\n    i = 0\n    n = len(text)\n    while i < n:\n        if text[i] != \" \":\n            out.append(text[i])\n            i += 1\n        else:\n            j = i\n            while j < n and text[j] == \" \":\n                j += 1\n            run = j - i\n            if run > 2:\n                out.append(\"-\")\n            else:\n                out.append(\"_\" * run)\n            i = j\n    return \"\".join(out)\n\n@given(st.lists(st.integers(min_value=1, max_value=10), min_size=1, max_size=5))\ndef test_each_space_run_length_maps_correctly(lengths):\n    # Build \"x<spaces>x<spaces>...\" with known run lengths.\n    parts = [\"x\"]\n    for L in lengths:\n        parts.append(\" \" * L)\n        parts.append(\"x\")\n    s = \"\".join(parts)\n    expected_parts = [\"x\"]\n    for L in lengths:\n        expected_parts.append(\"-\" if L > 2 else \"_\" * L)\n        expected_parts.append(\"x\")\n    assert fix_spaces(s) == \"\".join(expected_parts)",
+      "counterexample": "test_each_space_run_length_maps_correctly(lengths=[4])",
+      "failure_output": "AssertionError: assert 'x-_x' == 'x-x'\n  \n  - x-x\n  + x-_x\n  ?   +\nFailing test case: test_each_space_run_length_maps_correctly(\n    lengths=[4],\n)\nadversary_tests/test_adversary.py:131: in test_each_space_run_length_maps_correctly\n    def test_each_space_run_length_maps_correctly(lengths):\n                   ^^^\nadversary_tests/test_adversary.py:142: in test_each_space_run_length_maps_correctly\n    assert fix_spaces(s) == \"\".join(expected_parts)\nE   AssertionError: assert 'x-_x' == 'x-x'\nE     \nE     - x-x\nE     + x-_x\nE     ?   +\nE   Failing test case: test_each_space_run_length_maps_correctly(\nE       lengths=[4],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9189766049385071
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.828437328338623,
+        "test_asserts_unspecified": 0.08814587444067001,
+        "test_is_broken": 0.020210597664117813,
+        "ambiguous_spec": 0.06320623308420181
+      },
+      "confidence": 0.7712497711181641
+    }
+  },
+  "usage": {
+    "input_tokens": 1002,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.9982145829999354
+}

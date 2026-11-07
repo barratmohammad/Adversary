@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/22: `filter_integers`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List, Any\n\n\ndef filter_integers(values: List[Any]) -> List[int]:\n    \"\"\" Filter given list of any python values only for integers\n    >>> filter_integers(['a', 3.14, 5])\n    [5]\n    >>> filter_integers([1, 2, 3, 'abc', {}, []])\n    [1, 2, 3]\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(values) == list, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert filter_integers(values) == ref_filter(values)\ndef ref_filter(values: List[Any]) -> List[int]:\n    # Obviously-correct reference: only values whose exact type is int.\n    # bool has type bool, not int, so True/False must be excluded even\n    # though isinstance(True, int) is True.\n    return [v for v in values if type(v) is int]\n\n@given(st.lists(mixed_scalar, max_size=20))\ndef test_property_result_matches_exact_int_reference_model(values):\n    assert filter_integers(values) == ref_filter(values)",
+      "counterexample": "test_property_result_matches_exact_int_reference_model(values=[False])",
+      "failure_output": "assert [False] == []\n  \n  Left contains one more item: False\n  Use -v to get more diff\nFailing test case: test_property_result_matches_exact_int_reference_model(\n    values=[False],\n)\nadversary_tests/test_adversary.py:101: in test_property_result_matches_exact_int_reference_model\n    def test_property_result_matches_exact_int_reference_model(values):\n                   ^^^\nadversary_tests/test_adversary.py:102: in test_property_result_matches_exact_int_reference_model\n    assert filter_integers(values) == ref_filter(values)\nE   assert [False] == []\nE     \nE     Left contains one more item: False\nE     Use -v to get more diff\nE   Failing test case: test_property_result_matches_exact_int_reference_model(\nE       values=[False],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.4977152645587921
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "ambiguous_spec",
+      "probabilities": {
+        "implementation_bug": 0.10555895417928696,
+        "test_asserts_unspecified": 0.248037651181221,
+        "test_is_broken": 0.022562557831406593,
+        "ambiguous_spec": 0.6238408088684082
+      },
+      "confidence": 0.49845441182454425
+    }
+  },
+  "usage": {
+    "input_tokens": 776,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.1526086249796208
+}

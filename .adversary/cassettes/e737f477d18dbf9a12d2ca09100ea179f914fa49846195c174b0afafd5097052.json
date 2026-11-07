@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/144: `simplify`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef simplify(x, n):\n    \"\"\"Your task is to implement a function that will simplify the expression\n    x * n. The function returns True if x * n evaluates to a whole number and False\n    otherwise. Both x and n, are string representation of a fraction, and have the following format,\n    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.\n\n    You can assume that x, and n are valid fractions, and do not have zero as denominator.\n\n    simplify(\"1/5\", \"5/1\") = True\n    simplify(\"1/6\", \"2/1\") = False\n    simplify(\"7/10\", \"10/2\") = False\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\ndef contract(x):\n    assert isinstance(x, str), \"invalid inputs\"\n    xs = x.split(\"/\")\n    assert len(xs) == 2, \"invalid inputs\"\n    assert xs[0].isdigit() and int(xs[0]) > 0, \"invalid inputs\"\n    assert xs[1].isdigit() and int(xs[1]) > 0, \"invalid inputs\"\ncontract(x)\ncontract(n)\n```",
+      "failing_test": "# failing line: assert simplify(x, n) is True\ndef reference(x, n):\n    a, b = map(int, x.split(\"/\"))\n    c, d = map(int, n.split(\"/\"))\n    return (a * c) % (b * d) == 0\n\ndef frac(a, b):\n    return f\"{a}/{b}\"\n\n@given(a=small_int, b=small_int, k=st.integers(min_value=1, max_value=1000))\ndef test_scaling_denominator_cancels_to_whole(a, b, k):\n    # (a/b) * (b*k / a) = k exactly, always whole\n    x = frac(a, b)\n    n = frac(b * k, a)\n    assert reference(x, n) is True\n    assert simplify(x, n) is True",
+      "counterexample": "test_scaling_denominator_cancels_to_whole(a=1, b=253, k=1)",
+      "failure_output": "AssertionError: assert False is True\n +  where False = simplify('1/253', '253/1')\nFailing test case: test_scaling_denominator_cancels_to_whole(\n    a=1,\n    b=253,\n    k=1,\n)\nadversary_tests/test_adversary.py:143: in test_scaling_denominator_cancels_to_whole\n    def test_scaling_denominator_cancels_to_whole(a, b, k):\n                   ^^^\nadversary_tests/test_adversary.py:148: in test_scaling_denominator_cancels_to_whole\n    assert simplify(x, n) is True\nE   AssertionError: assert False is True\nE    +  where False = simplify('1/253', '253/1')\nE   Failing test case: test_scaling_denominator_cancels_to_whole(\nE       a=1,\nE       b=253,\nE       k=1,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9934521913528442
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9650255441665649,
+        "test_asserts_unspecified": 0.022114885970950127,
+        "test_is_broken": 0.011676080524921417,
+        "ambiguous_spec": 0.001183540327474475
+      },
+      "confidence": 0.9533673922220866
+    }
+  },
+  "usage": {
+    "input_tokens": 1037,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.5425635419960599
+}

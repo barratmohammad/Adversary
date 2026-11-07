@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert result is not None\ndef fib_ref(n: int) -> int:\n    \"\"\"Obviously-correct reference model: F0=0, F1=1, Fn=Fn-1+Fn-2.\"\"\"\n    assert n >= 0\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n\ndef test_fib_zero_is_int_not_none():\n    result = fib(0)\n    assert result is not None\n    assert isinstance(result, int)",
+      "counterexample": "(none reported)",
+      "failure_output": "assert None is not None\nadversary_tests/test_adversary.py:51: in test_fib_zero_is_int_not_none\n    assert result is not None\nE   assert None is not None",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8370640277862549
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8384197354316711,
+        "test_asserts_unspecified": 0.09113653749227524,
+        "test_is_broken": 0.010005071759223938,
+        "ambiguous_spec": 0.060438740998506546
+      },
+      "confidence": 0.7845596472422282
+    }
+  },
+  "usage": {
+    "input_tokens": 528,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.8513732089777477
+}

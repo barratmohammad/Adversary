@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/13: `greatest_common_divisor`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef greatest_common_divisor(a: int, b: int) -> int:\n    \"\"\" Return a greatest common divisor of two integers a and b\n    >>> greatest_common_divisor(3, 5)\n    1\n    >>> greatest_common_divisor(25, 15)\n    5\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(a) == int and type(b) == int, \"invalid inputs\"\nassert a > 0 and b > 0, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: return greatest_common_divisor(a - b, b)\n@given(n=st.integers(min_value=1, max_value=5000))\ndef test_consecutive_integers_coprime(n):\n    assert greatest_common_divisor(n, n + 1) == 1",
+      "counterexample": "test_consecutive_integers_coprime(n=2000)",
+      "failure_output": "    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:17: in greatest_common_divisor\n    return greatest_common_divisor(a - b, b)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   RecursionError: maximum recursion depth exceeded\nE   Failing test case: test_consecutive_integers_coprime(\nE       n=2000,\nE   )\n!!! Recursion error detected, but the origin of the recursion could not be located.\n  Displaying first and last 10 stack frames out of 2002.\n  Pass `--full-trace` to see all frames.",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9858675599098206
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9821917414665222,
+        "test_asserts_unspecified": 0.013279183767735958,
+        "test_is_broken": 0.003873133333399892,
+        "ambiguous_spec": 0.0006559031317010522
+      },
+      "confidence": 0.9762556552886963
+    }
+  },
+  "usage": {
+    "input_tokens": 1081,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.8687263329920825
+}

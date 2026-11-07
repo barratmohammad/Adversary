@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/118: `get_closest_vowel`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef get_closest_vowel(word):\n    \"\"\"You are given a word. Your task is to find the closest vowel that stands between \n    two consonants from the right side of the word (case sensitive).\n    \n    Vowels in the beginning and ending doesn't count. Return empty string if you didn't\n    find any vowel met the above condition. \n\n    You may assume that the given string contains English letter only.\n\n    Example:\n    get_closest_vowel(\"yogurt\") ==> \"u\"\n    get_closest_vowel(\"FULL\") ==> \"U\"\n    get_closest_vowel(\"quick\") ==> \"\"\n    get_closest_vowel(\"ab\") ==> \"\"\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(word, str), \"invalid inputs\"\nassert word == \"\" or word.isalpha(), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert get_closest_vowel(word) == vowel\ndef reference(word):\n    for i in range(len(word) - 2, 0, -1):\n        if word[i] in VOWELS and word[i - 1] not in VOWELS and word[i + 1] not in VOWELS:\n            return word[i]\n    return \"\"\n\n@given(st.text(alphabet=\"BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz\", min_size=1, max_size=5),\n       st.sampled_from(sorted(VOWELS)),\n       st.text(alphabet=\"BCDFGHJKLMNPQRSTVWXYZbcdfghjklmnpqrstvwxyz\", min_size=1, max_size=5))\ndef test_property_constructed_qualifier_from_right(left, vowel, right):\n    word = left + vowel + right\n    # ensure the constructed middle is the rightmost qualifier by making suffix vowel-free\n    # right is all consonants, left is all consonants, so middle qualifies unless at edge\n    if len(word) >= 3 and 1 <= len(left) <= len(word) - 2:\n        # middle index = len(left); neighbors are consonants by construction\n        assert get_closest_vowel(word) == vowel",
+      "counterexample": "test_property_constructed_qualifier_from_right(left='B', vowel='A', right='B')",
+      "failure_output": "AssertionError: assert 'a' == 'A'\n  \n  - A\n  + a\nFailing test case: test_property_constructed_qualifier_from_right(\n    left='B',\n    vowel='A',\n    right='B',\n)\nadversary_tests/test_adversary.py:133: in test_property_constructed_qualifier_from_right\n    st.sampled_from(sorted(VOWELS)),\n            ^^^\nadversary_tests/test_adversary.py:141: in test_property_constructed_qualifier_from_right\n    assert get_closest_vowel(word) == vowel\nE   AssertionError: assert 'a' == 'A'\nE     \nE     - A\nE     + a\nE   Failing test case: test_property_constructed_qualifier_from_right(\nE       left='B',\nE       vowel='A',\nE       right='B',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9425097107887268
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9322279095649719,
+        "test_asserts_unspecified": 0.04763159155845642,
+        "test_is_broken": 0.01610482484102249,
+        "ambiguous_spec": 0.004035603255033493
+      },
+      "confidence": 0.9096372127532959
+    }
+  },
+  "usage": {
+    "input_tokens": 1034,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.114536582987057
+}

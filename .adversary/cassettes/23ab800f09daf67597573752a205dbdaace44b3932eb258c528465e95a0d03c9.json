@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/86: `anti_shuffle`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef anti_shuffle(s):\n    \"\"\"\n    Write a function that takes a string and returns an ordered version of it.\n    Ordered version of string, is a string where all words (separated by space)\n    are replaced by a new word where all the characters arranged in\n    ascending order based on ascii value.\n    Note: You should keep the order of words and blank spaces in the sentence.\n\n    For example:\n    anti_shuffle('Hi') returns 'Hi'\n    anti_shuffle('hello') returns 'ehllo'\n    anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(s) == str, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert len(s.split(' ')) == len(r.split(' '))\ndef _reference(s):\n    # Obviously-correct model: split on single space ' ' preserving\n    # empties (hence preserving exact blank-space layout), sort each word by ascii.\n    return ' '.join(''.join(sorted(word)) for word in s.split(' '))\n\n@given(st.text(alphabet=st.sampled_from(_printable_no_other_ws), max_size=30))\ndef test_property_word_count_preserved(s):\n    r = anti_shuffle(s)\n    assert len(s.split(' ')) == len(r.split(' '))",
+      "counterexample": "test_property_word_count_preserved(s=' ')",
+      "failure_output": "AssertionError: assert 2 == 1\n +  where 2 = len(['', ''])\n +    where ['', ''] = <built-in method split of str object at 0x101b6a818>(' ')\n +      where <built-in method split of str object at 0x101b6a818> = ' '.split\n +  and   1 = len([''])\n +    where [''] = <built-in method split of str object at 0x101b612a8>(' ')\n +      where <built-in method split of str object at 0x101b612a8> = ''.split\nFailing test case: test_property_word_count_preserved(\n    s=' ',\n)\nadversary_tests/test_adversary.py:122: in test_property_word_count_preserved\n    def test_property_word_count_preserved(s):\n                   ^^^\nadversary_tests/test_adversary.py:124: in test_property_word_count_preserved\n    assert len(s.split(' ')) == len(r.split(' '))\nE   AssertionError: assert 2 == 1\nE    +  where 2 = len(['', ''])\nE    +    where ['', ''] = <built-in method split of str object at 0x101b6a818>(' ')\nE    +      where <built-in method split of str object at 0x101b6a818> = ' '.split\nE    +  and   1 = len([''])\nE    +    where [''] = <built-in method split of str object at 0x101b612a8>(' ')\nE    +      where <built-in method split of str object at 0x101b612a8> = ''.split\nE   Failing test case: test_property_word_count_preserved(\nE       s=' ',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.957240641117096
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8971452713012695,
+        "test_asserts_unspecified": 0.07343100756406784,
+        "test_is_broken": 0.004842824302613735,
+        "ambiguous_spec": 0.024580899626016617
+      },
+      "confidence": 0.862860361735026
+    }
+  },
+  "usage": {
+    "input_tokens": 1076,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.2769110829976853
+}

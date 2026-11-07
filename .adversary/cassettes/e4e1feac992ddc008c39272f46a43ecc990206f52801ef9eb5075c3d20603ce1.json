@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/71: `triangle_area`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef triangle_area(a, b, c):\n    '''\n    Given the lengths of the three sides of a triangle. Return the area of\n    the triangle rounded to 2 decimal points if the three sides form a valid triangle. \n    Otherwise return -1\n    Three sides make a valid triangle when the sum of any two sides is greater \n    than the third side.\n    Example:\n    triangle_area(3, 4, 5) == 6.00\n    triangle_area(1, 2, 10) == -1\n    '''\n```",
+      "failing_test": "# failing line: assert triangle_area(10, 5, 5.0001) == -1\ndef reference(a, b, c):\n    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    s = (a + b + c) / 2\n    prod = s * (s - a) * (s - b) * (s - c)\n    # guard tiny negative due to floating point on degenerate inputs\n    if prod < 0 and prod > -1e-12:\n        prod = 0.0\n    return round(math.sqrt(prod), 2)\n\n\ndef test_just_below_degenerate_is_invalid():\n    assert triangle_area(1, 2, 3.0000001) == -1\n    assert triangle_area(10, 5, 5.0001) == -1\n    assert triangle_area(10, 5.0001, 5) == -1",
+      "counterexample": "(none reported)",
+      "failure_output": "assert 0.11 == -1\n +  where 0.11 = triangle_area(10, 5, 5.0001)\nadversary_tests/test_adversary.py:63: in test_just_below_degenerate_is_invalid\n    assert triangle_area(10, 5, 5.0001) == -1\nE   assert 0.11 == -1\nE    +  where 0.11 = triangle_area(10, 5, 5.0001)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.5493226051330566
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.4004707932472229,
+        "test_asserts_unspecified": 0.22220918536186218,
+        "test_is_broken": 0.35639506578445435,
+        "ambiguous_spec": 0.020924925804138184
+      },
+      "confidence": 0.20062772432963052
+    }
+  },
+  "usage": {
+    "input_tokens": 775,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.4972377920057625
+}

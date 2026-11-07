@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/137: `compare_one`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef compare_one(a, b):\n    \"\"\"\n    Create a function that takes integers, floats, or strings representing\n    real numbers, and returns the larger variable in its given variable type.\n    Return None if the values are equal.\n    Note: If a real number is represented as a string, the floating point might be . or ,\n\n    compare_one(1, 2.5) \u279e 2.5\n    compare_one(1, \"2,3\") \u279e \"2,3\"\n    compare_one(\"5,1\", \"6\") \u279e \"6\"\n    compare_one(\"1\", 1) \u279e None\n    \"\"\"\n```",
+      "failing_test": "# failing line: raise InvalidArgument(\ndef _parse(v):\n    \"\"\"Obviously-correct reference parsing per spec: ',' is decimal point.\"\"\"\n    if isinstance(v, str):\n        return float(v.replace(\",\", \".\"))\n    return float(v)\n\ndef _expected(a, b):\n    na = _parse(a)\n    nb = _parse(b)\n    if na == nb:\n        return None\n    return a if na > nb else b\n\ndef _decimal_string(draw, use_comma):\n    neg = draw(st.booleans())\n    ip = draw(st.integers(min_value=0, max_value=1000))\n    fp = draw(st.integers(min_value=0, max_value=999))\n    # ensure at least one fractional digit; pad to keep it simple\n    s = f\"{ip}.{fp:03d}\"\n    if use_comma:\n        s = s.replace(\".\", \",\")\n    if neg:\n        s = \"-\" + s\n    return s\n\ndef numeric_values(draw):\n    kind = draw(st.integers(min_value=0, max_value=3))\n    if kind == 0:\n        return draw(ints)\n    if kind == 1:\n        return draw(finite_floats)\n    if kind == 2:\n        # dot string\n        return _decimal_string(draw, False)\n    else:\n        # comma string\n        return _decimal_string(draw, True)\n\ndef numeric_pairs(draw):\n    return (draw(numeric_values), draw(numeric_values))\n\n@given(numeric_pairs)\ndef test_property_result_is_one_of_inputs_or_none(pair):\n    a, b = pair\n    r = compare_one(a, b)\n    assert r is None or r is a or r is b",
+      "counterexample": "(none reported)",
+      "failure_output": "hypothesis.errors.InvalidArgument: Expected a SearchStrategy but got pair=<function accept.<locals>.numeric_pairs at 0x108f8ce00> (type=function)\nadversary_tests/test_adversary.py:165: in test_property_result_is_one_of_inputs_or_none\n    def test_property_result_is_one_of_inputs_or_none(pair):\n                   ^^^\n../../../.venv/lib/python3.12/site-packages/hypothesis/core.py:771: in process_arguments_to_given\n    check_strategy(s, name=k)\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/strategies.py:1493: in check_strategy\n    raise InvalidArgument(\nE   hypothesis.errors.InvalidArgument: Expected a SearchStrategy but got pair=<function accept.<locals>.numeric_pairs at 0x108f8ce00> (type=function)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.005181936547160149
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_is_broken",
+      "probabilities": {
+        "implementation_bug": 0.0012178297620266676,
+        "test_asserts_unspecified": 0.0002786693803500384,
+        "test_is_broken": 0.9983585476875305,
+        "ambiguous_spec": 0.00014490014291368425
+      },
+      "confidence": 0.9978113969167074
+    }
+  },
+  "usage": {
+    "input_tokens": 1058,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9073812499991618
+}

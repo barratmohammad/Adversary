@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/122: `add_elements`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef add_elements(arr, k):\n    \"\"\"\n    Given a non-empty array of integers arr and an integer k, return\n    the sum of the elements with at most two digits from the first k elements of arr.\n\n    Example:\n\n        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4\n        Output: 24 # sum of 21 + 3\n\n    Constraints:\n        1. 1 <= len(arr) <= 100\n        2. 1 <= k <= len(arr)\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(arr) == list, \"invalid inputs\"\nassert all(type(x) == int for x in arr), \"invalid inputs\"\nassert 1 <= len(arr) <= 100, \"invalid inputs\"\nassert type(k) == int, \"invalid inputs\"\nassert 1 <= k <= len(arr), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert add_elements(extended, k) == reference(arr, k)\ndef reference(arr, k):\n    # At most two digits ignoring sign: -99 <= x <= 99\n    return sum(x for x in arr[:k] if -99 <= x <= 99)\n\n@given(st.data())\ndef test_first_k_elements_only(data):\n    arr = data.draw(st.lists(st.integers(min_value=-10000, max_value=10000), min_size=1, max_size=20))\n    k = data.draw(st.integers(min_value=1, max_value=len(arr)))\n    # Changing elements after k must not change result\n    extra = data.draw(st.lists(st.integers(min_value=-10000, max_value=10000), min_size=0, max_size=20))\n    extended = arr[:k] + extra\n    # k still valid for extended only if len permits; use k for prefix\n    assert add_elements(extended, k) == reference(arr, k)\n    assert add_elements(arr, k) == add_elements(arr[:k], k)",
+      "counterexample": "test_first_k_elements_only(data=data(...)",
+      "failure_output": "assert -100 == 0\n +  where -100 = add_elements([-100], 1)\n +  and   0 = reference([-100], 1)\nFailing test case: test_first_k_elements_only(\n    data=data(...),\n)\nDraw 1: [-100]\nDraw 2: 1\nDraw 3: []\nadversary_tests/test_adversary.py:71: in test_first_k_elements_only\n    def test_first_k_elements_only(data):\n                   ^^^\nadversary_tests/test_adversary.py:78: in test_first_k_elements_only\n    assert add_elements(extended, k) == reference(arr, k)\nE   assert -100 == 0\nE    +  where -100 = add_elements([-100], 1)\nE    +  and   0 = reference([-100], 1)\nE   Failing test case: test_first_k_elements_only(\nE       data=data(...),\nE   )\nE   Draw 1: [-100]\nE   Draw 2: 1\nE   Draw 3: []",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.6072770357131958
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "ambiguous_spec",
+      "probabilities": {
+        "implementation_bug": 0.205788254737854,
+        "test_asserts_unspecified": 0.17163322865962982,
+        "test_is_broken": 0.037784650921821594,
+        "ambiguous_spec": 0.5847938656806946
+      },
+      "confidence": 0.4463918209075928
+    }
+  },
+  "usage": {
+    "input_tokens": 1075,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.782418124988908
+}

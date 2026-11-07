@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/97: `multiply`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef multiply(a, b):\n    \"\"\"Complete the function that takes two integers and returns \n    the product of their unit digits.\n    Assume the input is always valid.\n    Examples:\n    multiply(148, 412) should return 16.\n    multiply(19, 28) should return 72.\n    multiply(2020, 1851) should return 0.\n    multiply(14,-15) should return 20.\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(a) == type(b) == int, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert multiply(n % 10 if False else b, n) == abs(b) * (abs(n) % 10)\ndef _unit(n: int) -> int:\n    return abs(n) % 10\n\ndef _expected(a: int, b: int) -> int:\n    return _unit(a) * _unit(b)\n\n@given(n=st.integers(min_value=-10**6, max_value=10**6))\ndef test_single_digit_product_equals_abs_product(n):\n    # for |a|,|b| < 10, unit digits are |a|,|b|\n    m = st.integers(min_value=-9, max_value=9)  # placeholder to keep signature simple\n    for b in (-9, -1, 0, 1, 9):\n        assert multiply(n % 10 if False else b, n) == abs(b) * (abs(n) % 10)",
+      "counterexample": "test_single_digit_product_equals_abs_product(n=1)",
+      "failure_output": "assert 1 == (9 * (1 % 10))\n +  where 1 = multiply(-9, 1)\n +  and   9 = abs(-9)\n +  and   1 = abs(1)\nFailing test case: test_single_digit_product_equals_abs_product(\n    n=1,\n)\nadversary_tests/test_adversary.py:97: in test_single_digit_product_equals_abs_product\n    def test_single_digit_product_equals_abs_product(n):\n                   ^^^\nadversary_tests/test_adversary.py:101: in test_single_digit_product_equals_abs_product\n    assert multiply(n % 10 if False else b, n) == abs(b) * (abs(n) % 10)\nE   assert 1 == (9 * (1 % 10))\nE    +  where 1 = multiply(-9, 1)\nE    +  and   9 = abs(-9)\nE    +  and   1 = abs(1)\nE   Failing test case: test_single_digit_product_equals_abs_product(\nE       n=1,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.6954010725021362
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.7066916823387146,
+        "test_asserts_unspecified": 0.05567210540175438,
+        "test_is_broken": 0.22179517149925232,
+        "ambiguous_spec": 0.01584099791944027
+      },
+      "confidence": 0.6089222431182861
+    }
+  },
+  "usage": {
+    "input_tokens": 943,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9802204160077963
+}

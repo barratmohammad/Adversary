@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/102: `choose_num`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef choose_num(x, y):\n    \"\"\"This function takes two positive numbers x and y and returns the\n    biggest even integer number that is in the range [x, y] inclusive. If \n    there's no such number, then the function should return -1.\n\n    For example:\n    choose_num(12, 15) = 14\n    choose_num(13, 12) = -1\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert choose_num(v, v) == -1\ndef reference(x, y):\n    \"\"\"Obviously correct model: biggest even integer k with x <= k <= y, else -1.\"\"\"\n    if x > y:\n        return -1\n    hi = math.floor(y)\n    if hi % 2 != 0:\n        hi -= 1\n    if hi < x:\n        return -1\n    return hi\n\n\ndef test_singleton_multiple_of_three_but_odd_returns_minus_one():\n    # distinguishes %3 bug from %2: 9, 15, 21 are divisible by 3 but odd -> must be -1\n    for v in [9, 15, 21, 27]:\n        assert choose_num(v, v) == -1",
+      "counterexample": "(none reported)",
+      "failure_output": "assert 9 == -1\n +  where 9 = choose_num(9, 9)\nadversary_tests/test_adversary.py:59: in test_singleton_multiple_of_three_but_odd_returns_minus_one\n    assert choose_num(v, v) == -1\nE   assert 9 == -1\nE    +  where 9 = choose_num(9, 9)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9039254188537598
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9573923945426941,
+        "test_asserts_unspecified": 0.016071340069174767,
+        "test_is_broken": 0.02106340602040291,
+        "ambiguous_spec": 0.0054728989489376545
+      },
+      "confidence": 0.9431898593902588
+    }
+  },
+  "usage": {
+    "input_tokens": 665,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 2.0517120829899795
+}

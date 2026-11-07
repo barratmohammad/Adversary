@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/147: `get_max_triples`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef get_max_triples(n):\n    \"\"\"\n    You are given a positive integer n. You have to create an integer array a of length n.\n        For each i (1 \u2264 i \u2264 n), the value of a[i] = i * i - i + 1.\n        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, \n    and a[i] + a[j] + a[k] is a multiple of 3.\n\n    Example :\n        Input: n = 5\n        Output: 1\n        Explanation: \n        a = [1, 3, 7, 13, 21]\n        The only valid triple is (1, 7, 13).\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(n) == int, \"invalid inputs\"\nassert n > 0, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert get_max_triples(n) == brute(n)\ndef brute(n):\n    a = [i * i - i + 1 for i in range(1, n + 1)]\n    c = 0\n    for i in range(n):\n        for j in range(i + 1, n):\n            for k in range(j + 1, n):\n                if (a[i] + a[j] + a[k]) % 3 == 0:\n                    c += 1\n    return c\n\ndef residue_model(n):\n    c0 = sum(1 for i in range(1, n + 1) if (i * i - i + 1) % 3 == 0)\n    c1 = sum(1 for i in range(1, n + 1) if (i * i - i + 1) % 3 == 1)\n    c2 = sum(1 for i in range(1, n + 1) if (i * i - i + 1) % 3 == 2)\n    assert c2 == 0\n    def C3(m):\n        return m * (m - 1) * (m - 2) // 6 if m >= 3 else 0\n    return C3(c0) + C3(c1)\n\n@given(st.integers(min_value=1, max_value=30))\ndef test_equivalence_to_brute(n):\n    assert get_max_triples(n) == brute(n)",
+      "counterexample": "test_equivalence_to_brute(n=1)",
+      "failure_output": "assert True == 0\n +  where True = get_max_triples(1)\n +  and   0 = brute(1)\nFailing test case: test_equivalence_to_brute(\n    n=1,\n)\nadversary_tests/test_adversary.py:78: in test_equivalence_to_brute\n    def test_equivalence_to_brute(n):\n                   ^^^\nadversary_tests/test_adversary.py:79: in test_equivalence_to_brute\n    assert get_max_triples(n) == brute(n)\nE   assert True == 0\nE    +  where True = get_max_triples(1)\nE    +  and   0 = brute(1)\nE   Failing test case: test_equivalence_to_brute(\nE       n=1,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9656299352645874
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9653421640396118,
+        "test_asserts_unspecified": 0.022895999252796173,
+        "test_is_broken": 0.009933155961334705,
+        "ambiguous_spec": 0.0018287065904587507
+      },
+      "confidence": 0.9537895520528158
+    }
+  },
+  "usage": {
+    "input_tokens": 1060,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0082493330119178
+}

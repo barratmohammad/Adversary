@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/127: `intersection`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef intersection(interval1, interval2):\n    \"\"\"You are given two intervals,\n    where each interval is a pair of integers. For example, interval = (start, end) = (1, 2).\n    The given intervals are closed which means that the interval (start, end)\n    includes both start and end.\n    For each given interval, it is assumed that its start is less or equal its end.\n    Your task is to determine whether the length of intersection of these two \n    intervals is a prime number.\n    Example, the intersection of the intervals (1, 3), (2, 4) is (2, 3)\n    which its length is 1, which not a prime number.\n    If the length of the intersection is a prime number, return \"YES\",\n    otherwise, return \"NO\".\n    If the two intervals don't intersect, return \"NO\".\n\n\n    [input/output] samples:\n    intersection((1, 2), (2, 3)) ==> \"NO\"\n    intersection((-1, 1), (0, 4)) ==> \"NO\"\n    intersection((-3, -1), (-5, 5)) ==> \"YES\"\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert intersection((0, 6), (0, 6)) == \"NO\"\ndef ref_is_prime(n: int) -> bool:\n    if n < 2:\n        return False\n    if n == 2:\n        return True\n    if n % 2 == 0:\n        return False\n    i = 3\n    while i * i <= n:\n        if n % i == 0:\n            return False\n        i += 2\n    return True\n\ndef ref_intersection(a, b) -> str:\n    l = max(a[0], b[0])\n    r = min(a[1], b[1])\n    if l > r:\n        return \"NO\"\n    length = r - l\n    return \"YES\" if ref_is_prime(length) else \"NO\"\n\n\ndef test_composite_even_length_6_returns_NO():\n    assert intersection((0, 6), (0, 6)) == \"NO\"",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert 'YES' == 'NO'\n  \n  - NO\n  + YES\nadversary_tests/test_adversary.py:88: in test_composite_even_length_6_returns_NO\n    assert intersection((0, 6), (0, 6)) == \"NO\"\nE   AssertionError: assert 'YES' == 'NO'\nE     \nE     - NO\nE     + YES",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8207670450210571
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9014140963554382,
+        "test_asserts_unspecified": 0.0353512242436409,
+        "test_is_broken": 0.042815979570150375,
+        "ambiguous_spec": 0.020418718457221985
+      },
+      "confidence": 0.8685521284739176
+    }
+  },
+  "usage": {
+    "input_tokens": 883,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.7684550840058364
+}

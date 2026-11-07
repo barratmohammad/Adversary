@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/22: `filter_integers`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List, Any\n\n\ndef filter_integers(values: List[Any]) -> List[int]:\n    \"\"\" Filter given list of any python values only for integers\n    >>> filter_integers(['a', 3.14, 5])\n    [5]\n    >>> filter_integers([1, 2, 3, 'abc', {}, []])\n    [1, 2, 3]\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(values) == list, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert result == expected\ndef ref_filter(values):\n    # Obviously correct reference: exact type int only.\n    # bool is a distinct type (type(True) is bool, not int),\n    # so booleans are not \"integers\" for filtering purposes.\n    return [x for x in values if type(x) is int]\n\n@given(st.lists(st.one_of(\n    st.integers(min_value=-1000, max_value=1000),\n    st.booleans(),\n    st.floats(allow_nan=False, allow_infinity=False),\n    st.text(max_size=5),\n    st.none(),\n), max_size=20))\ndef test_property_preserves_order_and_values(values):\n    result = filter_integers(values)\n    expected = [x for x in values if type(x) is int]\n    assert result == expected\n    # order preserved: result is subsequence of input\n    it = iter(values)\n    for r in result:\n        for v in it:\n            if v is r or (type(v) is int and v == r):\n                break\n        else:\n            assert False, \"order not preserved\"",
+      "counterexample": "test_property_preserves_order_and_values(values=[False])",
+      "failure_output": "assert [False] == []\n  \n  Left contains one more item: False\n  Use -v to get more diff\nFailing test case: test_property_preserves_order_and_values(\n    values=[False],\n)\nadversary_tests/test_adversary.py:87: in test_property_preserves_order_and_values\n    st.integers(min_value=-1000, max_value=1000),\n               ^^^\nadversary_tests/test_adversary.py:96: in test_property_preserves_order_and_values\n    assert result == expected\nE   assert [False] == []\nE     \nE     Left contains one more item: False\nE     Use -v to get more diff\nE   Failing test case: test_property_preserves_order_and_values(\nE       values=[False],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.6024864912033081
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "ambiguous_spec",
+      "probabilities": {
+        "implementation_bug": 0.11024369299411774,
+        "test_asserts_unspecified": 0.2356117218732834,
+        "test_is_broken": 0.030088374391198158,
+        "ambiguous_spec": 0.6240562200546265
+      },
+      "confidence": 0.49874162673950195
+    }
+  },
+  "usage": {
+    "input_tokens": 906,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.5045244589855429
+}

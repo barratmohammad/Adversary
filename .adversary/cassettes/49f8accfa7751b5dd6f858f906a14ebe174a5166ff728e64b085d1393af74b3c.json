@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/137: `compare_one`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef compare_one(a, b):\n    \"\"\"\n    Create a function that takes integers, floats, or strings representing\n    real numbers, and returns the larger variable in its given variable type.\n    Return None if the values are equal.\n    Note: If a real number is represented as a string, the floating point might be . or ,\n\n    compare_one(1, 2.5) \u279e 2.5\n    compare_one(1, \"2,3\") \u279e \"2,3\"\n    compare_one(\"5,1\", \"6\") \u279e \"6\"\n    compare_one(\"1\", 1) \u279e None\n    \"\"\"\n```",
+      "failing_test": "# failing line: raise InvalidArgument(\ndef _parse(v):\n    \"\"\"Obviously-correct reference parsing per spec: ',' is decimal point.\"\"\"\n    if isinstance(v, str):\n        return float(v.replace(\",\", \".\"))\n    return float(v)\n\ndef _expected(a, b):\n    na = _parse(a)\n    nb = _parse(b)\n    if na == nb:\n        return None\n    return a if na > nb else b\n\ndef _decimal_string(draw, use_comma):\n    neg = draw(st.booleans())\n    ip = draw(st.integers(min_value=0, max_value=1000))\n    fp = draw(st.integers(min_value=0, max_value=999))\n    # ensure at least one fractional digit; pad to keep it simple\n    s = f\"{ip}.{fp:03d}\"\n    if use_comma:\n        s = s.replace(\".\", \",\")\n    if neg:\n        s = \"-\" + s\n    return s\n\ndef numeric_values(draw):\n    kind = draw(st.integers(min_value=0, max_value=3))\n    if kind == 0:\n        return draw(ints)\n    if kind == 1:\n        return draw(finite_floats)\n    if kind == 2:\n        # dot string\n        return _decimal_string(draw, False)\n    else:\n        # comma string\n        return _decimal_string(draw, True)\n\ndef numeric_pairs(draw):\n    return (draw(numeric_values), draw(numeric_values))\n\n@given(numeric_pairs)\ndef test_property_matches_reference_model(pair):\n    a, b = pair\n    got = compare_one(a, b)\n    exp = _expected(a, b)\n    if exp is None:\n        assert got is None\n    else:\n        assert got is (a if exp is a else b)\n        assert type(got) is type(exp)\n        assert got == exp",
+      "counterexample": "(none reported)",
+      "failure_output": "hypothesis.errors.InvalidArgument: Expected a SearchStrategy but got pair=<function accept.<locals>.numeric_pairs at 0x108f8ce00> (type=function)\nadversary_tests/test_adversary.py:138: in test_property_matches_reference_model\n    def test_property_matches_reference_model(pair):\n                   ^^^\n../../../.venv/lib/python3.12/site-packages/hypothesis/core.py:771: in process_arguments_to_given\n    check_strategy(s, name=k)\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/strategies.py:1493: in check_strategy\n    raise InvalidArgument(\nE   hypothesis.errors.InvalidArgument: Expected a SearchStrategy but got pair=<function accept.<locals>.numeric_pairs at 0x108f8ce00> (type=function)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.005750161595642567
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_is_broken",
+      "probabilities": {
+        "implementation_bug": 0.001226255320943892,
+        "test_asserts_unspecified": 0.0004168989253230393,
+        "test_is_broken": 0.9982062578201294,
+        "ambiguous_spec": 0.00015051447553560138
+      },
+      "confidence": 0.9976083437601725
+    }
+  },
+  "usage": {
+    "input_tokens": 1090,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.2373805829847697
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/118: `get_closest_vowel`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef get_closest_vowel(word):\n    \"\"\"You are given a word. Your task is to find the closest vowel that stands between \n    two consonants from the right side of the word (case sensitive).\n    \n    Vowels in the beginning and ending doesn't count. Return empty string if you didn't\n    find any vowel met the above condition. \n\n    You may assume that the given string contains English letter only.\n\n    Example:\n    get_closest_vowel(\"yogurt\") ==> \"u\"\n    get_closest_vowel(\"FULL\") ==> \"U\"\n    get_closest_vowel(\"quick\") ==> \"\"\n    get_closest_vowel(\"ab\") ==> \"\"\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(word, str), \"invalid inputs\"\nassert word == \"\" or word.isalpha(), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert get_closest_vowel(\"FULL\") == \"U\"\ndef reference(word):\n    for i in range(len(word) - 2, 0, -1):\n        if word[i] in VOWELS and word[i - 1] not in VOWELS and word[i + 1] not in VOWELS:\n            return word[i]\n    return \"\"\n\n\ndef test_property_uppercase_preserved_FULL():\n    assert get_closest_vowel(\"FULL\") == \"U\"\n    assert get_closest_vowel(\"AbCDEfG\") != \"\" or True  # smoke\n    # uppercase vowel between consonants must stay uppercase\n    assert get_closest_vowel(\"BAC\") == \"A\"\n    assert get_closest_vowel(\"bAc\") == \"A\"\n    assert get_closest_vowel(\"BaC\") == \"a\"\n    assert get_closest_vowel(\"MOM\") == \"O\"\n    assert get_closest_vowel(\"mom\") == \"o\"",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert 'u' == 'U'\n  \n  - U\n  + u\nadversary_tests/test_adversary.py:90: in test_property_uppercase_preserved_FULL\n    assert get_closest_vowel(\"FULL\") == \"U\"\nE   AssertionError: assert 'u' == 'U'\nE     \nE     - U\nE     + u",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8477897047996521
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9644240736961365,
+        "test_asserts_unspecified": 0.022366825491189957,
+        "test_is_broken": 0.007722525391727686,
+        "ambiguous_spec": 0.005486545152962208
+      },
+      "confidence": 0.9525654315948486
+    }
+  },
+  "usage": {
+    "input_tokens": 836,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.4826537500193808
+}

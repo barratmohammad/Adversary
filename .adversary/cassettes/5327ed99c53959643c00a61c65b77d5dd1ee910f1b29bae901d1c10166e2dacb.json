@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/86: `anti_shuffle`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef anti_shuffle(s):\n    \"\"\"\n    Write a function that takes a string and returns an ordered version of it.\n    Ordered version of string, is a string where all words (separated by space)\n    are replaced by a new word where all the characters arranged in\n    ascending order based on ascii value.\n    Note: You should keep the order of words and blank spaces in the sentence.\n\n    For example:\n    anti_shuffle('Hi') returns 'Hi'\n    anti_shuffle('hello') returns 'ehllo'\n    anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(s) == str, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert len(r) == len(s)\ndef _reference(s):\n    # Obviously-correct model: split on single space ' ' preserving\n    # empties (hence preserving exact blank-space layout), sort each word by ascii.\n    return ' '.join(''.join(sorted(word)) for word in s.split(' '))\n\n@given(st.text(alphabet=st.sampled_from(_printable_no_other_ws), max_size=30))\ndef test_property_space_positions_preserved(s):\n    r = anti_shuffle(s)\n    assert len(r) == len(s)\n    for i, ch in enumerate(s):\n        assert (ch == ' ') == (r[i] == ' ')",
+      "counterexample": "test_property_space_positions_preserved(s=' ')",
+      "failure_output": "AssertionError: assert 0 == 1\n +  where 0 = len('')\n +  and   1 = len(' ')\nFailing test case: test_property_space_positions_preserved(\n    s=' ',\n)\nadversary_tests/test_adversary.py:86: in test_property_space_positions_preserved\n    def test_property_space_positions_preserved(s):\n                   ^^^\nadversary_tests/test_adversary.py:88: in test_property_space_positions_preserved\n    assert len(r) == len(s)\nE   AssertionError: assert 0 == 1\nE    +  where 0 = len('')\nE    +  and   1 = len(' ')\nE   Failing test case: test_property_space_positions_preserved(\nE       s=' ',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9106305241584778
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8160558938980103,
+        "test_asserts_unspecified": 0.12807123363018036,
+        "test_is_broken": 0.008435359224677086,
+        "ambiguous_spec": 0.04743754118680954
+      },
+      "confidence": 0.7547411918640137
+    }
+  },
+  "usage": {
+    "input_tokens": 824,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.36575516598531976
+}

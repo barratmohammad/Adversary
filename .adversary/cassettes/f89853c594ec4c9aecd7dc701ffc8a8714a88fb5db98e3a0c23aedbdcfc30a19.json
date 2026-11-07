@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```",
+      "failing_test": "# failing line: total = sum(fib(i) for i in range(n + 1))\ndef fib_ref(n: int) -> int:\n    \"\"\"Obviously-correct reference model: F0=0, F1=1, Fn=Fn-1+Fn-2.\"\"\"\n    assert n >= 0\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n@given(st.integers(min_value=0, max_value=25))\ndef test_sum_identity(n):\n    # sum_{i=0..n} Fi == F_{n+2} - 1\n    total = sum(fib(i) for i in range(n + 1))\n    assert total == fib(n + 2) - 1",
+      "counterexample": "test_sum_identity(n=0)",
+      "failure_output": "TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'\nFailing test case: test_sum_identity(\n    n=0,\n)\nadversary_tests/test_adversary.py:97: in test_sum_identity\n    def test_sum_identity(n):\n                   ^^^\nadversary_tests/test_adversary.py:99: in test_sum_identity\n    total = sum(fib(i) for i in range(n + 1))\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'\nE   Failing test case: test_sum_identity(\nE       n=0,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9087263941764832
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8561667799949646,
+        "test_asserts_unspecified": 0.08851460367441177,
+        "test_is_broken": 0.01275788713246584,
+        "ambiguous_spec": 0.04256075620651245
+      },
+      "confidence": 0.8082223733266195
+    }
+  },
+  "usage": {
+    "input_tokens": 702,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0562140829861164
+}

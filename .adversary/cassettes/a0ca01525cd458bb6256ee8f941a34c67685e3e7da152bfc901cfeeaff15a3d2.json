@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/76: `is_simple_power`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef is_simple_power(x, n):\n    \"\"\"Your task is to write a function that returns true if a number x is a simple\n    power of n and false in other cases.\n    x is a simple power of n if n**int=x\n    For example:\n    is_simple_power(1, 4) => true\n    is_simple_power(2, 2) => true\n    is_simple_power(8, 2) => true\n    is_simple_power(3, 2) => false\n    is_simple_power(3, 1) => false\n    is_simple_power(5, 3) => false\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert is_simple_power(x, n) is True\ndef call_with_timeout(func, args, timeout=0.5):\n    \"\"\"Run func(*args) in daemon thread, return (completed, result).\"\"\"\n    box = {}\n    def target():\n        try:\n            box[\"result\"] = func(*args)\n        except BaseException as e:\n            box[\"error\"] = e\n    t = threading.Thread(target=target, daemon=True)\n    t.start()\n    t.join(timeout)\n    if t.is_alive():\n        return (False, None)\n    if \"error\" in box:\n        raise box[\"error\"]\n    return (True, box.get(\"result\"))\n\n@pytest.mark.parametrize(\n    \"x,n\",\n    [\n        (-8, -2),   # (-2)**3 == -8\n        (-27, -3),  # (-3)**3 == -27\n        (-32, -2),  # (-2)**5 == -32\n        (-1, -1),   # (-1)**1 == -1\n        (-1, -5),\n    ],\n)\ndef test_negative_odd_powers_are_true(x, n):\n    assert is_simple_power(x, n) is True",
+      "counterexample": "(none reported)",
+      "failure_output": "assert False is True\n +  where False = is_simple_power(-32, -2)\nadversary_tests/test_adversary.py:106: in test_negative_odd_powers_are_true\n    assert is_simple_power(x, n) is True\nE   assert False is True\nE    +  where False = is_simple_power(-32, -2)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.616386890411377
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.14171132445335388,
+        "test_asserts_unspecified": 0.4869680404663086,
+        "test_is_broken": 0.012934088706970215,
+        "ambiguous_spec": 0.3583865761756897
+      },
+      "confidence": 0.31595738728841144
+    }
+  },
+  "usage": {
+    "input_tokens": 811,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9617167499964125
+}

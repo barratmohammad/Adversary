@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert n >= 0, \"invalid inputs\"\nassert isinstance(n, int), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: return fib(n - 1) + fib(n - 2)\ndef ref_fib(n: int) -> int:\n    # Obviously-correct iterative reference for standard Fibonacci:\n    # F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2).\n    # Pinned by spec examples: F(1)=1, F(8)=21, F(10)=55.\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n@given(st.integers(min_value=0, max_value=12))\ndef test_sum_identity(n):\n    # Sum_{i=0..n} F(i) == F(n+2) - 1\n    assert sum(fib(i) for i in range(n + 1)) == fib(n + 2) - 1",
+      "counterexample": "test_sum_identity(n=0)",
+      "failure_output": "sum_identity(n):\n                   ^^^\nadversary_tests/test_adversary.py:103: in test_sum_identity\n    assert sum(fib(i) for i in range(n + 1)) == fib(n + 2) - 1\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nadversary_tests/test_adversary.py:103: in <genexpr>\n    assert sum(fib(i) for i in range(n + 1)) == fib(n + 2) - 1\n               ^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nsolution.py:17: in fib\n    return fib(n - 1) + fib(n - 2)\n           ^^^^^^^^^^\nE   RecursionError: maximum recursion depth exceeded\nE   Failing test case: test_sum_identity(\nE       n=0,\nE   )\n!!! Recursion error detected, but the origin of the recursion could not be located.\n  Displaying first and last 10 stack frames out of 2002.\n  Pass `--full-trace` to see all frames.",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9597242474555969
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8784066438674927,
+        "test_asserts_unspecified": 0.08762893080711365,
+        "test_is_broken": 0.003653624327853322,
+        "ambiguous_spec": 0.030310794711112976
+      },
+      "confidence": 0.8378755251566569
+    }
+  },
+  "usage": {
+    "input_tokens": 1353,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9981854160141665
+}

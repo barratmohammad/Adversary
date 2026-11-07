@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/86: `anti_shuffle`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef anti_shuffle(s):\n    \"\"\"\n    Write a function that takes a string and returns an ordered version of it.\n    Ordered version of string, is a string where all words (separated by space)\n    are replaced by a new word where all the characters arranged in\n    ascending order based on ascii value.\n    Note: You should keep the order of words and blank spaces in the sentence.\n\n    For example:\n    anti_shuffle('Hi') returns 'Hi'\n    anti_shuffle('hello') returns 'ehllo'\n    anti_shuffle('Hello World!!!') returns 'Hello !!!Wdlor'\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert anti_shuffle('hello  world') == 'ehllo  dlorw'\ndef _reference(s: str) -> str:\n    # Obviously-correct model: split only on ' ' to preserve blank spaces exactly,\n    # sort each word's characters by ascii value, rejoin with single ' '.\n    return ' '.join(''.join(sorted(word)) for word in s.split(' '))\n\n\ndef test_multiple_spaces_between_words():\n    assert anti_shuffle('hello  world') == 'ehllo  dlorw'",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert 'ehllo dlorw' == 'ehllo  dlorw'\n  \n  - ehllo  dlorw\n  ?       -\n  + ehllo dlorw\nadversary_tests/test_adversary.py:52: in test_multiple_spaces_between_words\n    assert anti_shuffle('hello  world') == 'ehllo  dlorw'\nE   AssertionError: assert 'ehllo dlorw' == 'ehllo  dlorw'\nE     \nE     - ehllo  dlorw\nE     ?       -\nE     + ehllo dlorw",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7725253105163574
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8080533742904663,
+        "test_asserts_unspecified": 0.09026551246643066,
+        "test_is_broken": 0.025196807458996773,
+        "ambiguous_spec": 0.07648441940546036
+      },
+      "confidence": 0.7440711657206217
+    }
+  },
+  "usage": {
+    "input_tokens": 695,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.738250833004713
+}

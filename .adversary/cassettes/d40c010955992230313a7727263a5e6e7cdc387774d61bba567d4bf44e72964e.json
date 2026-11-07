@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/21: `rescale_to_unit`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\nfrom typing import List\n\n\ndef rescale_to_unit(numbers: List[float]) -> List[float]:\n    \"\"\" Given list of numbers (of at least two elements), apply a linear transform to that list,\n    such that the smallest number will become 0 and the largest will become 1\n    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])\n    [0.0, 0.25, 0.5, 0.75, 1.0]\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert all(type(x) in [int, float] for x in numbers), \"invalid inputs\"\nassert len(numbers) >= 2, \"invalid inputs\"\nassert max(numbers) > min(numbers), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: return [(num - min_num) / range_num for num in numbers]\ndef reference(numbers):\n    mn = min(numbers)\n    mx = max(numbers)\n    r = mx - mn\n    return [(x - mn) / r for x in numbers]\n\n@given(bounded_lists)\ndef test_translation_invariance(xs):\n    assume(all(-900 <= x <= 900 for x in xs))\n    c = 17.5\n    shifted = [x + c for x in xs]\n    assert rescale_to_unit(shifted) == pytest.approx(rescale_to_unit(xs))",
+      "counterexample": "test_translation_invariance(xs=[0.0, 1.1125369292536007e-308])",
+      "failure_output": "ZeroDivisionError: float division by zero\nFailing test case: test_translation_invariance(\n    xs=[0.0, 1.1125369292536007e-308],\n)\nadversary_tests/test_adversary.py:119: in test_translation_invariance\n    def test_translation_invariance(xs):\n                   ^^^\nadversary_tests/test_adversary.py:123: in test_translation_invariance\n    assert rescale_to_unit(shifted) == pytest.approx(rescale_to_unit(xs))\n           ^^^^^^^^^^^^^^^^^^^^^^^^\nsolution.py:13: in rescale_to_unit\n    return [(num - min_num) / range_num for num in numbers]\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   ZeroDivisionError: float division by zero\nE   Failing test case: test_translation_invariance(\nE       xs=[0.0, 1.1125369292536007e-308],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.5220291614532471
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.2249135971069336,
+        "test_asserts_unspecified": 0.4445558190345764,
+        "test_is_broken": 0.24635349214076996,
+        "ambiguous_spec": 0.08417710661888123
+      },
+      "confidence": 0.25940775871276855
+    }
+  },
+  "usage": {
+    "input_tokens": 928,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0825525000109337
+}

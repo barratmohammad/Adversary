@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/80: `is_happy`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef is_happy(s):\n    \"\"\"You are given a string s.\n    Your task is to check if the string is happy or not.\n    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct\n    For example:\n    is_happy(a) => False\n    is_happy(aa) => False\n    is_happy(abcd) => True\n    is_happy(aabb) => False\n    is_happy(adb) => True\n    is_happy(xyy) => False\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert s[i] != s[i + 1]\ndef reference(s):\n    if len(s) < 3:\n        return False\n    for i in range(len(s) - 2):\n        if len({s[i], s[i + 1], s[i + 2]}) != 3:\n            return False\n    return True\n\n@given(st.text(alphabet=\"abcdef\", min_size=3, max_size=10))\ndef test_happy_implies_every_window_distinct(s):\n    if is_happy(s) is True:\n        for i in range(len(s) - 2):\n            assert s[i] != s[i + 1]\n            assert s[i] != s[i + 2]\n            assert s[i + 1] != s[i + 2]",
+      "counterexample": "test_happy_implies_every_window_distinct(s='aab')",
+      "failure_output": "AssertionError: assert 'a' != 'a'\nFailing test case: test_happy_implies_every_window_distinct(\n    s='aab',\n)\nadversary_tests/test_adversary.py:135: in test_happy_implies_every_window_distinct\n    def test_happy_implies_every_window_distinct(s):\n                   ^^^\nadversary_tests/test_adversary.py:138: in test_happy_implies_every_window_distinct\n    assert s[i] != s[i + 1]\nE   AssertionError: assert 'a' != 'a'\nE   Failing test case: test_happy_implies_every_window_distinct(\nE       s='aab',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9446831941604614
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9632543325424194,
+        "test_asserts_unspecified": 0.016374502331018448,
+        "test_is_broken": 0.017739569768309593,
+        "ambiguous_spec": 0.0026316996663808823
+      },
+      "confidence": 0.951005776723226
+    }
+  },
+  "usage": {
+    "input_tokens": 770,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.7739979170146398
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/140: `fix_spaces`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef fix_spaces(text):\n    \"\"\"\n    Given a string text, replace all spaces in it with underscores, \n    and if a string has more than 2 consecutive spaces, \n    then replace all consecutive spaces with - \n    \n    fix_spaces(\"Example\") == \"Example\"\n    fix_spaces(\"Example 1\") == \"Example_1\"\n    fix_spaces(\" Example 2\") == \"_Example_2\"\n    fix_spaces(\" Example   3\") == \"_Example-3\"\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(text, str), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert fix_spaces(\"a   b  c    d\") == \"a-b__c-d\"\ndef reference(text: str) -> str:\n    out = []\n    i = 0\n    n = len(text)\n    while i < n:\n        if text[i] != \" \":\n            out.append(text[i])\n            i += 1\n        else:\n            j = i\n            while j < n and text[j] == \" \":\n                j += 1\n            run = j - i\n            if run > 2:\n                out.append(\"-\")\n            else:\n                out.append(\"_\" * run)\n            i = j\n    return \"\".join(out)\n\n\ndef test_separate_runs_each_mapped():\n    assert fix_spaces(\"a  b   c\") == \"a__b-c\"\n    assert fix_spaces(\"a   b  c    d\") == \"a-b__c-d\"",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert 'a-b__c-_d' == 'a-b__c-d'\n  \n  - a-b__c-d\n  + a-b__c-_d\n  ?        +\nadversary_tests/test_adversary.py:121: in test_separate_runs_each_mapped\n    assert fix_spaces(\"a   b  c    d\") == \"a-b__c-d\"\nE   AssertionError: assert 'a-b__c-_d' == 'a-b__c-d'\nE     \nE     - a-b__c-d\nE     + a-b__c-_d\nE     ?        +",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.6911683082580566
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8597193360328674,
+        "test_asserts_unspecified": 0.0397995226085186,
+        "test_is_broken": 0.07011222839355469,
+        "ambiguous_spec": 0.030368929728865623
+      },
+      "confidence": 0.8129591147104899
+    }
+  },
+  "usage": {
+    "input_tokens": 818,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.300026082986733
+}

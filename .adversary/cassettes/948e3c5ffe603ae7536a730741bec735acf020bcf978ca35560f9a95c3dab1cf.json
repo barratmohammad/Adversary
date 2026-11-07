@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert fib(n) < 2 ** n if n >= 3 else fib(n) == _ref(n)\ndef _ref(n: int) -> int:\n    # Obviously-correct iterative reference for standard Fibonacci:\n    # F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2).\n    # Pinned by spec examples: F(1)=1, F(8)=21, F(10)=55.\n    if n == 0:\n        return 0\n    if n == 1:\n        return 1\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b\n\n@given(st.integers(min_value=0, max_value=25))\ndef test_doubling_growth(n):\n    # F(n) < 2^n for n >= 0, and exact small values spot-checked\n    # via reference; guards against exponential blow-up bugs.\n    assert fib(n) < 2 ** n if n >= 3 else fib(n) == _ref(n)",
+      "counterexample": "test_doubling_growth(n=0)",
+      "failure_output": "assert False\nFailing test case: test_doubling_growth(\n    n=0,\n)\nadversary_tests/test_adversary.py:100: in test_doubling_growth\n    def test_doubling_growth(n):\n                   ^^^\nadversary_tests/test_adversary.py:103: in test_doubling_growth\n    assert fib(n) < 2 ** n if n >= 3 else fib(n) == _ref(n)\nE   assert False\nE   Failing test case: test_doubling_growth(\nE       n=0,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8604695796966553
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.6016451716423035,
+        "test_asserts_unspecified": 0.24203340709209442,
+        "test_is_broken": 0.016379188746213913,
+        "ambiguous_spec": 0.1399422585964203
+      },
+      "confidence": 0.4688602288564046
+    }
+  },
+  "usage": {
+    "input_tokens": 752,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9224965420144144
+}

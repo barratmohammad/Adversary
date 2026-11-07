@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/102: `choose_num`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef choose_num(x, y):\n    \"\"\"This function takes two positive numbers x and y and returns the\n    biggest even integer number that is in the range [x, y] inclusive. If \n    there's no such number, then the function should return -1.\n\n    For example:\n    choose_num(12, 15) = 14\n    choose_num(13, 12) = -1\n    \"\"\"\n```",
+      "failing_test": "def ref_int(x, y):\n    if x > y:\n        return -1\n    best = -1\n    for n in range(x, y + 1):\n        if n % 2 == 0:\n            if n > best:\n                best = n\n    return best\n\ndef ref_general(x, y):\n    if x > y:\n        return -1\n    hi = math.floor(y)\n    if hi % 2 != 0:\n        hi -= 1\n    if hi >= x:\n        return hi\n    return -1\n\n@given(\n    st.floats(min_value=1.0, max_value=200.0, allow_nan=False, allow_infinity=False),\n    st.floats(min_value=1.0, max_value=200.0, allow_nan=False, allow_infinity=False),\n)\ndef test_float_result_is_int_even_in_range(x, y):\n    r = choose_num(x, y)\n    expected = ref_general(x, y)\n    assert r == expected\n    if r != -1:\n        assert isinstance(r, int)\n        assert r % 2 == 0\n        assert x <= r <= y",
+      "counterexample": "test_float_result_is_int_even_in_range(| x=1.0, | y=1.5, | )",
+      "failure_output": "ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n+ Exception Group Traceback (most recent call last):\n  |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152256-ffcb74/work/adversary_tests/test_adversary.py\", line 138, in test_float_result_is_int_even_in_range\n  |     st.floats(min_value=1.0, max_value=200.0, allow_nan=False, allow_infinity=False),\n  |                ^^^\n  | ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n  +-+---------------- 1 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152256-ffcb74/work/adversary_tests/test_adversary.py\", line 144, in test_float_result_is_int_even_in_range\n    |     assert r == expected\n    | AssertionError: assert 0.5 == -1\n    | Failing test case: test_float_result_is_int_even_in_range(\n    |     x=1.0,\n    |     y=1.5,\n    | )\n    +---------------- 2 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152256-ffcb74/work/adversary_tests/test_adversary.py\", line 146, in test_float_result_is_int_even_in_range\n    |     assert isinstance(r, int)\n    | AssertionError: assert False\n    |  +  where False = isinstance(2.0, int)\n    | Failing test case: test_float_result_is_int_even_in_range(\n    |     x=1.0,\n    |     y=2.0,\n    | )\n    +------------------------------------",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7940722703933716
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.5837212800979614,
+        "test_asserts_unspecified": 0.20278744399547577,
+        "test_is_broken": 0.017268216237425804,
+        "ambiguous_spec": 0.19622300565242767
+      },
+      "confidence": 0.4449617067972819
+    }
+  },
+  "usage": {
+    "input_tokens": 1161,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.5078254170075525
+}

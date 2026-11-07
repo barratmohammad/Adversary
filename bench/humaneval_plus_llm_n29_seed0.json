@@ -1,0 +1,855 @@
+{
+  "dataset": "HumanEval+ (EvalPlus) - canonical solutions + single-fault mutants that pass all official tests but fail EvalPlus",
+  "problems": 29,
+  "buggy_changes": 44,
+  "correct_changes": 20,
+  "errors": 0,
+  "catch_rate": 0.614,
+  "false_block_rate": 0.15,
+  "official_tests_catch_rate": 0.0,
+  "caught_by": {
+    "property_tests": 27,
+    "cheat": 1
+  },
+  "by_source": {
+    "llm": {
+      "bugs": 44,
+      "caught": 27,
+      "correct": 20,
+      "false_blocks": 3
+    }
+  },
+  "seed": 0,
+  "minutes": 10.6,
+  "rows": [
+    {
+      "tid": "HumanEval/10",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "chatgpt solution, fails 175/400 EvalPlus inputs",
+      "evalplus_failures": 175,
+      "counterexample": "AssertionError: assert 'catatac' == 'catac'\n  \n  - catac\n  + catatac\n  ?     ++",
+      "run": "20261107-152504-c6d053"
+    },
+    {
+      "tid": "HumanEval/10",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "gpt-4 solution, fails 175/400 EvalPlus inputs",
+      "evalplus_failures": 175,
+      "counterexample": "AssertionError: assert 'catatac' == 'catac'\n  \n  - catac\n  + catatac\n  ?     ++",
+      "run": "20261107-152504-696fd4"
+    },
+    {
+      "tid": "HumanEval/110",
+      "variant": "llm-bug",
+      "model": "mistral-7b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "mistral-7b solution, fails 48/400 EvalPlus inputs",
+      "evalplus_failures": 48,
+      "counterexample": "AssertionError: assert 'NO' == 'YES'\n  \n  - YES\n  + NO",
+      "run": "20261107-152504-503544"
+    },
+    {
+      "tid": "HumanEval/118",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "chatgpt solution, fails 50/400 EvalPlus inputs",
+      "evalplus_failures": 50,
+      "counterexample": "AssertionError: assert 'u' == 'U'\n  \n  - U\n  + u",
+      "run": "20261107-152504-d1095d"
+    },
+    {
+      "tid": "HumanEval/122",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "code-llama-34b solution, fails 1/400 EvalPlus inputs",
+      "evalplus_failures": 1,
+      "counterexample": "assert -100 == 0\n +  where -100 = add_elements([-100], 1)",
+      "run": "20261107-152504-d9c29b"
+    },
+    {
+      "tid": "HumanEval/124",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "gpt-4 solution, fails 1/400 EvalPlus inputs",
+      "evalplus_failures": 1,
+      "counterexample": "ValueError: too many values to unpack (expected 3)",
+      "run": "20261107-152543-5dd9c2"
+    },
+    {
+      "tid": "HumanEval/13",
+      "variant": "llm-bug",
+      "model": "mistral-7b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "mistral-7b solution, fails 206/400 EvalPlus inputs",
+      "evalplus_failures": 206,
+      "counterexample": "test_matches_math_gcd_medium(| a=2001, | b=1, | )",
+      "run": "20261107-152547-e0cb65"
+    },
+    {
+      "tid": "HumanEval/134",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "chatgpt solution, fails 2/400 EvalPlus inputs",
+      "evalplus_failures": 2,
+      "counterexample": "AssertionError: assert True is False\n +  where True = check_if_last_char_is_a_letter('a\\tb')",
+      "run": "20261107-152547-2de1a2"
+    },
+    {
+      "tid": "HumanEval/140",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "chatgpt solution, fails 74/400 EvalPlus inputs",
+      "evalplus_failures": 74,
+      "counterexample": "AssertionError: assert 'a-_b' == 'a-b'\n  \n  - a-b\n  + a-_b\n  ?   +",
+      "run": "20261107-152551-304070"
+    },
+    {
+      "tid": "HumanEval/141",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution, fails 1/400 EvalPlus inputs",
+      "evalplus_failures": 1,
+      "counterexample": "",
+      "run": "20261107-152605-f65786"
+    },
+    {
+      "tid": "HumanEval/144",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "gpt-4 solution, fails 1/400 EvalPlus inputs",
+      "evalplus_failures": 1,
+      "counterexample": "AssertionError: assert True is False\n +  where True = simplify('10000000000000001/10000000000000000', '1/1')",
+      "run": "20261107-152618-3021f9"
+    },
+    {
+      "tid": "HumanEval/154",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "chatgpt solution, fails 2/400 EvalPlus inputs",
+      "evalplus_failures": 2,
+      "counterexample": "test_reference_equivalence(a='', b='')",
+      "run": "20261107-152619-5b4a0a"
+    },
+    {
+      "tid": "HumanEval/154",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "gpt-4 solution, fails 2/400 EvalPlus inputs",
+      "evalplus_failures": 2,
+      "counterexample": "test_reference_model(a='', b='')",
+      "run": "20261107-152632-ca0bee"
+    },
+    {
+      "tid": "HumanEval/21",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "chatgpt solution, fails 230/400 EvalPlus inputs",
+      "evalplus_failures": 230,
+      "counterexample": "",
+      "run": "20261107-152636-a1ebf0"
+    },
+    {
+      "tid": "HumanEval/21",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "code-llama-34b solution, fails 230/400 EvalPlus inputs",
+      "evalplus_failures": 230,
+      "counterexample": "",
+      "run": "20261107-152652-5cca60"
+    },
+    {
+      "tid": "HumanEval/21",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution, fails 230/400 EvalPlus inputs",
+      "evalplus_failures": 230,
+      "counterexample": "",
+      "run": "20261107-152655-85850c"
+    },
+    {
+      "tid": "HumanEval/21",
+      "variant": "llm-bug",
+      "model": "mistral-7b",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "mistral-7b solution, fails 230/400 EvalPlus inputs",
+      "evalplus_failures": 230,
+      "counterexample": "",
+      "run": "20261107-152700-3b805e"
+    },
+    {
+      "tid": "HumanEval/22",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "code-llama-34b solution, fails 49/400 EvalPlus inputs",
+      "evalplus_failures": 49,
+      "counterexample": "",
+      "run": "20261107-152714-522282"
+    },
+    {
+      "tid": "HumanEval/22",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution, fails 49/400 EvalPlus inputs",
+      "evalplus_failures": 49,
+      "counterexample": "",
+      "run": "20261107-152726-382374"
+    },
+    {
+      "tid": "HumanEval/25",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "chatgpt solution, fails 23/138 EvalPlus inputs",
+      "evalplus_failures": 23,
+      "counterexample": "",
+      "run": "20261107-152732-a1f07e"
+    },
+    {
+      "tid": "HumanEval/31",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "code-llama-34b solution, fails 1/154 EvalPlus inputs",
+      "evalplus_failures": 1,
+      "counterexample": "",
+      "run": "20261107-152736-4962ce"
+    },
+    {
+      "tid": "HumanEval/31",
+      "variant": "llm-bug",
+      "model": "mistral-7b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "mistral-7b solution, fails 46/154 EvalPlus inputs",
+      "evalplus_failures": 46,
+      "counterexample": "assert True is False\n +  where True = is_prime(0)",
+      "run": "20261107-152749-8127db"
+    },
+    {
+      "tid": "HumanEval/39",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "chatgpt solution, fails 1/2 EvalPlus inputs",
+      "evalplus_failures": 1,
+      "counterexample": "",
+      "run": "20261107-152756-7c3fd7"
+    },
+    {
+      "tid": "HumanEval/39",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution, fails 1/2 EvalPlus inputs",
+      "evalplus_failures": 1,
+      "counterexample": "",
+      "run": "20261107-152756-09cac0"
+    },
+    {
+      "tid": "HumanEval/43",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "gpt-4 solution, fails 26/400 EvalPlus inputs",
+      "evalplus_failures": 26,
+      "counterexample": "assert False is True\n +  where False = pairs_sum_to_zero([0, 0])",
+      "run": "20261107-152819-95bb02"
+    },
+    {
+      "tid": "HumanEval/44",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "chatgpt solution, fails 8/400 EvalPlus inputs",
+      "evalplus_failures": 8,
+      "counterexample": "AssertionError: assert '' == '0'\n  \n  - 0",
+      "run": "20261107-152820-d3c31e"
+    },
+    {
+      "tid": "HumanEval/44",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "code-llama-34b solution, fails 8/400 EvalPlus inputs",
+      "evalplus_failures": 8,
+      "counterexample": "AssertionError: assert '' == '0'\n  \n  - 0",
+      "run": "20261107-152825-d7744d"
+    },
+    {
+      "tid": "HumanEval/46",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "cheat",
+        "property_tests"
+      ],
+      "bug": "code-llama-34b solution, fails 105/132 EvalPlus inputs",
+      "evalplus_failures": 105,
+      "counterexample": "AssertionError: fib4 re-entered itself 9 times (recursion forbidden)\nassert 9 == 1\n +  where 9 = len([5, 4, 3, 2, 1, 0, ",
+      "run": "20261107-152832-ecf0a6"
+    },
+    {
+      "tid": "HumanEval/48",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "gpt-4 solution, fails 16/400 EvalPlus inputs",
+      "evalplus_failures": 16,
+      "counterexample": "test_property_matches_exact_reversal_reference(text='0:')",
+      "run": "20261107-152851-94fe9e"
+    },
+    {
+      "tid": "HumanEval/55",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "chatgpt solution, fails 21/45 EvalPlus inputs",
+      "evalplus_failures": 21,
+      "counterexample": "",
+      "run": "20261107-152853-a0f6cb"
+    },
+    {
+      "tid": "HumanEval/55",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "code-llama-34b solution, fails 22/45 EvalPlus inputs",
+      "evalplus_failures": 22,
+      "counterexample": "RecursionError: maximum recursion depth exceeded",
+      "run": "20261107-152902-6d3a93"
+    },
+    {
+      "tid": "HumanEval/55",
+      "variant": "llm-bug",
+      "model": "gpt-4",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "gpt-4 solution, fails 22/45 EvalPlus inputs",
+      "evalplus_failures": 22,
+      "counterexample": "RecursionError: maximum recursion depth exceeded",
+      "run": "20261107-152917-ba7049"
+    },
+    {
+      "tid": "HumanEval/55",
+      "variant": "llm-bug",
+      "model": "mistral-7b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "mistral-7b solution, fails 22/45 EvalPlus inputs",
+      "evalplus_failures": 22,
+      "counterexample": "RecursionError: maximum recursion depth exceeded",
+      "run": "20261107-152921-0bebd7"
+    },
+    {
+      "tid": "HumanEval/6",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "code-llama-34b solution, fails 1/66 EvalPlus inputs",
+      "evalplus_failures": 1,
+      "counterexample": "assert [0] == []\n  \n  Left contains one more item: 0\n  Use -v to get more diff",
+      "run": "20261107-152941-395216"
+    },
+    {
+      "tid": "HumanEval/63",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "code-llama-34b solution, fails 36/63 EvalPlus inputs",
+      "evalplus_failures": 36,
+      "counterexample": "",
+      "run": "20261107-152949-81347d"
+    },
+    {
+      "tid": "HumanEval/63",
+      "variant": "llm-bug",
+      "model": "mistral-7b",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "mistral-7b solution, fails 36/63 EvalPlus inputs",
+      "evalplus_failures": 36,
+      "counterexample": "",
+      "run": "20261107-152956-4ad691"
+    },
+    {
+      "tid": "HumanEval/76",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "code-llama-34b solution, fails 10/400 EvalPlus inputs",
+      "evalplus_failures": 10,
+      "counterexample": "RecursionError: maximum recursion depth exceeded",
+      "run": "20261107-153013-9b4971"
+    },
+    {
+      "tid": "HumanEval/77",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "chatgpt solution, fails 27/157 EvalPlus inputs",
+      "evalplus_failures": 27,
+      "counterexample": "",
+      "run": "20261107-153021-16d582"
+    },
+    {
+      "tid": "HumanEval/77",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "code-llama-34b solution, fails 27/157 EvalPlus inputs",
+      "evalplus_failures": 27,
+      "counterexample": "",
+      "run": "20261107-153040-54d5a6"
+    },
+    {
+      "tid": "HumanEval/82",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "code-llama-34b solution, fails 30/400 EvalPlus inputs",
+      "evalplus_failures": 30,
+      "counterexample": "AssertionError: length 37 is prime\nassert False is True\n +  where False = prime_length('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "run": "20261107-153047-9cf580"
+    },
+    {
+      "tid": "HumanEval/83",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "chatgpt solution, fails 103/104 EvalPlus inputs",
+      "evalplus_failures": 103,
+      "counterexample": "",
+      "run": "20261107-153051-66d6ee"
+    },
+    {
+      "tid": "HumanEval/86",
+      "variant": "llm-bug",
+      "model": "chatgpt",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "chatgpt solution, fails 32/400 EvalPlus inputs",
+      "evalplus_failures": 32,
+      "counterexample": "AssertionError: assert '' == ' '\n  \n  Strings contain only whitespace, escaping them using repr()\n  - ' '\n  ?  -\n  + ''",
+      "run": "20261107-153100-7b4bc3"
+    },
+    {
+      "tid": "HumanEval/97",
+      "variant": "llm-bug",
+      "model": "code-llama-34b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "code-llama-34b solution, fails 181/400 EvalPlus inputs",
+      "evalplus_failures": 181,
+      "counterexample": "test_reference_model_product_of_abs_unit_digits(a=1, b=-1)",
+      "run": "20261107-153117-37d326"
+    },
+    {
+      "tid": "HumanEval/97",
+      "variant": "llm-bug",
+      "model": "mistral-7b",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "mistral-7b solution, fails 181/400 EvalPlus inputs",
+      "evalplus_failures": 181,
+      "counterexample": "assert 8 == 72\n +  where 8 = multiply(-19, 28)",
+      "run": "20261107-153120-97f2c4"
+    },
+    {
+      "tid": "HumanEval/97",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153132-2c02c7"
+    },
+    {
+      "tid": "HumanEval/63",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153136-cb0057"
+    },
+    {
+      "tid": "HumanEval/31",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153152-e359fe"
+    },
+    {
+      "tid": "HumanEval/76",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153155-0415b6"
+    },
+    {
+      "tid": "HumanEval/110",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153155-bbcc6c"
+    },
+    {
+      "tid": "HumanEval/77",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "assert False is True\n +  where False = iscube((100000000000000000...0000000000000000000 ** 3))",
+      "run": "20261107-153202-0bc8ca"
+    },
+    {
+      "tid": "HumanEval/118",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153204-c71128"
+    },
+    {
+      "tid": "HumanEval/44",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153211-52a437"
+    },
+    {
+      "tid": "HumanEval/6",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153217-3c0dd8"
+    },
+    {
+      "tid": "HumanEval/86",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153227-d700b9"
+    },
+    {
+      "tid": "HumanEval/140",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153245-e654b5"
+    },
+    {
+      "tid": "HumanEval/25",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153250-28f92a"
+    },
+    {
+      "tid": "HumanEval/13",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153255-0546a5"
+    },
+    {
+      "tid": "HumanEval/134",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153308-2d2af8"
+    },
+    {
+      "tid": "HumanEval/46",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "cheat"
+      ],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153311-486e44"
+    },
+    {
+      "tid": "HumanEval/82",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153312-845758"
+    },
+    {
+      "tid": "HumanEval/122",
+      "variant": "llm-correct",
+      "model": "gpt-4",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "gpt-4 solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153313-c1b2f9"
+    },
+    {
+      "tid": "HumanEval/48",
+      "variant": "llm-correct",
+      "model": "chatgpt",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "chatgpt solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153327-62ab76"
+    },
+    {
+      "tid": "HumanEval/144",
+      "variant": "llm-correct",
+      "model": "chatgpt",
+      "label": "MERGE",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "chatgpt solution",
+      "evalplus_failures": 0,
+      "counterexample": "AssertionError: assert True is False\n +  where True = simplify('9007199254740993/2', '1/1')",
+      "run": "20261107-153328-ec5835"
+    },
+    {
+      "tid": "HumanEval/6",
+      "variant": "llm-correct",
+      "model": "chatgpt",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "chatgpt solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153342-008613"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/76: `is_simple_power`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef is_simple_power(x, n):\n    \"\"\"Your task is to write a function that returns true if a number x is a simple\n    power of n and false in other cases.\n    x is a simple power of n if n**int=x\n    For example:\n    is_simple_power(1, 4) => true\n    is_simple_power(2, 2) => true\n    is_simple_power(8, 2) => true\n    is_simple_power(3, 2) => false\n    is_simple_power(3, 1) => false\n    is_simple_power(5, 3) => false\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert is_simple_power(x, n) is True\ndef ref_simple_power(x, n):\n    # Obviously correct brute force over bounded integer exponents.\n    # Checks existence of integer k with n**k == x (Python semantics).\n    # Returns True if found in range, False otherwise.\n    # Range -20..20 covers all exactly-representable cases used in tests.\n    for k in range(-20, 21):\n        try:\n            v = n ** k\n        except ZeroDivisionError:\n            continue\n        except OverflowError:\n            continue\n        if v == x:\n            return True\n    return False\n\n@pytest.mark.parametrize(\n    \"x, n\",\n    [\n        (0.5, 2),\n        (0.25, 2),\n        (0.125, 2),\n        (1 / 9, 3),  # 3**-2\n        (1 / 27, 3),\n        (-0.5, -2),  # (-2)**-1\n        (0.25, -2),  # (-2)**-2\n        (-0.125, -2),  # (-2)**-3\n    ],\n)\ndef test_negative_exponent_fractional_examples(x, n):\n    assert ref_simple_power(x, n) is True\n    assert is_simple_power(x, n) is True",
+      "counterexample": "(none reported)",
+      "failure_output": "assert False is True\n +  where False = is_simple_power(0.5, 2)\nadversary_tests/test_adversary.py:107: in test_negative_exponent_fractional_examples\n    assert is_simple_power(x, n) is True\nE   assert False is True\nE    +  where False = is_simple_power(0.5, 2)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.3193487226963043
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "ambiguous_spec",
+      "probabilities": {
+        "implementation_bug": 0.1533762514591217,
+        "test_asserts_unspecified": 0.2470446676015854,
+        "test_is_broken": 0.010010735131800175,
+        "ambiguous_spec": 0.5895683765411377
+      },
+      "confidence": 0.4527578353881836
+    }
+  },
+  "usage": {
+    "input_tokens": 846,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.6679766669985838
+}

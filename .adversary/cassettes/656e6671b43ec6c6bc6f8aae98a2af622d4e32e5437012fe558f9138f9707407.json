@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Safe path join\n\nImplement in `safe_path.py`:\n\n```python\ndef safe_join(base: str, user_path: str) -> str: ...\n```\n\nJoin an untrusted relative `user_path` onto a trusted directory `base`, refusing anything\nthat would land outside `base`. POSIX semantics (`/` is the only separator; backslash is an\nordinary character). Purely lexical: never touches the filesystem, does not resolve symlinks,\ndoes not check existence, and must not depend on the environment or current directory.\n\n## Behavior (checked in this order)\n1. Both arguments must be `str`, else raise `TypeError`.\n2. Raise `ValueError` if either argument contains a NUL character (`\"\\x00\"`).\n3. Raise `ValueError` if `base` is not absolute (does not start with `/`).\n4. Raise `ValueError` if `user_path` is absolute (starts with `/`), even if it points inside `base`.\n5. Let `root = posixpath.normpath(base)` and\n   `result = posixpath.normpath(posixpath.join(root, user_path))`.\n6. `result` is **inside** base iff `result == root` or `result` starts with `root + \"/\"`\n   (when `root` already ends in `/`, e.g. `root == \"/\"`, it must start with `root`).\n   A sibling sharing a name prefix is OUTSIDE: for base `/srv/data`, `/srv/data2/x` is outside.\n7. Return `result` if it is inside, otherwise raise `ValueError`. Only the final normalized\n   result is checked: `..` segments are fine as long as the result stays inside.\n- An empty `user_path` or `\".\"` returns `root`.\n\n## Examples\n- `safe_join(\"/srv/data\", \"reports/q1.txt\") == \"/srv/data/reports/q1.txt\"`\n- `safe_join(\"/srv/data/\", \"a/./b/../c\") == \"/srv/data/a/c\"`\n- `safe_join(\"/srv/data\", \"\") == \"/srv/data\"`\n- `safe_join(\"/srv/data\", \"../etc/passwd\")` raises `ValueError`\n- `safe_join(\"/srv/data\", \"/etc/passwd\")` raises `ValueError`",
+      "failing_test": "# failing line: raise ValueError('user_path must be relative')\ndef ref_safe_join(base: str, user_path: str) -> str:\n    if not isinstance(base, str) or not isinstance(user_path, str):\n        raise TypeError(\"both arguments must be str\")\n    if \"\\x00\" in base or \"\\x00\" in user_path:\n        raise ValueError(\"NUL\")\n    if not base.startswith(\"/\"):\n        raise ValueError(\"base must be absolute\")\n    if user_path.startswith(\"/\"):\n        raise ValueError(\"user_path must be relative\")\n    root = posixpath.normpath(base)\n    result = posixpath.normpath(posixpath.join(root, user_path))\n    if root.endswith(\"/\"):\n        inside = result.startswith(root)\n    else:\n        inside = result == root or result.startswith(root + \"/\")\n    if not inside:\n        raise ValueError(\"escapes\")\n    return result\n\ndef _path_piece():\n    return st.text(alphabet=list(\"abAxZ09._-\"), min_size=0, max_size=4)\n\ndef _rel_path():\n    return st.lists(_path_piece(), min_size=0, max_size=4).map(\"/\".join)\n\ndef _abs_base():\n    return st.lists(_path_piece(), min_size=0, max_size=3).map(\n        lambda parts: \"/\" + \"/\".join(parts)\n    )\n\n@given(base=_abs_base(), rel=_rel_path())\ndef test_property_inside_means_prefix_or_equal(base, rel):\n    try:\n        got = safe_join(base, rel)\n    except ValueError:\n        # escaping paths must truly be outside per lexical rule\n        root = posixpath.normpath(base)\n        result = posixpath.normpath(posixpath.join(root, rel))\n        if root.endswith(\"/\"):\n            assert not result.startswith(root)\n        else:\n            assert result != root and not result.startswith(root + \"/\")\n        return\n    root = posixpath.normpath(base)\n    if root.endswith(\"/\"):\n        assert got.startswith(root)\n    else:\n        assert got == root or got.startswith(root + \"/\")",
+      "counterexample": "test_property_inside_means_prefix_or_equal(base='/', rel='/')",
+      "failure_output": "AssertionError: assert not True\n +  where True = <built-in method startswith of str object at 0x1050d2ae8>('/')\n +    where <built-in method startswith of str object at 0x1050d2ae8> = '/'.startswith\nFailing test case: test_property_inside_means_prefix_or_equal(\n    base='/',\n    rel='/',\n)\nadversary_tests/test_adversary.py:273: in test_property_inside_means_prefix_or_equal\n    got = safe_join(base, rel)\n          ^^^^^^^^^^^^^^^^^^^^\nsafe_path.py:17: in safe_join\n    raise ValueError('user_path must be relative')\nE   ValueError: user_path must be relative\n\nDuring handling of the above exception, another exception occurred:\nadversary_tests/test_adversary.py:271: in test_property_inside_means_prefix_or_equal\n    def test_property_inside_means_prefix_or_equal(base, rel):\n                   ^^^\nadversary_tests/test_adversary.py:279: in test_property_inside_means_prefix_or_equal\n    assert not result.startswith(root)\nE   AssertionError: assert not True\nE    +  where True = <built-in method startswith of str object at 0x1050d2ae8>('/')\nE    +    where <built-in method startswith of str object at 0x1050d2ae8> = '/'.startswith\nE   Failing test case: test_property_inside_means_prefix_or_equal(\nE       base='/',\nE       rel='/',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.07768947631120682
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_is_broken",
+      "probabilities": {
+        "implementation_bug": 0.110223188996315,
+        "test_asserts_unspecified": 0.03298698365688324,
+        "test_is_broken": 0.8424072265625,
+        "ambiguous_spec": 0.014382573775947094
+      },
+      "confidence": 0.7898763020833334
+    }
+  },
+  "usage": {
+    "input_tokens": 1659,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.34086787499836646
+}

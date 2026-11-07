@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/82: `prime_length`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef prime_length(string):\n    \"\"\"Write a function that takes a string and returns True if the string\n    length is a prime number or False otherwise\n    Examples\n    prime_length('Hello') == True\n    prime_length('abcdcba') == True\n    prime_length('kittens') == True\n    prime_length('orange') == False\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(string) == str, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert prime_length(s) is _is_prime(n)\ndef _is_prime(n: int) -> bool:\n    if n < 2:\n        return False\n    if n % 2 == 0:\n        return n == 2\n    r = int(n ** 0.5)\n    for d in range(3, r + 1, 2):\n        if n % d == 0:\n            return False\n    return True\n\n\ndef test_matches_reference_model_all_lengths_up_to_200():\n    @given(st.integers(min_value=0, max_value=200))\n    def inner(n):\n        s = 'x' * n\n        assert prime_length(s) is _is_prime(n)\n    inner()",
+      "counterexample": "inner(n=53)",
+      "failure_output": "AssertionError: assert False is True\n +  where False = prime_length('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')\n +  and   True = _is_prime(53)\nFailing test case: inner(\n    n=53,\n)\nadversary_tests/test_adversary.py:81: in test_matches_reference_model_all_lengths_up_to_200\n    inner()\nadversary_tests/test_adversary.py:78: in inner\n    def inner(n):\n               ^^^\nadversary_tests/test_adversary.py:80: in inner\n    assert prime_length(s) is _is_prime(n)\nE   AssertionError: assert False is True\nE    +  where False = prime_length('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')\nE    +  and   True = _is_prime(53)\nE   Failing test case: inner(\nE       n=53,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.986669659614563
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9810088872909546,
+        "test_asserts_unspecified": 0.012810444459319115,
+        "test_is_broken": 0.005783731117844582,
+        "ambiguous_spec": 0.00039695840678177774
+      },
+      "confidence": 0.9746785163879395
+    }
+  },
+  "usage": {
+    "input_tokens": 807,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9765869170078076
+}

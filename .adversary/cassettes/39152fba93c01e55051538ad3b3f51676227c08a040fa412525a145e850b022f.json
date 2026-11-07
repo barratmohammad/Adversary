@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/13: `greatest_common_divisor`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef greatest_common_divisor(a: int, b: int) -> int:\n    \"\"\" Return a greatest common divisor of two integers a and b\n    >>> greatest_common_divisor(3, 5)\n    1\n    >>> greatest_common_divisor(25, 15)\n    5\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(a) == int and type(b) == int, \"invalid inputs\"\nassert a > 0 and b > 0, \"invalid inputs\"\n```",
+      "failing_test": "@given(\n    a=st.integers(min_value=1, max_value=10_000),\n    b=st.integers(min_value=1, max_value=10_000),\n)\ndef test_matches_math_gcd_medium(a, b):\n    assert greatest_common_divisor(a, b) == math.gcd(a, b)",
+      "counterexample": "test_matches_math_gcd_medium(| a=2001, | b=1, | )",
+      "failure_output": "t_common_divisor(a - b, b)\n    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152547-e0cb65/work/solution.py\", line 17, in greatest_common_divisor\n    |     return greatest_common_divisor(a - b, b)\n    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152547-e0cb65/work/solution.py\", line 17, in greatest_common_divisor\n    |     return greatest_common_divisor(a - b, b)\n    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   [Previous line repeated 1997 more times]\n    | RecursionError: maximum recursion depth exceeded\n    | Failing test case: test_matches_math_gcd_medium(\n    |     a=2001,\n    |     b=1,\n    | )\n    +---------------- 2 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152547-e0cb65/work/adversary_tests/test_adversary.py\", line 48, in test_matches_math_gcd_medium\n    |     assert greatest_common_divisor(a, b) == math.gcd(a, b)\n    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152547-e0cb65/work/solution.py\", line 18, in greatest_common_divisor\n    |     return greatest_common_divisor(a, b - a)\n    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152547-e0cb65/work/solution.py\", line 18, in greatest_common_divisor\n    |     return greatest_common_divisor(a, b - a)\n    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-152547-e0cb65/work/solution.py\", line 18, in greatest_common_divisor\n    |     return greatest_common_divisor(a, b - a)\n    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    |   [Previous line repeated 1997 more times]\n    | RecursionError: maximum recursion depth exceeded\n    | Failing test case: test_matches_math_gcd_medium(\n    |     a=1,\n    |     b=2001,\n    | )\n    +------------------------------------",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9882041215896606
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.983239471912384,
+        "test_asserts_unspecified": 0.014500963501632214,
+        "test_is_broken": 0.0011779259657487273,
+        "ambiguous_spec": 0.0010816417634487152
+      },
+      "confidence": 0.9776526292165121
+    }
+  },
+  "usage": {
+    "input_tokens": 1232,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 2.7448923329939134
+}

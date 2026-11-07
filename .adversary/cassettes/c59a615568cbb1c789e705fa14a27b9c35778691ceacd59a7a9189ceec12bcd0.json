@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/101: `words_string`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef words_string(s):\n    \"\"\"\n    You will be given a string of words separated by commas or spaces. Your task is\n    to split the string into words and return an array of the words.\n    \n    For example:\n    words_string(\"Hi, my name is John\") == [\"Hi\", \"my\", \"name\", \"is\", \"John\"]\n    words_string(\"One, two, three, four, five, six\") == [\"One\", \"two\", \"three\", \"four\", \"five\", \"six\"]\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert words_string(\"a,,b\") == [\"a\", \"b\"]\ndef reference(s):\n    # Obviously-correct model: commas and whitespace are separators.\n    # Replace comma with space then split on arbitrary whitespace,\n    # dropping empties. Restricted to spec's delimiters.\n    return s.replace(\",\", \" \").split()\n\n\ndef test_consecutive_commas_no_empty_words():\n    assert words_string(\"a,,b\") == [\"a\", \"b\"]",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert ['ab'] == ['a', 'b']\n  \n  At index 0 diff: 'ab' != 'a'\n  Right contains one more item: 'b'\n  Use -v to get more diff\nadversary_tests/test_adversary.py:57: in test_consecutive_commas_no_empty_words\n    assert words_string(\"a,,b\") == [\"a\", \"b\"]\nE   AssertionError: assert ['ab'] == ['a', 'b']\nE     \nE     At index 0 diff: 'ab' != 'a'\nE     Right contains one more item: 'b'\nE     Use -v to get more diff",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7227185368537903
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8159219026565552,
+        "test_asserts_unspecified": 0.08808998763561249,
+        "test_is_broken": 0.012990125454962254,
+        "ambiguous_spec": 0.08299797773361206
+      },
+      "confidence": 0.7545625368754069
+    }
+  },
+  "usage": {
+    "input_tokens": 689,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.522641375020612
+}

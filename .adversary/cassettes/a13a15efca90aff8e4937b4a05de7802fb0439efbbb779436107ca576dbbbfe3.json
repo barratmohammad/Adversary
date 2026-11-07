@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Safe path join\n\nImplement in `safe_path.py`:\n\n```python\ndef safe_join(base: str, user_path: str) -> str: ...\n```\n\nJoin an untrusted relative `user_path` onto a trusted directory `base`, refusing anything\nthat would land outside `base`. POSIX semantics (`/` is the only separator; backslash is an\nordinary character). Purely lexical: never touches the filesystem, does not resolve symlinks,\ndoes not check existence, and must not depend on the environment or current directory.\n\n## Behavior (checked in this order)\n1. Both arguments must be `str`, else raise `TypeError`.\n2. Raise `ValueError` if either argument contains a NUL character (`\"\\x00\"`).\n3. Raise `ValueError` if `base` is not absolute (does not start with `/`).\n4. Raise `ValueError` if `user_path` is absolute (starts with `/`), even if it points inside `base`.\n5. Let `root = posixpath.normpath(base)` and\n   `result = posixpath.normpath(posixpath.join(root, user_path))`.\n6. `result` is **inside** base iff `result == root` or `result` starts with `root + \"/\"`\n   (when `root` already ends in `/`, e.g. `root == \"/\"`, it must start with `root`).\n   A sibling sharing a name prefix is OUTSIDE: for base `/srv/data`, `/srv/data2/x` is outside.\n7. Return `result` if it is inside, otherwise raise `ValueError`. Only the final normalized\n   result is checked: `..` segments are fine as long as the result stays inside.\n- An empty `user_path` or `\".\"` returns `root`.\n\n## Examples\n- `safe_join(\"/srv/data\", \"reports/q1.txt\") == \"/srv/data/reports/q1.txt\"`\n- `safe_join(\"/srv/data/\", \"a/./b/../c\") == \"/srv/data/a/c\"`\n- `safe_join(\"/srv/data\", \"\") == \"/srv/data\"`\n- `safe_join(\"/srv/data\", \"../etc/passwd\")` raises `ValueError`\n- `safe_join(\"/srv/data\", \"/etc/passwd\")` raises `ValueError`",
+      "failing_test": "# failing line: with pytest.raises(ValueError):\ndef ref_safe_join(base: str, user_path: str) -> str:\n    if not isinstance(base, str) or not isinstance(user_path, str):\n        raise TypeError(\"both arguments must be str\")\n    if \"\\x00\" in base or \"\\x00\" in user_path:\n        raise ValueError(\"NUL\")\n    if not base.startswith(\"/\"):\n        raise ValueError(\"base must be absolute\")\n    if user_path.startswith(\"/\"):\n        raise ValueError(\"user_path must be relative\")\n    root = posixpath.normpath(base)\n    result = posixpath.normpath(posixpath.join(root, user_path))\n    if result == root or result.startswith(root + \"/\" if not root.endswith(\"/\") else root):\n        return result\n    raise ValueError(\"escapes base\")\n\n\ndef test_plus_in_base_sibling_must_stay_outside():\n    # '+' is a regex quantifier; '/srv/aab/evil' is not inside '/srv/a+b'.\n    with pytest.raises(ValueError):\n        safe_join(\"/srv/a+b\", \"../aab/evil\")",
+      "counterexample": "(none reported)",
+      "failure_output": "Failed: DID NOT RAISE ValueError\nadversary_tests/test_adversary.py:157: in test_plus_in_base_sibling_must_stay_outside\n    with pytest.raises(ValueError):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^\nE   Failed: DID NOT RAISE ValueError",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7894858121871948
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8780171871185303,
+        "test_asserts_unspecified": 0.09670636802911758,
+        "test_is_broken": 0.022445792332291603,
+        "ambiguous_spec": 0.002830598969012499
+      },
+      "confidence": 0.8373562494913737
+    }
+  },
+  "usage": {
+    "input_tokens": 1106,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 4.215764916996704
+}

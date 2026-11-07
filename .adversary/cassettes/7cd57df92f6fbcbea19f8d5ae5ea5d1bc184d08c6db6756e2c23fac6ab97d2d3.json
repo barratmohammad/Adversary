@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/77: `iscube`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef iscube(a):\n    '''\n    Write a function that takes an integer a and returns True \n    if this ingeger is a cube of some integer number.\n    Note: you may assume the input is always valid.\n    Examples:\n    iscube(1) ==> True\n    iscube(2) ==> False\n    iscube(-1) ==> True\n    iscube(64) ==> True\n    iscube(0) ==> True\n    iscube(180) ==> False\n    '''\n```",
+      "failing_test": "# failing line: assert elapsed < 0.05, f\"iscube({a}) took {elapsed:.3f}s, too slow\"\ndef ref_iscube(a: int) -> bool:\n    if a == 0:\n        return True\n    neg = a < 0\n    m = -a if neg else a\n    lo, hi = 1, m\n    # tighten upper bound: hi = min(m, int(m**(1/3))+2) not needed; binary search is fine for small m\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        c = mid * mid * mid\n        if c == m:\n            return True\n        if c < m:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return False\n\n\ndef test_property_large_non_cube_efficient():\n    # 1000001 is not a cube (100^3 == 1000000, 101^3 == 1030301).\n    # A linear scan up to `a` is far too slow; a correct\n    # implementation answers essentially instantly.\n    a = 1_000_001\n    assert ref_iscube(a) is False\n    start = time.perf_counter()\n    result = iscube(a)\n    elapsed = time.perf_counter() - start\n    assert result is False\n    assert elapsed < 0.05, f\"iscube({a}) took {elapsed:.3f}s, too slow\"",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: iscube(1000001) took 0.051s, too slow\nassert 0.05114787499769591 < 0.05\nadversary_tests/test_adversary.py:158: in test_property_large_non_cube_efficient\n    assert elapsed < 0.05, f\"iscube({a}) took {elapsed:.3f}s, too slow\"\nE   AssertionError: iscube(1000001) took 0.051s, too slow\nE   assert 0.05114787499769591 < 0.05",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.3302796185016632
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.05278431624174118,
+        "test_asserts_unspecified": 0.8407984972000122,
+        "test_is_broken": 0.0791381224989891,
+        "ambiguous_spec": 0.027279045432806015
+      },
+      "confidence": 0.7877313296000162
+    }
+  },
+  "usage": {
+    "input_tokens": 931,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.44318816598388366
+}

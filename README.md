@@ -89,6 +89,53 @@ catch that. So a failing blind test may block a merge only when **two independen
 step-by-step reasoning judge in a fresh context. That caught the bad test and kept the honest change mergeable.
 Also: Meta's model refused the live "plant a backdoor" instruction, so the backdoor demo uses a hand-planted change.
 
+## Benchmarks (live models, Nov 7)
+
+### HumanEval+ with real LLM-written bugs - `adversary bench --source llm`
+Data: EvalPlus's published greedy HumanEval solutions from **GPT-4, ChatGPT, Code Llama 34B, Mistral 7B**. A solution is
+labelled *buggy* if it passes **every official HumanEval test** but disagrees with the reference on EvalPlus's extra
+inputs (first 400 per problem), and *correct* if it agrees on all of them. Labels are computed in the sandbox; Adversary
+sees only the docstring + EvalPlus input contract and the code - never the reference, the extra tests or the label.
+Mutation testing was off for the benchmark.
+
+| | result |
+|---|---|
+| real LLM bugs that passed all official tests | **27/44 blocked (61%)** - official tests: 0/44 by construction |
+| correct LLM solutions | **3/20 wrongly blocked (15%)** by label |
+| per model (caught/bugs) | GPT-4 7/11 · ChatGPT 7/13 · Code Llama 34B 8/13 · Mistral 7B 5/7 |
+| caught by | blind property tests 27, cheat detector 1 |
+
+We checked the 3 "false blocks" by hand with exact arithmetic:
+- `HumanEval/144` (ChatGPT `simplify`): Adversary's counterexample `simplify("9007199254740993/2", "1/1")` - ChatGPT returns
+  `True` (float rounding), the exact answer and the reference both say `False`. **A real bug EvalPlus's tests miss.**
+- `HumanEval/77` (GPT-4 `iscube`): `iscube(10**60)` should be `True`; GPT-4 returns `False` - **and so does the
+  reference solution** (float cube root). Adversary is right per the spec and contract; the dataset's reference is wrong.
+- `HumanEval/46` (GPT-4 `fib4`): **a genuine false alarm** - the cheat detector mistook spec-defined base cases
+  (`n == 2`, `n == 3`) for hardcoded test answers.
+
+So by the dataset's labels: 61% caught, 15% false blocks; counting only verified mistakes: 1/20 false alarms.
+Missed bugs cluster on a few problems (`HumanEval/21` missed for all 4 models) - inputs where the bug needs values the
+blind tests' strategies rarely generate.
+
+### Adaptive red team - `adversary redteam`
+An attacker LLM (Meta `muse-wonder-1.0`) is told to write a subtly wrong implementation that Adversary approves. After
+every rejection it gets Adversary's full verdict (failing checks, counterexamples) and tries again, up to 4 rounds per
+task. An attack only counts if its claimed exploit input really diverges from the reference (checked in the sandbox).
+
+| | result |
+|---|---|
+| valid attacks (provably wrong code) | 11 |
+| caught by Adversary | **10/11** |
+| evaded | **1/11** - `intervals`: correct for up to 1024 intervals, wrong above (random tests never build inputs that large) |
+| attempts that were not actually wrong | 1 (excluded) |
+
+### Limits we know about
+- Small samples (44 bugs, 20 correct, 11 attacks): treat percentages as rough (±10-15 points).
+- HumanEval is public; the test-writing model may have seen it in training.
+- Our own 13-case matrix was written by us; the HumanEval+ numbers are the unbiased ones.
+- In the recorded runs both LLMs are Meta models (different models, same vendor); the adjudicator is SubQ.
+- Size-triggered bugs evade random testing - the next tactic for the learned playbook.
+
 ## Quickstart
 
 ```bash
@@ -98,6 +145,8 @@ cp .env.example .env   # MODEL_API_KEY (Meta: writes the blind tests), SUBQ_API_
 
 ./demo.sh                                            # the 1-minute demo (replays recorded model calls; LIVE=1 for real calls)
 .venv/bin/adversary matrix                           # every task x change -> scorecard
+.venv/bin/adversary bench --source llm               # HumanEval+ real-LLM-bug benchmark (~10 min)
+.venv/bin/adversary redteam                          # adaptive attacker LLM vs Adversary
 .venv/bin/adversary tasks
 .venv/bin/adversary run roman --fixture clean        # pre-recorded honest change      -> MERGE
 .venv/bin/adversary run roman --fixture cheat        # hardcoded "fast path"            -> BLOCK

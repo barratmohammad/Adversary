@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/76: `is_simple_power`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef is_simple_power(x, n):\n    \"\"\"Your task is to write a function that returns true if a number x is a simple\n    power of n and false in other cases.\n    x is a simple power of n if n**int=x\n    For example:\n    is_simple_power(1, 4) => true\n    is_simple_power(2, 2) => true\n    is_simple_power(8, 2) => true\n    is_simple_power(3, 2) => false\n    is_simple_power(3, 1) => false\n    is_simple_power(5, 3) => false\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert is_simple_power(x, n) is True\ndef call_with_timeout(func, args, timeout=0.5):\n    \"\"\"Run func(*args) in daemon thread, return (completed, result).\"\"\"\n    box = {}\n    def target():\n        try:\n            box[\"result\"] = func(*args)\n        except BaseException as e:\n            box[\"error\"] = e\n    t = threading.Thread(target=target, daemon=True)\n    t.start()\n    t.join(timeout)\n    if t.is_alive():\n        return (False, None)\n    if \"error\" in box:\n        raise box[\"error\"]\n    return (True, box.get(\"result\"))\n\n@given(\n    n=st.integers(min_value=-5, max_value=5),\n    k=st.integers(min_value=0, max_value=6),\n)\ndef test_exact_nonnegative_powers_are_true(n, k):\n    x = n ** k  # Python semantics, n**0 == 1 including 0**0\n    # 0**0 == 1 case is x==1 which is covered; skip ambiguous 0-base\n    # generation that hangs is avoided because x == n**k terminates;\n    # but filter the hanging-prone (n==0 and x not in (0,1)) -- cannot happen here\n    # since x is exactly 0 or 1 when n==0.\n    assert is_simple_power(x, n) is True",
+      "counterexample": "test_exact_nonnegative_powers_are_true(n=0, k=1)",
+      "failure_output": "assert False is True\n +  where False = is_simple_power(0, 0)\nFailing test case: test_exact_nonnegative_powers_are_true(\n    n=0,\n    k=1,\n)\nadversary_tests/test_adversary.py:72: in test_exact_nonnegative_powers_are_true\n    n=st.integers(min_value=-5, max_value=5),\n               ^^^\nadversary_tests/test_adversary.py:81: in test_exact_nonnegative_powers_are_true\n    assert is_simple_power(x, n) is True\nE   assert False is True\nE    +  where False = is_simple_power(0, 0)\nE   Failing test case: test_exact_nonnegative_powers_are_true(\nE       n=0,\nE       k=1,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8164114952087402
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_asserts_unspecified",
+      "probabilities": {
+        "implementation_bug": 0.3165704905986786,
+        "test_asserts_unspecified": 0.3768060803413391,
+        "test_is_broken": 0.02096819505095482,
+        "ambiguous_spec": 0.2856552302837372
+      },
+      "confidence": 0.16907477378845215
+    }
+  },
+  "usage": {
+    "input_tokens": 980,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0386260000232141
+}

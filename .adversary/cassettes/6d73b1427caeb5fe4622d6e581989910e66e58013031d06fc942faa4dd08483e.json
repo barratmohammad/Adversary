@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# Merge intervals\n\nImplement in `intervals.py`:\n\n```python\ndef merge_intervals(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]: ...\n```\n\nMerge **closed integer intervals** `(start, end)` (both endpoints included) into the\nsmallest equivalent list of disjoint intervals.\n\n## Behavior\n- Every element is a 2-tuple of ints. If any element has `start > end`, raise `ValueError`.\n  Single-point intervals such as `(2, 2)` are valid.\n- Two intervals merge when they **overlap or touch**, i.e. share at least one point:\n  `(1, 3)` and `(3, 5)` become `(1, 5)`. An interval contained in another is absorbed by it.\n- Merely **adjacent** intervals do NOT merge: `(1, 3)` and `(4, 5)` share no point and stay separate.\n- Merging is transitive: a chain of overlapping/touching intervals collapses into one.\n- Input order is arbitrary and duplicates are allowed.\n- Returns a **new list of tuples**, sorted by start, where each interval's start is strictly\n  greater than the previous interval's end. The set of integer points covered by the output\n  equals the set covered by the input.\n- The input list and its elements are never mutated. Empty input returns `[]`.\n\n## Examples\n- `merge_intervals([(1, 3), (2, 6), (8, 10), (15, 18)]) == [(1, 6), (8, 10), (15, 18)]`\n- `merge_intervals([(1, 3), (3, 5)]) == [(1, 5)]`\n- `merge_intervals([(1, 3), (4, 5)]) == [(1, 3), (4, 5)]`\n- `merge_intervals([(5, 7), (1, 2)]) == [(1, 2), (5, 7)]`\n- `merge_intervals([]) == []`\n- `merge_intervals([(3, 1)])` raises `ValueError`",
+      "failing_test": "# failing line: assert merge_intervals(intervals) == reference_merge(intervals)\ndef reference_merge(intervals):\n    # Obviously-correct reference: sort then merge iff overlap/touch (start <= cur_end).\n    for s, e in intervals:\n        if s > e:\n            raise ValueError(\"bad\")\n    if not intervals:\n        return []\n    ordered = sorted(intervals, key=lambda x: (x[0], x[1]))\n    out = []\n    cs, ce = ordered[0]\n    for s, e in ordered[1:]:\n        if s <= ce:\n            if e > ce:\n                ce = e\n        else:\n            out.append((cs, ce))\n            cs, ce = s, e\n    out.append((cs, ce))\n    return out\n\ndef coverage(intervals):\n    pts = set()\n    for s, e in intervals:\n        for p in range(s, e + 1):\n            pts.add(p)\n    return pts\n\n@given(valid_lists_large)\ndef test_matches_reference_model_large(intervals):\n    assert merge_intervals(intervals) == reference_merge(intervals)",
+      "counterexample": "test_matches_reference_model_large(intervals=[(0, 0)",
+      "failure_output": "assert [(0, 1)] == [(0, 0), (1, 1)]\n  \n  At index 0 diff: (0, 1) != (0, 0)\n  Right contains one more item: (1, 1)\n  Use -v to get more diff\nFailing test case: test_matches_reference_model_large(\n    intervals=[(0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n     (0, 0),\n[+20 more lines; full report in element text]\nadversary_tests/test_adversary.py:209: in test_matches_reference_model_large\n    def test_matches_reference_model_large(intervals):\n                   ^^^\nadversary_tests/test_adversary.py:210: in test_matches_reference_model_large\n    assert merge_intervals(intervals) == reference_merge(intervals)\nE   assert [(0, 1)] == [(0, 0), (1, 1)]\nE     \nE     At index 0 diff: (0, 1) != (0, 0)\nE     Right contains one more item: (1, 1)\nE     Use -v to get more diff\nE   Failing test case: test_matches_reference_model_large(\nE       intervals=[(0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (0, 0),\nE        (1, 1)],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9874775409698486
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9849609136581421,
+        "test_asserts_unspecified": 0.011359221301972866,
+        "test_is_broken": 0.0029149726033210754,
+        "ambiguous_spec": 0.0007648478494957089
+      },
+      "confidence": 0.9799478848775228
+    }
+  },
+  "usage": {
+    "input_tokens": 1881,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.3363566249900032
+}

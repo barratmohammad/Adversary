@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/102: `choose_num`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef choose_num(x, y):\n    \"\"\"This function takes two positive numbers x and y and returns the\n    biggest even integer number that is in the range [x, y] inclusive. If \n    there's no such number, then the function should return -1.\n\n    For example:\n    choose_num(12, 15) = 14\n    choose_num(13, 12) = -1\n    \"\"\"\n```",
+      "failing_test": "# failing line: assert choose_num(x, y) == ref_general(x, y)\ndef ref_int(x, y):\n    if x > y:\n        return -1\n    best = -1\n    for n in range(x, y + 1):\n        if n % 2 == 0:\n            if n > best:\n                best = n\n    return best\n\ndef ref_general(x, y):\n    if x > y:\n        return -1\n    hi = math.floor(y)\n    if hi % 2 != 0:\n        hi -= 1\n    if hi >= x:\n        return hi\n    return -1\n\n@given(\n    st.floats(min_value=1.0, max_value=200.0, allow_nan=False, allow_infinity=False),\n    st.floats(min_value=1.0, max_value=200.0, allow_nan=False, allow_infinity=False),\n)\ndef test_float_matches_reference(x, y):\n    assert choose_num(x, y) == ref_general(x, y)",
+      "counterexample": "test_float_matches_reference(x=1.0, y=1.5)",
+      "failure_output": "assert 0.5 == -1\n +  where 0.5 = choose_num(1.0, 1.5)\n +  and   -1 = ref_general(1.0, 1.5)\nFailing test case: test_float_matches_reference(\n    x=1.0,\n    y=1.5,\n)\nadversary_tests/test_adversary.py:130: in test_float_matches_reference\n    st.floats(min_value=1.0, max_value=200.0, allow_nan=False, allow_infinity=False),\n               ^^^\nadversary_tests/test_adversary.py:134: in test_float_matches_reference\n    assert choose_num(x, y) == ref_general(x, y)\nE   assert 0.5 == -1\nE    +  where 0.5 = choose_num(1.0, 1.5)\nE    +  and   -1 = ref_general(1.0, 1.5)\nE   Failing test case: test_float_matches_reference(\nE       x=1.0,\nE       y=1.5,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7366870641708374
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.3983158767223358,
+        "test_asserts_unspecified": 0.29200834035873413,
+        "test_is_broken": 0.028629841282963753,
+        "ambiguous_spec": 0.28104594349861145
+      },
+      "confidence": 0.19775450229644775
+    }
+  },
+  "usage": {
+    "input_tokens": 910,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.343046082998626
+}
