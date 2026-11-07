@@ -124,7 +124,7 @@ def cmd_reproduce(args) -> int:
         v, rdir = verify(task, change, seed=old["seed"], sandbox=sandbox, pinned=pinned, emit=live.emit,
                          run_dir=src.parent / (src.name + "-repro"), max_mutants=old["pinned"].get("max_mutants", args.mutants),
                          max_examples=old["pinned"].get("max_examples", args.examples),
-                         implementer_model=old["models"]["implementer"])
+                         implementer_model=old["models"]["implementer"], playbook=pinned.get("playbook", ""))
     same_outcome = v.outcome_sha256 == old["outcome_sha256"]
     same_inputs = v.inputs == old["inputs"] and v.pinned == old["pinned"]
     t = ui.Table(title="reproduction", show_header=True)
@@ -144,6 +144,19 @@ def cmd_reproduce(args) -> int:
         if c_old["status"] != c_new.status or c_old["details"].get("fingerprint") != c_new.details.get("fingerprint"):
             ui.console.print(f"  {c_new.id}: {c_old['status']} -> {c_new.status}")
     return 2
+
+
+def cmd_learn(args) -> int:
+    from . import learn
+    learn.learn([t.strip() for t in args.train.split(",") if t.strip()], [t.strip() for t in args.heldout.split(",") if t.strip()],
+                rounds=args.rounds, seed=args.seed, console=ui.console)
+    return 0
+
+
+def cmd_playbook(args) -> int:
+    from . import learn
+    learn.show(ui.console)
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -180,6 +193,13 @@ def main(argv: list[str] | None = None) -> int:
     pg = sub.add_parser("playground", help="write tasks/<task>/base to playground/<task>/ for PR-based demos")
     pg.add_argument("task")
     pg.set_defaults(fn=cmd_playground)
+    ln = sub.add_parser("learn", help="improve the verifier's playbook; adopt only held-out-validated tactics")
+    ln.add_argument("--train", required=True, help="comma-separated task names to learn from")
+    ln.add_argument("--heldout", required=True, help="comma-separated held-out task names")
+    ln.add_argument("--rounds", type=int, default=1)
+    ln.add_argument("--seed", type=int, default=1337)
+    ln.set_defaults(fn=cmd_learn)
+    sub.add_parser("playbook", help="show playbook versions and the adopt/rollback log").set_defaults(fn=cmd_playbook)
     rp = sub.add_parser("reproduce")
     rp.add_argument("run_dir")
     common(rp)

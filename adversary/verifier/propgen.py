@@ -48,14 +48,15 @@ def _module_import_name(module_path: str) -> str:
     return module_path[:-3].replace("/", ".") if module_path.endswith(".py") else module_path
 
 
-def build_prompt(spec: str, sanitized: dict[str, str], module: str, functions: list[str]) -> list[dict]:
+def build_prompt(spec: str, sanitized: dict[str, str], module: str, functions: list[str], playbook: str = "") -> list[dict]:
     code_blocks = "\n\n".join(f"## {path}\n```python\n{src}```" for path, src in sanitized.items())
     api = []
     for src in sanitized.values():
         api.extend(public_api(src))
     names = ", ".join(functions) if functions else "*"
+    system = SYSTEM + (f"\n\nLearned tactics from your playbook (apply where relevant):\n{playbook}" if playbook else "")
     return [
-        {"role": "system", "content": SYSTEM},
+        {"role": "system", "content": system},
         {"role": "user", "content": USER_TMPL.format(
             spec=spec.strip(), import_name=_module_import_name(module), names=names,
             api="\n".join(f"- {a}" for a in api) or "- (none found)", code=code_blocks,
@@ -80,8 +81,8 @@ def validate_tests(src: str) -> str | None:
     return None
 
 
-def generate_tests(spec: str, sanitized: dict[str, str], module: str, functions: list[str], feedback: str | None = None) -> tuple[str, dict]:
-    messages = build_prompt(spec, sanitized, module, functions)
+def generate_tests(spec: str, sanitized: dict[str, str], module: str, functions: list[str], feedback: str | None = None, playbook: str = "") -> tuple[str, dict]:
+    messages = build_prompt(spec, sanitized, module, functions, playbook)
     if feedback:
         messages.append({"role": "user", "content": f"Your previous file could not be used:\n{feedback}\nReturn a corrected complete file."})
     comp = llm.chat("verifier", messages, temperature=0.0, tag="propgen")
