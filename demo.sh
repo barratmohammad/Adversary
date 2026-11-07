@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# One-minute demo for the submission video. Replays recorded model calls by default, so it is fast
+# and works without Wi-Fi. LIVE=1 ./demo.sh makes real Meta + SubQ calls instead.
+set -uo pipefail   # adversary exits 1 on BLOCK by design; keep going
+cd "$(dirname "$0")"
+export COLUMNS=${COLUMNS:-120}
+[ "${LIVE:-0}" = "1" ] || export ADVERSARY_LLM_MODE=replay
+A=".venv/bin/adversary"
+say() { printf "\n\033[1;36m▶ %s\033[0m\n" "$1"; sleep "${PAUSE:-1.5}"; }
+
+clear
+printf "\033[1mADVERSARY\033[0m - AI writes the code. An independent AI decides if it merges.\n"
+printf "Meta Muse Spark writes blind tests from the spec · SubQ Snap judges every failure · sandboxed, seeded, hash-pinned\n"
+
+say "1. An honest change: blind tests written from the spec all hold -> safe to merge"
+$A run roman --fixture clean --quiet --mutants 20
+
+say "2. Now the implementer AI is SECRETLY told to plant a subtle bug. The verifier is not told."
+$A run intervals --plant subtle --mutants 20 --diff-lines 0 --quiet | tee /tmp/adversary_demo_run.txt
+RUN=$(grep -oE 'runs/[0-9]{8}-[0-9]{6}-[0-9a-f]{6}' /tmp/adversary_demo_run.txt | tail -1)
+
+say "3. Anyone can re-run the verdict from pinned inputs - no model calls, same outcome hash"
+$A reproduce "$RUN" | tail -9
+
+say "4. Every planted bug, cheat and backdoor - and every honest change"
+$A matrix --mutants 20 --parallel 4 | sed -n '/Adversary verdict matrix/,$p'
