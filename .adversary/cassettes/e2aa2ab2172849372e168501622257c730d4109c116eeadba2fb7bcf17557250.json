@@ -1,0 +1,17 @@
+{
+  "request": {
+    "provider": "meta",
+    "model": "muse-spark-1.3",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "temperature": 0.0,
+    "max_tokens": 20
+  },
+  "text": "",
+  "tag": "",
+  "latency": 2.589418542018393
+}

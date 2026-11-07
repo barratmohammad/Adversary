@@ -146,6 +146,55 @@ def cmd_reproduce(args) -> int:
     return 2
 
 
+def cmd_matrix(args) -> int:
+    """Run every task x fixture variant; clean must MERGE, every planted variant must BLOCK."""
+    from concurrent.futures import ThreadPoolExecutor
+    from rich.table import Table
+    tasks = [load_task(t) for t in (args.tasks.split(",") if args.tasks else [t.name for t in list_tasks()])]
+    jobs = [(t, v) for t in tasks for v in t.fixtures()]
+    sandbox = detect_sandbox(args.sandbox)
+    ui.console.print(f"[bold]matrix[/]: {len(jobs)} changes · verifier {llm.config_for('verifier').model} · adjudicator subq-snap · sandbox {sandbox.kind}")
+
+    def one(job):
+        t, variant = job
+        change, private = implementer.from_fixture(t, variant)
+        try:
+            v, rdir = verify(t, change, seed=args.seed, sandbox=sandbox, max_mutants=args.mutants, max_examples=args.examples,
+                             implementer_model={"provider": "fixture", "model": variant})
+            ui.console.print(f"  [dim]{t.name}/{variant}: {v.decision}[/]")
+            return t.name, variant, v, rdir
+        except Exception as e:
+            ui.console.print(f"  [red]{t.name}/{variant}: error {e}[/]")
+            return t.name, variant, None, None
+
+    with ThreadPoolExecutor(max_workers=args.parallel) as ex:
+        results = list(ex.map(one, jobs))
+    table = Table(title="Adversary verdict matrix")
+    for col in ("task", "change", "expected", "verdict", "caught by", "counterexample / finding", "run"):
+        table.add_column(col, overflow="fold")
+    correct = 0
+    for name, variant, v, rdir in results:
+        expected = "MERGE" if variant == "clean" else "BLOCK"
+        if v is None:
+            table.add_row(name, variant, expected, "[magenta]ERROR[/]", "", "", "")
+            continue
+        ok = v.decision == expected
+        correct += ok
+        blockers = [c for c in v.checks if c.blocking]
+        caught = ", ".join(c.id for c in blockers) or "-"
+        detail = ""
+        pt = next(c for c in v.checks if c.id == "property_tests")
+        if pt.details.get("counterexamples"):
+            detail = pt.details["counterexamples"][0]["falsifying"] or pt.details["counterexamples"][0]["message"][:80]
+        elif blockers:
+            detail = blockers[0].summary[:90]
+        style = "green" if ok else "bold red"
+        table.add_row(name, variant, expected, f"[{style}]{v.decision}[/]", caught, detail, rdir.name if rdir else "")
+    ui.console.print(table)
+    ui.console.print(f"[bold]{correct}/{len(results)} correct[/]")
+    return 0 if correct == len(results) else 1
+
+
 def cmd_learn(args) -> int:
     from . import learn
     learn.learn([t.strip() for t in args.train.split(",") if t.strip()], [t.strip() for t in args.heldout.split(",") if t.strip()],
@@ -199,6 +248,11 @@ def main(argv: list[str] | None = None) -> int:
     pg = sub.add_parser("playground", help="write tasks/<task>/base to playground/<task>/ for PR-based demos")
     pg.add_argument("task")
     pg.set_defaults(fn=cmd_playground)
+    mx = sub.add_parser("matrix", help="run every task x fixture; clean must MERGE, planted variants must BLOCK")
+    mx.add_argument("--tasks", default=None)
+    mx.add_argument("--parallel", type=int, default=3)
+    common(mx)
+    mx.set_defaults(fn=cmd_matrix)
     ln = sub.add_parser("learn", help="improve the verifier's playbook; adopt only held-out-validated tactics")
     ln.add_argument("--train", required=True, help="comma-separated task names to learn from")
     ln.add_argument("--heldout", required=True, help="comma-separated held-out task names")

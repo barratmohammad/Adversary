@@ -105,9 +105,19 @@ class Completion:
     latency: float
 
 
-def chat(role: str, messages: list[dict], temperature: float = 0.0, max_tokens: int = 8192, tag: str = "") -> Completion:
+def _reasoning_effort(cfg: ModelConfig) -> str | None:
+    eff = os.environ.get(f"ADVERSARY_{cfg.role.upper()}_REASONING")
+    if eff is None and cfg.provider == "meta":
+        eff = "low"  # Muse models are reasoning models; "low" is ~4x faster and leaves budget for the answer
+    return eff or None
+
+
+def chat(role: str, messages: list[dict], temperature: float = 0.0, max_tokens: int = 24000, tag: str = "") -> Completion:
     cfg = config_for(role)
+    effort = _reasoning_effort(cfg)
     req = {"provider": cfg.provider, "model": cfg.model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens}
+    if effort:
+        req["reasoning_effort"] = effort
     h = sha256_json(req)
     mode = os.environ.get("ADVERSARY_LLM_MODE", "auto")
     path = CASSETTE_DIR / f"{h}.json"
@@ -121,6 +131,8 @@ def chat(role: str, messages: list[dict], temperature: float = 0.0, max_tokens: 
 
     t0 = time.monotonic()
     body = {"model": cfg.model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens}
+    if effort:
+        body["reasoning_effort"] = effort
     last_err = None
     for attempt in range(3):
         try:
@@ -135,17 +147,21 @@ def chat(role: str, messages: list[dict], temperature: float = 0.0, max_tokens: 
             if r.status_code >= 400:
                 raise LLMError(f"[{role}] {cfg.provider} HTTP {r.status_code}: {r.text[:300]}")
             data = r.json()
+            if data["choices"][0].get("finish_reason") == "length":
+                raise LLMError(f"[{role}] response truncated at max_tokens={body.get('max_tokens', body.get('max_completion_tokens'))}")
             text = data["choices"][0]["message"]["content"] or ""
             if isinstance(text, list):
                 text = "".join(part.get("text", "") for part in text if isinstance(part, dict))
             break
         except (httpx.HTTPError, LLMError, KeyError) as e:
             last_err = e
-            if isinstance(e, LLMError) and "HTTP 4" in str(e) and "429" not in str(e):
+            if isinstance(e, LLMError) and (("HTTP 4" in str(e) and "429" not in str(e)) or "truncated" in str(e)):
                 raise
             time.sleep(1.5 * (attempt + 1))
     else:
         raise LLMError(f"[{role}] request failed after retries: {last_err}")
+    if not text.strip():
+        raise LLMError(f"[{role}] empty response from {cfg.model}")
 
     latency = time.monotonic() - t0
     CASSETTE_DIR.mkdir(parents=True, exist_ok=True)
@@ -157,6 +173,9 @@ def extract_code(text: str, lang: str = "python") -> str:
     blocks = re.findall(r"```(?:" + lang + r"|py)?\s*\n(.*?)```", text, flags=re.S)
     if blocks:
         return max(blocks, key=len).strip() + "\n"
+    m = re.search(r"```(?:" + lang + r"|py)?\s*\n(.*)$", text, flags=re.S)  # unclosed fence
+    if m:
+        return m.group(1).strip() + "\n"
     return text.strip() + "\n"
 
 
