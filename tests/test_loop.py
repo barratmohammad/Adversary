@@ -17,7 +17,7 @@ FAST = {
 }
 
 
-def _stub_optimize(task, playbook):
+def _stub_optimize(task, playbook, explore=False):
     """Learn tasks: always finds the fast version. Held-out tasks: only once the SET rule is in the playbook."""
     knows_sets = any(r.text == SET_RULE for r in playbook.rules)
     src = FAST[task.name] if (task.split == "learn" or knows_sets) else task.public_source
@@ -66,7 +66,7 @@ def test_unverified_or_slow_rewrites_never_produce_a_rule(tmp_path, monkeypatch)
     monkeypatch.setattr(loop, "CACHE", tmp_path / "cache")
     calls = []
     monkeypatch.setattr(optimizer, "optimize",
-                        lambda t, p: optimizer.OptimizeResult(t.name, t.public_source, "", "stub", True, p.version))
+                        lambda t, p, **kw: optimizer.OptimizeResult(t.name, t.public_source, "", "stub", True, p.version))
     monkeypatch.setattr(reflect, "propose_rule", lambda *a: calls.append(a) or "never")
 
     rep = loop.learn(["t02_membership"], ["h02_common_elements"], heldout_n=1, use_gate=False, gate_heldout=False)

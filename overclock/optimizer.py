@@ -27,13 +27,22 @@ Hard requirements:
 - The function must return results identical to the reference for every valid input in the SPEC.
 - Never hard-code answers, never read files, never use eval/exec, never touch os/sys/subprocess.
 
-Default policy when the PLAYBOOK does not say otherwise:
+{policy}
+"""
+
+DEPLOY_POLICY = """Default policy when the PLAYBOOK does not say otherwise:
 - Make only local, obviously-safe micro-optimisations (bind attributes/globals to locals, hoist
   loop-invariant expressions, avoid redundant work inside loops).
 - Do NOT change the underlying algorithm or data structures, do NOT add imports, and do NOT add
   caching/memoisation unless a PLAYBOOK rule explicitly permits that kind of change.
-The PLAYBOOK rules override the default policy: when a rule applies, follow it.
-"""
+The PLAYBOOK rules override the default policy: when a rule applies, follow it."""
+
+EXPLORE_POLICY = """Exploration mode (training): find the FASTEST correct implementation you can.
+- You may restructure the algorithm, change data structures, use the Python standard library
+  (collections, itertools, functools, math, bisect, heapq) and add memoisation or precomputation,
+  as long as the outputs stay identical to the reference for every valid input in the SPEC.
+- Still no hard-coded answers, no I/O, no eval/exec, no os/sys/subprocess.
+Apply any PLAYBOOK rules that fit, and go beyond them when you see a bigger safe win."""
 
 USER_TMPL = """SPEC:
 {spec}
@@ -71,15 +80,19 @@ def extract_code(text: str, func: str) -> str | None:
     return None
 
 
-def build_messages(task: Task, playbook: Playbook) -> list[dict]:
+def build_messages(task: Task, playbook: Playbook, explore: bool = False) -> list[dict]:
+    """`explore=True` is used only on LEARN tasks (training). Held-out and unseen tasks always get the
+    fixed deployment policy, so the only thing that differs between runs on them is the rule list."""
+    system = SYSTEM.format(policy=EXPLORE_POLICY if explore else DEPLOY_POLICY)
     user = USER_TMPL.format(spec=task.public_spec, source=task.public_source, rules=playbook.render(),
                             signature=task.signature)
-    return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}]
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
-def optimize(task: Task, playbook: Playbook) -> OptimizeResult:
-    messages = build_messages(task, playbook)
-    comp = llm.chat("implementer", messages, temperature=0.0, max_tokens=2048, tag=f"overclock:{task.name}")
+def optimize(task: Task, playbook: Playbook, explore: bool = False) -> OptimizeResult:
+    messages = build_messages(task, playbook, explore)
+    tag = f"overclock{'-explore' if explore else ''}:{task.name}"
+    comp = llm.chat("implementer", messages, temperature=0.0, max_tokens=2048, tag=tag)
     src = extract_code(comp.text, task.func)
     if src is None:  # one retry with a nudge
         messages.append({"role": "assistant", "content": comp.text})

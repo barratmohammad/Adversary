@@ -34,7 +34,8 @@ def emit(e: dict) -> None:
     ev = e["event"]
     t = e.get("task", "")
     if ev == "optimize":
-        con.print(f"  [cyan]{t}[/] optimizer (playbook v{e['version']}) rewriting…")
+        mode = "exploring" if e.get("explore") else "deploy policy"
+        con.print(f"  [cyan]{t}[/] optimizer (playbook v{e['version']}, {mode}) rewriting…")
     elif ev == "correctness":
         con.print(f"  [cyan]{t}[/] differential check vs reference…")
     elif ev == "incorrect":
@@ -116,7 +117,7 @@ def optimize(task: str, no_gate: bool = typer.Option(False, "--no-gate"), show_c
 
 
 @app.command()
-def learn(heldout_n: int = typer.Option(4, help="how many held-out tasks score each candidate rule"),
+def learn(heldout_n: int = typer.Option(3, help="how many held-out tasks score each candidate rule"),
           tasks: str = typer.Option("", help="comma-separated learn tasks (default: all LEARN)"),
           heldout: str = typer.Option("", help="comma-separated held-out tasks (default: HELD_OUT)"),
           no_gate: bool = typer.Option(False, "--no-gate", help="skip Adversary on learn tasks"),
@@ -170,7 +171,7 @@ def _attack(task: str, kind: str, use_gate: bool) -> loop.TaskRun:
     from overclock import optimizer as _opt
     real = _opt.optimize
     try:
-        _opt.optimize = lambda tk, book_: _opt.OptimizeResult(tk.name, src, src, "planted", True, book_.version)
+        _opt.optimize = lambda tk, book_, **kw: _opt.OptimizeResult(tk.name, src, src, "planted", True, book_.version)
         run = loop.run_task(t, book, use_gate=use_gate, emit=emit, label=f"attack-{kind}")
     finally:
         _opt.optimize = real
