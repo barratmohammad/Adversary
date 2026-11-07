@@ -160,6 +160,11 @@ def cmd_playbook(args) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "swarm":
+        # Fetch.ai uAgents verifier swarm: specialists vote on a verdict, reputation-weighted
+        from .swarm.cli import main as swarm_main
+        return swarm_main(argv[1:])
     p = argparse.ArgumentParser(prog="adversary", description="Independent verifier for AI-generated changes")
     sub = p.add_subparsers(dest="cmd", required=True)
 
@@ -172,6 +177,7 @@ def main(argv: list[str] | None = None) -> int:
         sp.add_argument("--diff-lines", type=int, default=50)
 
     sub.add_parser("tasks").set_defaults(fn=cmd_tasks)
+    sub.add_parser("swarm", help="Fetch.ai uAgents verifier swarm (see `adversary swarm -h`)")
     r = sub.add_parser("run")
     r.add_argument("task")
     r.add_argument("--plant", default="none", choices=sorted(implementer.PLANTS))
