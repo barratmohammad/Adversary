@@ -53,8 +53,52 @@ def cmd_run(args) -> int:
     else:
         ui.console.print(f"[dim]implementer ({llm.config_for('implementer').model}) is writing the change...[/]")
         change, private = implementer.implement(task, plant=args.plant)
+    if getattr(args, "open_pr", False):
+        from . import gate
+        if not gate.ensure_playground(task):
+            ui.console.print(f"[red]playground/{task.name}/ is not on origin/main yet - run `adversary playground {task.name}` first[/]")
+            return 2
+        pr = gate.open_pr(task, change, title=f"[{task.name}] implement {', '.join(task.functions) or task.module}",
+                          body=f"Implements `{task.module}` per `tasks/{task.name}/spec.md`.\n\nOpened by the Adversary implementer agent.")
+        implementer.save_private(gate.RUNS_DIR / "private" / pr["branch"].replace("/", "-"), private)
+        ui.console.print(f"[bold]implementer opened PR #{pr['number']}[/] {pr['url']}")
+        args.pr = pr["number"]
+        return cmd_gate(args)
     verdict, _ = _verify_and_show(task, change, private, args)
     return 1 if verdict.decision == "BLOCK" else 0
+
+
+def cmd_gate(args) -> int:
+    from . import gate
+    task, change, info = gate.fetch_pr(args.pr)
+    sha = info["headRefOid"]
+    ui.console.print(f"[bold]gate[/] PR #{info['number']} {info['title']}  [dim]{info['url']}  head {sha[:10]}[/]")
+    if not args.no_post:
+        gate.post_status(sha, "pending", "Adversary is writing blind tests for this change...", info["url"])
+    try:
+        verdict, rdir = _verify_and_show(task, change, None, args)
+    except Exception as e:
+        if not args.no_post:
+            gate.post_status(sha, "error", f"verifier error: {e}"[:139], info["url"])
+        raise
+    if not args.no_post:
+        first = verdict.reasons[0] if verdict.reasons else ""
+        desc = ("BLOCK: " + first if verdict.decision == "BLOCK" else "MERGE: all checks passed") + f" [{verdict.verdict_sha256[:8]}]"
+        gate.post_status(sha, "failure" if verdict.decision == "BLOCK" else "success", desc, info["url"])
+        gate.comment(info["number"], gate.comment_markdown(verdict, rdir))
+        ui.console.print(f"[dim]posted status {gate.CONTEXT} = {'failure' if verdict.decision == 'BLOCK' else 'success'} and a PR comment[/]")
+    return 1 if verdict.decision == "BLOCK" else 0
+
+
+def cmd_playground(args) -> int:
+    """Print the files to commit at playground/<task>/ on main (the base every AI PR starts from)."""
+    from . import gate
+    from .workspace import write_tree
+    task = load_task(args.task)
+    dest = Path(gate.ROOT) / gate.PLAYGROUND / task.name
+    write_tree(dest, task.base)
+    ui.console.print(f"wrote {len(task.base)} base file(s) to {dest} - commit and push them to main")
+    return 0
 
 
 def cmd_verify(args) -> int:
@@ -119,6 +163,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("task")
     r.add_argument("--plant", default="none", choices=sorted(implementer.PLANTS))
     r.add_argument("--fixture", default=None)
+    r.add_argument("--open-pr", action="store_true", help="push the change as a real GitHub PR and gate it")
+    r.add_argument("--no-post", action="store_true")
     common(r)
     r.set_defaults(fn=cmd_run)
     v = sub.add_parser("verify")
@@ -126,6 +172,14 @@ def main(argv: list[str] | None = None) -> int:
     v.add_argument("--change", required=True)
     common(v)
     v.set_defaults(fn=cmd_verify)
+    g = sub.add_parser("gate", help="verify a GitHub PR and post a commit status + comment")
+    g.add_argument("pr", type=int)
+    g.add_argument("--no-post", action="store_true", help="don't post status/comment")
+    common(g)
+    g.set_defaults(fn=cmd_gate)
+    pg = sub.add_parser("playground", help="write tasks/<task>/base to playground/<task>/ for PR-based demos")
+    pg.add_argument("task")
+    pg.set_defaults(fn=cmd_playground)
     rp = sub.add_parser("reproduce")
     rp.add_argument("run_dir")
     common(rp)
