@@ -117,6 +117,20 @@ So by the dataset's labels: 61% caught, 15% false blocks; counting only verified
 Missed bugs cluster on a few problems (`HumanEval/21` missed for all 4 models) - inputs where the bug needs values the
 blind tests' strategies rarely generate.
 
+### HumanEval+ with single-fault mutants - `adversary bench --source mutants`
+Data: for 15 HumanEval+ problems, mutants of the reference solution (our AST mutator) that **pass every official test**
+but fail EvalPlus - 24 sneaky bugs - plus the 15 reference solutions themselves.
+
+| | result |
+|---|---|
+| sneaky bugs blocked | **23/24 (96%)** - missed: `HumanEval/59` (`2` -> `3` in a prime-factor loop start) |
+| reference solutions blocked | **3/15 (20%)** by label |
+
+All three blocked references were checked by hand: `HumanEval/124 valid_date("²²-01-2000")` crashes with `ValueError`
+(valid `str` per the contract; the spec says return True/False), `HumanEval/137 compare_one(2**53, 2**53 + 1)` returns
+`None` (float precision) - **real defects in the dataset's reference solutions**; `HumanEval/147 get_max_triples(1)`
+returns `False` instead of `0` - pedantic (`False == 0` in Python), we count it as a false alarm.
+
 ### Adaptive red team - `adversary redteam`
 An attacker LLM (Meta `muse-wonder-1.0`) is told to write a subtly wrong implementation that Adversary approves. After
 every rejection it gets Adversary's full verdict (failing checks, counterexamples) and tries again, up to 4 rounds per

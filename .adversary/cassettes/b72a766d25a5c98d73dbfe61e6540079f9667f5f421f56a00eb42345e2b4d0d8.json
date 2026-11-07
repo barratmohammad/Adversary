@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert n >= 0, \"invalid inputs\"\nassert isinstance(n, int), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert r >= 0\ndef ref_fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n@given(st.integers(min_value=0, max_value=20))\ndef test_result_is_nonnegative_int(n):\n    r = fib(n)\n    assert isinstance(r, int)\n    assert r >= 0",
+      "counterexample": "test_result_is_nonnegative_int(n=0)",
+      "failure_output": "assert -1 >= 0\nFailing test case: test_result_is_nonnegative_int(\n    n=0,\n)\nadversary_tests/test_adversary.py:68: in test_result_is_nonnegative_int\n    def test_result_is_nonnegative_int(n):\n                   ^^^\nadversary_tests/test_adversary.py:71: in test_result_is_nonnegative_int\n    assert r >= 0\nE   assert -1 >= 0\nE   Failing test case: test_result_is_nonnegative_int(\nE       n=0,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9656680822372437
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9113844037055969,
+        "test_asserts_unspecified": 0.05843385308980942,
+        "test_is_broken": 0.004269585013389587,
+        "ambiguous_spec": 0.025912215933203697
+      },
+      "confidence": 0.8818458716074625
+    }
+  },
+  "usage": {
+    "input_tokens": 643,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9922750419937074
+}

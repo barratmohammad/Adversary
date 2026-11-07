@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/137: `compare_one`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef compare_one(a, b):\n    \"\"\"\n    Create a function that takes integers, floats, or strings representing\n    real numbers, and returns the larger variable in its given variable type.\n    Return None if the values are equal.\n    Note: If a real number is represented as a string, the floating point might be . or ,\n\n    compare_one(1, 2.5) \u279e 2.5\n    compare_one(1, \"2,3\") \u279e \"2,3\"\n    compare_one(\"5,1\", \"6\") \u279e \"6\"\n    compare_one(\"1\", 1) \u279e None\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(a, (int, float, str)), \"invalid inputs\"\nassert isinstance(b, (int, float, str)), \"invalid inputs\"\ntry:\n    float(str(a).replace(\",\", \".\"))\n    float(str(b).replace(\",\", \".\"))\nexcept ValueError: raise Exception(\"invalid inputs\")\n```",
+      "failing_test": "def parse(x):\n    return float(str(x).replace(\",\", \".\"))\n\n@given(a=valid_scalars, b=valid_scalars)\ndef test_symmetry_commutativity(a, b):\n    r1 = compare_one(a, b)\n    r2 = compare_one(b, a)\n    if r1 is None:\n        assert r2 is None\n    else:\n        # same winner by value regardless of order\n        assert r1 == r2\n        assert parse(r1) == max(parse(a), parse(b))",
+      "counterexample": "test_symmetry_commutativity(| a=10, | b='1,0', | )",
+      "failure_output": "ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n+ Exception Group Traceback (most recent call last):\n  |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-153948-315921/work/adversary_tests/test_adversary.py\", line 95, in test_symmetry_commutativity\n  |     def test_symmetry_commutativity(a, b):\n  |                    ^^^\n  | ExceptionGroup: Hypothesis found 2 distinct failures. (2 sub-exceptions)\n  +-+---------------- 1 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-153948-315921/work/adversary_tests/test_adversary.py\", line 99, in test_symmetry_commutativity\n    |     assert r2 is None\n    | AssertionError: assert 10 is None\n    | Failing test case: test_symmetry_commutativity(\n    |     a=10,\n    |     b='1,0',\n    | )\n    +---------------- 2 ----------------\n    | Traceback (most recent call last):\n    |   File \"/Users/guru/Desktop/CVHACKS/runs/20261107-153948-315921/work/adversary_tests/test_adversary.py\", line 102, in test_symmetry_commutativity\n    |     assert r1 == r2\n    | AssertionError: assert '1,0' == None\n    | Failing test case: test_symmetry_commutativity(\n    |     a=1,\n    |     b='1,0',\n    | )\n    +------------------------------------",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9078447222709656
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.8154462575912476,
+        "test_asserts_unspecified": 0.13868676126003265,
+        "test_is_broken": 0.03032361902296543,
+        "ambiguous_spec": 0.015543350949883461
+      },
+      "confidence": 0.7539283434549967
+    }
+  },
+  "usage": {
+    "input_tokens": 1129,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0567650419834536
+}

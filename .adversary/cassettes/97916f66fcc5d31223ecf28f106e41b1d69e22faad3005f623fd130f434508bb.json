@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert n >= 0, \"invalid inputs\"\nassert isinstance(n, int), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert isinstance(r, int), f\"fib({n}) should be int, got {type(r)}\"\ndef _ref(n: int) -> int:\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n\ndef test_fib_returns_int_for_valid_inputs():\n    for n in [0, 1, 2, 3, 5, 8, 10, 20]:\n        r = fib(n)\n        assert isinstance(r, int), f\"fib({n}) should be int, got {type(r)}\"",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: fib(0) should be int, got <class 'NoneType'>\nassert False\n +  where False = isinstance(None, int)\nadversary_tests/test_adversary.py:47: in test_fib_returns_int_for_valid_inputs\n    assert isinstance(r, int), f\"fib({n}) should be int, got {type(r)}\"\nE   AssertionError: fib(0) should be int, got <class 'NoneType'>\nE   assert False\nE    +  where False = isinstance(None, int)",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.938387393951416
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9679452180862427,
+        "test_asserts_unspecified": 0.021545059978961945,
+        "test_is_broken": 0.002985418541356921,
+        "ambiguous_spec": 0.007524305023252964
+      },
+      "confidence": 0.9572602907816569
+    }
+  },
+  "usage": {
+    "input_tokens": 674,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.3696166670124512
+}

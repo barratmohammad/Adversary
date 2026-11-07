@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/102: `choose_num`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef choose_num(x, y):\n    \"\"\"This function takes two positive numbers x and y and returns the\n    biggest even integer number that is in the range [x, y] inclusive. If \n    there's no such number, then the function should return -1.\n\n    For example:\n    choose_num(12, 15) = 14\n    choose_num(13, 12) = -1\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(x) == int and type(y) == int, \"invalid inputs\"\nassert x > 0 and y > 0, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert (r == -1) == (not has_even)\ndef _reference(x, y):\n    if x > y:\n        return -1\n    for n in range(y, x - 1, -1):\n        if n % 2 == 0:\n            return n\n    return -1\n\n@given(st.integers(min_value=1, max_value=500))\ndef test_minus_one_iff_no_even_in_range(y):\n    # For x <= y: result == -1 iff interval contains no even number.\n    for x in (1, y, max(1, y - 1), max(1, y - 2)):\n        if x <= y:\n            r = choose_num(x, y)\n            has_even = any(n % 2 == 0 for n in range(x, y + 1))\n            assert (r == -1) == (not has_even)",
+      "counterexample": "test_minus_one_iff_no_even_in_range(y=2)",
+      "failure_output": "assert (-1 == -1) == not True\nFailing test case: test_minus_one_iff_no_even_in_range(\n    y=2,\n)\nadversary_tests/test_adversary.py:129: in test_minus_one_iff_no_even_in_range\n    def test_minus_one_iff_no_even_in_range(y):\n                   ^^^\nadversary_tests/test_adversary.py:135: in test_minus_one_iff_no_even_in_range\n    assert (r == -1) == (not has_even)\nE   assert (-1 == -1) == not True\nE   Failing test case: test_minus_one_iff_no_even_in_range(\nE       y=2,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9713284373283386
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.980828583240509,
+        "test_asserts_unspecified": 0.012787182815372944,
+        "test_is_broken": 0.005969522055238485,
+        "ambiguous_spec": 0.0004147804866079241
+      },
+      "confidence": 0.9744381109873453
+    }
+  },
+  "usage": {
+    "input_tokens": 837,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.42630862499936484
+}

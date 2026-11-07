@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/137: `compare_one`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef compare_one(a, b):\n    \"\"\"\n    Create a function that takes integers, floats, or strings representing\n    real numbers, and returns the larger variable in its given variable type.\n    Return None if the values are equal.\n    Note: If a real number is represented as a string, the floating point might be . or ,\n\n    compare_one(1, 2.5) \u279e 2.5\n    compare_one(1, \"2,3\") \u279e \"2,3\"\n    compare_one(\"5,1\", \"6\") \u279e \"6\"\n    compare_one(\"1\", 1) \u279e None\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(a, (int, float, str)), \"invalid inputs\"\nassert isinstance(b, (int, float, str)), \"invalid inputs\"\ntry:\n    float(str(a).replace(\",\", \".\"))\n    float(str(b).replace(\",\", \".\"))\nexcept ValueError: raise Exception(\"invalid inputs\")\n```",
+      "failing_test": "# failing line: assert compare_one(a, b) is a\ndef _to_fraction(x):\n    if isinstance(x, int) and not isinstance(x, bool):\n        return Fraction(x)\n    if isinstance(x, float):\n        return Fraction(x)\n    # str\n    s = str(x).replace(\",\", \".\")\n    # Decimal parses decimal and scientific notation exactly\n    return Fraction(Decimal(s))\n\ndef _ref_compare(a, b):\n    fa = _to_fraction(a)\n    fb = _to_fraction(b)\n    if fa == fb:\n        return None\n    return a if fa > fb else b\n\ndef _num(x):\n    # numeric value for ordering checks using exact fraction\n    return _to_fraction(x)\n\ndef _numeric_string_strategy():\n    sign = st.sampled_from([\"\", \"-\", \"+\"])\n    int_part = st.integers(min_value=0, max_value=1000000).map(str)\n    frac = st.integers(min_value=0, max_value=999).map(lambda n: f\"{n:03d}\")\n    sep = st.sampled_from([\".\", \",\"])\n    with_frac = st.booleans()\n\n    def build(sign_s, ip, fr, s, wf):\n        # avoid empty / leading-zero ambiguity is fine; all valid\n        if wf:\n            return f\"{sign_s}{ip}{s}{fr}\"\n        return f\"{sign_s}{ip}\"\n\n    return st.builds(build, sign, int_part, frac, sep, with_frac)\n\n\ndef test_property_large_mixed_int_string():\n    a = 9007199254740993\n    b = \"9007199254740992\"\n    assert compare_one(a, b) is a\n    assert compare_one(b, a) is a",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert None is 9007199254740993\n +  where None = compare_one(9007199254740993, '9007199254740992')\nadversary_tests/test_adversary.py:144: in test_property_large_mixed_int_string\n    assert compare_one(a, b) is a\nE   AssertionError: assert None is 9007199254740993\nE    +  where None = compare_one(9007199254740993, '9007199254740992')",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.8383272886276245
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.6227098703384399,
+        "test_asserts_unspecified": 0.2593408524990082,
+        "test_is_broken": 0.016906341537833214,
+        "ambiguous_spec": 0.10104286670684814
+      },
+      "confidence": 0.4969464937845866
+    }
+  },
+  "usage": {
+    "input_tokens": 1171,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.8562149579811376
+}

@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/127: `intersection`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef intersection(interval1, interval2):\n    \"\"\"You are given two intervals,\n    where each interval is a pair of integers. For example, interval = (start, end) = (1, 2).\n    The given intervals are closed which means that the interval (start, end)\n    includes both start and end.\n    For each given interval, it is assumed that its start is less or equal its end.\n    Your task is to determine whether the length of intersection of these two \n    intervals is a prime number.\n    Example, the intersection of the intervals (1, 3), (2, 4) is (2, 3)\n    which its length is 1, which not a prime number.\n    If the length of the intersection is a prime number, return \"YES\",\n    otherwise, return \"NO\".\n    If the two intervals don't intersect, return \"NO\".\n\n\n    [input/output] samples:\n    intersection((1, 2), (2, 3)) ==> \"NO\"\n    intersection((-1, 1), (0, 4)) ==> \"NO\"\n    intersection((-3, -1), (-5, 5)) ==> \"YES\"\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert len(interval1) == 2 and interval1[0] <= interval1[1], \"invalid inputs\"\nassert all(type(x) == int for x in interval1), \"invalid inputs\"\nassert len(interval2) == 2 and interval2[0] <= interval2[1], \"invalid inputs\"\nassert all(type(x) == int for x in interval2), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert intersection((0, c), (0, c)) == \"NO\", f\"composite length {c}\"\ndef _is_prime_ref(n: int) -> bool:\n    if n < 2:\n        return False\n    if n == 2:\n        return True\n    if n % 2 == 0:\n        return False\n    i = 3\n    while i * i <= n:\n        if n % i == 0:\n            return False\n        i += 2\n    return True\n\ndef _expected(interval1, interval2):\n    l = max(interval1[0], interval2[0])\n    r = min(interval1[1], interval2[1])\n    if l > r:\n        return \"NO\"\n    length = r - l\n    return \"YES\" if _is_prime_ref(length) else \"NO\"\n\n\ndef test_even_composite_lengths_return_no():\n    # Bug in review: divisibility by 2 missed, so 4,6,8,... wrongly YES\n    for c in [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]:\n        assert intersection((0, c), (0, c)) == \"NO\", f\"composite length {c}\"\n        # also via partial overlap, not just identical\n        assert intersection((0, c), (0, c + 5)) == \"NO\", f\"composite length {c} overlap\"\n        assert intersection((-100, 0), (-c, 5)) == \"NO\", f\"composite length {c} negative\"",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: composite length 4\nassert 'YES' == 'NO'\n  \n  - NO\n  + YES\nadversary_tests/test_adversary.py:78: in test_even_composite_lengths_return_no\n    assert intersection((0, c), (0, c)) == \"NO\", f\"composite length {c}\"\nE   AssertionError: composite length 4\nE   assert 'YES' == 'NO'\nE     \nE     - NO\nE     + YES",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9124582409858704
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9710744023323059,
+        "test_asserts_unspecified": 0.011591914109885693,
+        "test_is_broken": 0.014758048579096794,
+        "ambiguous_spec": 0.0025755558162927628
+      },
+      "confidence": 0.9614325364430746
+    }
+  },
+  "usage": {
+    "input_tokens": 1181,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.304783250001492
+}

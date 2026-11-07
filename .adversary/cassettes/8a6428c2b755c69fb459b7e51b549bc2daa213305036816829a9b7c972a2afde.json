@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/101: `words_string`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef words_string(s):\n    \"\"\"\n    You will be given a string of words separated by commas or spaces. Your task is\n    to split the string into words and return an array of the words.\n    \n    For example:\n    words_string(\"Hi, my name is John\") == [\"Hi\", \"my\", \"name\", \"is\", \"John\"]\n    words_string(\"One, two, three, four, five, six\") == [\"One\", \"two\", \"three\", \"four\", \"five\", \"six\"]\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert isinstance(s, str), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert words_string(s) == reference_words_string(s)\ndef reference_words_string(s):\n    \"\"\"Obviously-correct reference: split on ',' or ' ' dropping empties.\"\"\"\n    res = []\n    cur = []\n    for ch in s:\n        if ch == ',' or ch == ' ':\n            if cur:\n                res.append(''.join(cur))\n                cur = []\n        else:\n            cur.append(ch)\n    if cur:\n        res.append(''.join(cur))\n    return res\n\n@given(st.text(alphabet=\"abcXYZ012 ,\", max_size=20))\ndef test_property_reference_model_equivalence(s):\n    assert words_string(s) == reference_words_string(s)",
+      "counterexample": "test_property_reference_model_equivalence(s='0,0')",
+      "failure_output": "AssertionError: assert ['00'] == ['0', '0']\n  \n  At index 0 diff: '00' != '0'\n  Right contains one more item: '0'\n  Use -v to get more diff\nFailing test case: test_property_reference_model_equivalence(\n    s='0,0',\n)\nadversary_tests/test_adversary.py:91: in test_property_reference_model_equivalence\n    def test_property_reference_model_equivalence(s):\n                   ^^^\nadversary_tests/test_adversary.py:92: in test_property_reference_model_equivalence\n    assert words_string(s) == reference_words_string(s)\nE   AssertionError: assert ['00'] == ['0', '0']\nE     \nE     At index 0 diff: '00' != '0'\nE     Right contains one more item: '0'\nE     Use -v to get more diff\nE   Failing test case: test_property_reference_model_equivalence(\nE       s='0,0',\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9914737939834595
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9866917729377747,
+        "test_asserts_unspecified": 0.007466611918061972,
+        "test_is_broken": 0.0047895535826683044,
+        "ambiguous_spec": 0.0010519834468141198
+      },
+      "confidence": 0.9822556972503662
+    }
+  },
+  "usage": {
+    "input_tokens": 885,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9016890829952899
+}

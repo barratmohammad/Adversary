@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/71: `triangle_area`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef triangle_area(a, b, c):\n    '''\n    Given the lengths of the three sides of a triangle. Return the area of\n    the triangle rounded to 2 decimal points if the three sides form a valid triangle. \n    Otherwise return -1\n    Three sides make a valid triangle when the sum of any two sides is greater \n    than the third side.\n    Example:\n    triangle_area(3, 4, 5) == 6.00\n    triangle_area(1, 2, 10) == -1\n    '''\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert a > 0 and b > 0 and c > 0, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert triangle_area(a, b, c) == reference_area(a, b, c)\ndef reference_area(a, b, c):\n    if a + b <= c or a + c <= b or b + c <= a:\n        return -1\n    s = (a + b + c) / 2.0\n    return round(math.sqrt(s * (s - a) * (s - b) * (s - c)), 2)\n\n@given(a=positive_numbers, b=positive_numbers, c=positive_numbers)\ndef test_reference_model_equivalence(a, b, c):\n    assert triangle_area(a, b, c) == reference_area(a, b, c)",
+      "counterexample": "test_reference_model_equivalence(a=1, b=100.0, c=99)",
+      "failure_output": "assert 0.0 == -1\n +  where 0.0 = triangle_area(1, 100.0, 99)\n +  and   -1 = reference_area(1, 100.0, 99)\nFailing test case: test_reference_model_equivalence(\n    a=1,\n    b=100.0,\n    c=99,\n)\nadversary_tests/test_adversary.py:101: in test_reference_model_equivalence\n    def test_reference_model_equivalence(a, b, c):\n                   ^^^\nadversary_tests/test_adversary.py:102: in test_reference_model_equivalence\n    assert triangle_area(a, b, c) == reference_area(a, b, c)\nE   assert 0.0 == -1\nE    +  where 0.0 = triangle_area(1, 100.0, 99)\nE    +  and   -1 = reference_area(1, 100.0, 99)\nE   Failing test case: test_reference_model_equivalence(\nE       a=1,\nE       b=100.0,\nE       c=99,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.983317494392395
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9556811451911926,
+        "test_asserts_unspecified": 0.024784035980701447,
+        "test_is_broken": 0.004126438405364752,
+        "ambiguous_spec": 0.015408399514853954
+      },
+      "confidence": 0.9409081935882568
+    }
+  },
+  "usage": {
+    "input_tokens": 928,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.149830332986312
+}

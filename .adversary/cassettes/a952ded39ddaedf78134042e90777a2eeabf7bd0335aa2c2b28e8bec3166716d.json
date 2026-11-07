@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/55: `fib`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\n\ndef fib(n: int):\n    \"\"\"Return n-th Fibonacci number.\n    >>> fib(10)\n    55\n    >>> fib(1)\n    1\n    >>> fib(8)\n    21\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert n >= 0, \"invalid inputs\"\nassert isinstance(n, int), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert fib(n) == fib(n - 1) + fib(n - 2)\ndef _ref(n: int) -> int:\n    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n\n@given(st.integers(min_value=2, max_value=25))\ndef test_recurrence_relation(n):\n    assert fib(n) == fib(n - 1) + fib(n - 2)",
+      "counterexample": "test_recurrence_relation(n=2)",
+      "failure_output": "TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'\nFailing test case: test_recurrence_relation(\n    n=2,\n)\nadversary_tests/test_adversary.py:56: in test_recurrence_relation\n    def test_recurrence_relation(n):\n                   ^^^\nadversary_tests/test_adversary.py:57: in test_recurrence_relation\n    assert fib(n) == fib(n - 1) + fib(n - 2)\n                     ^^^^^^^^^^^^^^^^^^^^^^^\nE   TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'\nE   Failing test case: test_recurrence_relation(\nE       n=2,\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9320486187934875
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9259573817253113,
+        "test_asserts_unspecified": 0.04150969162583351,
+        "test_is_broken": 0.004661110695451498,
+        "ambiguous_spec": 0.027871888130903244
+      },
+      "confidence": 0.9012765089670817
+    }
+  },
+  "usage": {
+    "input_tokens": 689,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.9906707079790067
+}

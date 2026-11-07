@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/71: `triangle_area`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef triangle_area(a, b, c):\n    '''\n    Given the lengths of the three sides of a triangle. Return the area of\n    the triangle rounded to 2 decimal points if the three sides form a valid triangle. \n    Otherwise return -1\n    Three sides make a valid triangle when the sum of any two sides is greater \n    than the third side.\n    Example:\n    triangle_area(3, 4, 5) == 6.00\n    triangle_area(1, 2, 10) == -1\n    '''\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert a > 0 and b > 0 and c > 0, \"invalid inputs\"\n```",
+      "failing_test": "# failing line: raise InvalidArgument(\ndef is_valid(a, b, c):\n    return (a + b > c) and (a + c > b) and (b + c > a)\n\ndef heron_rounded(a, b, c):\n    s = (a + b + c) / 2.0\n    return round(math.sqrt(s * (s - a) * (s - b) * (s - c)), 2)\n\n@given(small_positive, small_positive, st.floats(min_value=0.0, max_value=5.0,\n       allow_nan=False, allow_infinity=False, width=32))\ndef test_property_constructed_invalid_large_side(a, b, extra):\n    assume(a > 0 and b > 0 and extra >= 0)\n    c = a + b + extra\n    # c >= a+b so invalid (touching or exceeding)\n    assert not is_valid(a, b, c)\n    assert triangle_area(a, b, c) == -1\n    # permutations also invalid\n    assert triangle_area(c, a, b) == -1\n    assert triangle_area(a, c, b) == -1",
+      "counterexample": "(none reported)",
+      "failure_output": "hypothesis.errors.InvalidArgument: min_value=0.1 cannot be exactly represented as a float of width 32 - use min_value=0.10000000149011612 instead.\nadversary_tests/test_adversary.py:152: in test_property_constructed_invalid_large_side\n    allow_nan=False, allow_infinity=False, width=32))\n            ^^^\n../../../.venv/lib/python3.12/site-packages/hypothesis/core.py:772: in process_arguments_to_given\n    s.validate()\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/strategies.py:560: in validate\n    self.do_validate()\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/lazy.py:166: in do_validate\n    w = self.wrapped_strategy\n        ^^^^^^^^^^^^^^^^^^^^^\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/lazy.py:131: in wrapped_strategy\n    base = self.function(*self.__args, **self.__kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n../../../.venv/lib/python3.12/site-packages/hypothesis/strategies/_internal/numbers.py:398: in floats\n    raise InvalidArgument(\nE   hypothesis.errors.InvalidArgument: min_value=0.1 cannot be exactly represented as a float of width 32 - use min_value=0.10000000149011612 instead.",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.004835438448935747
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "test_is_broken",
+      "probabilities": {
+        "implementation_bug": 0.0036616669967770576,
+        "test_asserts_unspecified": 0.0008162526646628976,
+        "test_is_broken": 0.9953210949897766,
+        "ambiguous_spec": 0.00020102756388951093
+      },
+      "confidence": 0.9937614599863688
+    }
+  },
+  "usage": {
+    "input_tokens": 1104,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 0.8431512910174206
+}

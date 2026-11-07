@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/127: `intersection`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef intersection(interval1, interval2):\n    \"\"\"You are given two intervals,\n    where each interval is a pair of integers. For example, interval = (start, end) = (1, 2).\n    The given intervals are closed which means that the interval (start, end)\n    includes both start and end.\n    For each given interval, it is assumed that its start is less or equal its end.\n    Your task is to determine whether the length of intersection of these two \n    intervals is a prime number.\n    Example, the intersection of the intervals (1, 3), (2, 4) is (2, 3)\n    which its length is 1, which not a prime number.\n    If the length of the intersection is a prime number, return \"YES\",\n    otherwise, return \"NO\".\n    If the two intervals don't intersect, return \"NO\".\n\n\n    [input/output] samples:\n    intersection((1, 2), (2, 3)) ==> \"NO\"\n    intersection((-1, 1), (0, 4)) ==> \"NO\"\n    intersection((-3, -1), (-5, 5)) ==> \"YES\"\n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert len(interval1) == 2 and interval1[0] <= interval1[1], \"invalid inputs\"\nassert all(type(x) == int for x in interval1), \"invalid inputs\"\nassert len(interval2) == 2 and interval2[0] <= interval2[1], \"invalid inputs\"\nassert all(type(x) == int for x in interval2), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert intersection((5, 9), (5, 9)) == \"NO\"\ndef _is_prime_ref(n: int) -> bool:\n    if n < 2:\n        return False\n    if n % 2 == 0:\n        return n == 2\n    d = 3\n    while d * d <= n:\n        if n % d == 0:\n            return False\n        d += 2\n    return True\n\ndef ref_intersection(interval1, interval2):\n    l = max(interval1[0], interval2[0])\n    r = min(interval1[1], interval2[1])\n    if r < l:\n        return \"NO\"\n    length = r - l\n    return \"YES\" if _is_prime_ref(length) else \"NO\"\n\ndef make_interval(start, length):\n    # length >= 0, closed interval [start, start+length]\n    return (start, start + length)\n\n\ndef test_identical_intervals_prime_vs_composite():\n    assert intersection((5, 7), (5, 7)) == \"YES\"\n    assert intersection((5, 9), (5, 9)) == \"NO\"",
+      "counterexample": "(none reported)",
+      "failure_output": "AssertionError: assert 'YES' == 'NO'\n  \n  - NO\n  + YES\nadversary_tests/test_adversary.py:108: in test_identical_intervals_prime_vs_composite\n    assert intersection((5, 9), (5, 9)) == \"NO\"\nE   AssertionError: assert 'YES' == 'NO'\nE     \nE     - NO\nE     + YES",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.7681189179420471
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.7818233966827393,
+        "test_asserts_unspecified": 0.10617896169424057,
+        "test_is_broken": 0.05796743184328079,
+        "ambiguous_spec": 0.054030198603868484
+      },
+      "confidence": 0.7090978622436523
+    }
+  },
+  "usage": {
+    "input_tokens": 1054,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.4371677500021178
+}

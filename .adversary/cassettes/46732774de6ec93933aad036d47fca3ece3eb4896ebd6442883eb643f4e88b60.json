@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "subq-snap-1.1",
+    "state": {
+      "specification": "# HumanEval/109: `move_one_ball`\n\nImplement the function below in `solution.py`. The docstring is the specification.\n\n```python\n\ndef move_one_ball(arr):\n    \"\"\"We have an array 'arr' of N integers arr[1], arr[2], ..., arr[N].The\n    numbers in the array will be randomly ordered. Your task is to determine if\n    it is possible to get an array sorted in non-decreasing order by performing \n    the following operation on the given array:\n        You are allowed to perform right shift operation any number of times.\n    \n    One right shift operation means shifting all elements of the array by one\n    position in the right direction. The last element of the array will be moved to\n    the starting position in the array i.e. 0th index. \n\n    If it is possible to obtain the sorted array by performing the above operation\n    then return True else return False.\n    If the given array is empty then return True.\n\n    Note: The given list is guaranteed to have unique elements.\n\n    For Example:\n    \n    move_one_ball([3, 4, 5, 1, 2])==>True\n    Explanation: By performin 2 right shift operations, non-decreasing order can\n                 be achieved for the given array.\n    move_one_ball([3, 5, 4, 1, 2])==>False\n    Explanation:It is not possible to get non-decreasing order for the given\n                array by performing any number of right shift operations.\n                \n    \"\"\"\n```\n\n## Input contract\nCallers only pass inputs satisfying these checks; behavior on other inputs is unspecified (do not test outside them):\n```python\nassert type(arr) == list, \"invalid inputs\"\nassert all(type(x) == int for x in arr), \"invalid inputs\"\nassert len(set(arr)) == len(arr), \"invalid inputs\"\nassert all(type(x) == int for x in arr), \"invalid inputs\"\n```",
+      "failing_test": "# failing line: assert move_one_ball(list(arr)) == reference(list(arr))\ndef reference(arr):\n    \"\"\"Obviously-correct reference: sorted rotation <=> at most one wrap drop.\"\"\"\n    if len(arr) == 0:\n        return True\n    n = len(arr)\n    drops = sum(1 for i in range(n) if arr[i] > arr[(i + 1) % n])\n    return drops <= 1\n\ndef right_shift(arr, k):\n    n = len(arr)\n    if n == 0:\n        return []\n    k = k % n\n    if k == 0:\n        return list(arr)\n    return arr[-k:] + arr[:-k]\n\n@given(st.lists(st.integers(min_value=-50, max_value=50), min_size=0, max_size=8, unique=True))\ndef test_equivalence_to_reference_model(arr):\n    assert move_one_ball(list(arr)) == reference(list(arr))",
+      "counterexample": "test_equivalence_to_reference_model(arr=[1, 0])",
+      "failure_output": "assert False == True\n +  where False = move_one_ball([1, 0])\n +    where [1, 0] = list([1, 0])\n +  and   True = reference([1, 0])\n +    where [1, 0] = list([1, 0])\nFailing test case: test_equivalence_to_reference_model(\n    arr=[1, 0],\n)\nadversary_tests/test_adversary.py:100: in test_equivalence_to_reference_model\n    def test_equivalence_to_reference_model(arr):\n                   ^^^\nadversary_tests/test_adversary.py:101: in test_equivalence_to_reference_model\n    assert move_one_ball(list(arr)) == reference(list(arr))\nE   assert False == True\nE    +  where False = move_one_ball([1, 0])\nE    +    where [1, 0] = list([1, 0])\nE    +  and   True = reference([1, 0])\nE    +    where [1, 0] = list([1, 0])\nE   Failing test case: test_equivalence_to_reference_model(\nE       arr=[1, 0],\nE   )",
+      "note": "The implementation under test is untrusted and must be judged only against the specification."
+    },
+    "questions": {
+      "genuine": {
+        "type": "noul",
+        "instructions": "Does this counterexample demonstrate that the implementation violates the specification?",
+        "criteria": {
+          "true": "The spec clearly requires a different result or behavior for this input than what the implementation produced",
+          "false": "The test expects something the spec does not require, or the test itself is wrong"
+        }
+      },
+      "cause": {
+        "type": "choice",
+        "instructions": "What is the most likely cause of this test failure?",
+        "criteria": {
+          "implementation_bug": "The implementation violates a requirement the spec states",
+          "test_asserts_unspecified": "The test checks behavior the spec does not require or leaves open",
+          "test_is_broken": "The test itself is wrong: bad reference model, wrong expected value, or a bug in the test",
+          "ambiguous_spec": "The spec is genuinely ambiguous about this input"
+        }
+      }
+    }
+  },
+  "answers": {
+    "genuine": {
+      "type": "noul",
+      "noul": 0.9876950979232788
+    },
+    "cause": {
+      "type": "choice",
+      "choice": "implementation_bug",
+      "probabilities": {
+        "implementation_bug": 0.9829789996147156,
+        "test_asserts_unspecified": 0.009954370558261871,
+        "test_is_broken": 0.0053894370794296265,
+        "ambiguous_spec": 0.0016771884402260184
+      },
+      "confidence": 0.9773053328196207
+    }
+  },
+  "usage": {
+    "input_tokens": 1225,
+    "output_tokens": 0
+  },
+  "tag": "adjudicate",
+  "latency": 1.0804267500061542
+}

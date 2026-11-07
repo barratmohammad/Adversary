@@ -1,0 +1,545 @@
+{
+  "dataset": "HumanEval+ (EvalPlus) - canonical solutions + single-fault mutants that pass all official tests but fail EvalPlus",
+  "problems": 15,
+  "buggy_changes": 24,
+  "correct_changes": 15,
+  "errors": 0,
+  "catch_rate": 0.958,
+  "false_block_rate": 0.2,
+  "official_tests_catch_rate": 0.0,
+  "caught_by": {
+    "property_tests": 23
+  },
+  "by_source": {
+    "mutant": {
+      "bugs": 24,
+      "caught": 23,
+      "correct": 15,
+      "false_blocks": 3
+    }
+  },
+  "seed": 0,
+  "minutes": 17.7,
+  "rows": [
+    {
+      "tid": "HumanEval/147",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "test_property_result_is_nonnegative_int(n=1)",
+      "run": "20261107-153431-55c433"
+    },
+    {
+      "tid": "HumanEval/147",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced return value with None at line 18",
+      "evalplus_failures": 2,
+      "counterexample": "assert None == 0\n +  where None = get_max_triples(1)",
+      "run": "20261107-153431-8b40fe"
+    },
+    {
+      "tid": "HumanEval/147",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced False with True at line 18",
+      "evalplus_failures": 2,
+      "counterexample": "assert True == 0\n +  where True = get_max_triples(1)",
+      "run": "20261107-153431-07bc07"
+    },
+    {
+      "tid": "HumanEval/122",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153431-64ac15"
+    },
+    {
+      "tid": "HumanEval/122",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced index 0 with -1 in subscript at line 20",
+      "evalplus_failures": 39,
+      "counterexample": "assert -3 == -24\n +  where -3 = add_elements([-21, -3, -111, 5], 2)",
+      "run": "20261107-153507-57e1cb"
+    },
+    {
+      "tid": "HumanEval/122",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 1 with 2 at line 20",
+      "evalplus_failures": 1,
+      "counterexample": "assert -100 == 0\n +  where -100 = add_elements([-100], 1)",
+      "run": "20261107-153507-0ffde5"
+    },
+    {
+      "tid": "HumanEval/106",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153514-5d4ac1"
+    },
+    {
+      "tid": "HumanEval/106",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 2 with 3 at line 15",
+      "evalplus_failures": 1,
+      "counterexample": "test_property_full_equivalence_to_reference(n=2)",
+      "run": "20261107-153525-193d1c"
+    },
+    {
+      "tid": "HumanEval/106",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 0 with -1 at line 13",
+      "evalplus_failures": 1,
+      "counterexample": "assert [1, 2] == []\n  \n  Left contains 2 more items, first extra item: 1\n  Use -v to get more diff",
+      "run": "20261107-153540-834ccb"
+    },
+    {
+      "tid": "HumanEval/124",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "ValueError: invalid literal for int() with base 10: '\u00b2\u00b2'",
+      "run": "20261107-153546-6685fd"
+    },
+    {
+      "tid": "HumanEval/124",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 1 with 0 at line 29",
+      "evalplus_failures": 1,
+      "counterexample": "AssertionError: assert True is False\n +  where True = valid_date('00-15-2000')",
+      "run": "20261107-153556-00c12b"
+    },
+    {
+      "tid": "HumanEval/124",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced <= with < at line 29",
+      "evalplus_failures": 1,
+      "counterexample": "AssertionError: assert False is True\n +  where False = valid_date('12-15-2000')",
+      "run": "20261107-153608-bf2b7c"
+    },
+    {
+      "tid": "HumanEval/59",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153612-610231"
+    },
+    {
+      "tid": "HumanEval/59",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "replaced 2 with 3 at line 13",
+      "evalplus_failures": 12,
+      "counterexample": "",
+      "run": "20261107-153637-30a805"
+    },
+    {
+      "tid": "HumanEval/127",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153643-29570b"
+    },
+    {
+      "tid": "HumanEval/127",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 2 with 3 at line 25",
+      "evalplus_failures": 41,
+      "counterexample": "AssertionError: composite length 4\nassert 'YES' == 'NO'\n  \n  - NO\n  + YES",
+      "run": "20261107-153649-5a36d1"
+    },
+    {
+      "tid": "HumanEval/127",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 1 with 0 at line 25",
+      "evalplus_failures": 35,
+      "counterexample": "AssertionError: assert 'YES' == 'NO'\n  \n  - NO\n  + YES",
+      "run": "20261107-153721-b1f352"
+    },
+    {
+      "tid": "HumanEval/109",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153722-098101"
+    },
+    {
+      "tid": "HumanEval/109",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 1 with 2 at line 33",
+      "evalplus_failures": 18,
+      "counterexample": "assert False is True\n +  where False = move_one_ball([2, 1])",
+      "run": "20261107-153751-6f4837"
+    },
+    {
+      "tid": "HumanEval/55",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153803-d527cd"
+    },
+    {
+      "tid": "HumanEval/55",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced return value with None at line 14",
+      "evalplus_failures": 2,
+      "counterexample": "assert None == 0\n +  where None = fib(0)",
+      "run": "20261107-153815-1e8eba"
+    },
+    {
+      "tid": "HumanEval/55",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 0 with -1 at line 14",
+      "evalplus_failures": 2,
+      "counterexample": "assert -1 == 0\n +  where -1 = fib(0)",
+      "run": "20261107-153821-625aa7"
+    },
+    {
+      "tid": "HumanEval/76",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-153844-c1c654"
+    },
+    {
+      "tid": "HumanEval/76",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced == with != at line 17",
+      "evalplus_failures": 8,
+      "counterexample": "assert True is False\n +  where True = is_simple_power(3, 1)",
+      "run": "20261107-153849-c940e8"
+    },
+    {
+      "tid": "HumanEval/76",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 0 with -1 at line 16",
+      "evalplus_failures": 2,
+      "counterexample": "assert False == True\n +  where False = is_simple_power(-1, -1)",
+      "run": "20261107-153851-c07292"
+    },
+    {
+      "tid": "HumanEval/137",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "assert None is 9007199254740993",
+      "run": "20261107-153941-d8bf35"
+    },
+    {
+      "tid": "HumanEval/137",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced '.' with '' at line 17",
+      "evalplus_failures": 18,
+      "counterexample": "test_reference_model_agrees(| a=2, | b='1,0', | )",
+      "run": "20261107-153948-315921"
+    },
+    {
+      "tid": "HumanEval/129",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-154016-3c19a0"
+    },
+    {
+      "tid": "HumanEval/129",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 0 with -1 at line 43",
+      "evalplus_failures": 3,
+      "counterexample": "assert [1, 2] == [1, 8]\n  \n  At index 1 diff: 2 != 8\n  Use -v to get more diff",
+      "run": "20261107-154037-510e63"
+    },
+    {
+      "tid": "HumanEval/129",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced > with >= at line 43",
+      "evalplus_failures": 3,
+      "counterexample": "assert [1, 2] == [1, 8]\n  \n  At index 1 diff: 2 != 8\n  Use -v to get more diff",
+      "run": "20261107-154040-fc9554"
+    },
+    {
+      "tid": "HumanEval/102",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-154041-f43e7b"
+    },
+    {
+      "tid": "HumanEval/102",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 2 with 3 at line 14",
+      "evalplus_failures": 25,
+      "counterexample": "assert -1 == 2\n +  where -1 = choose_num(2, 2)",
+      "run": "20261107-154102-6e1ca3"
+    },
+    {
+      "tid": "HumanEval/146",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-154117-6e1961"
+    },
+    {
+      "tid": "HumanEval/146",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced 10 with 11 at line 13",
+      "evalplus_failures": 52,
+      "counterexample": "assert 0 == 1\n +  where 0 = specialFilter([11])",
+      "run": "20261107-154127-2dd067"
+    },
+    {
+      "tid": "HumanEval/71",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-154134-458e34"
+    },
+    {
+      "tid": "HumanEval/71",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced <= with < at line 15",
+      "evalplus_failures": 5,
+      "counterexample": "assert 0.0 == -1\n +  where 0.0 = triangle_area(2, 1, 1)",
+      "run": "20261107-154137-0bd5fc"
+    },
+    {
+      "tid": "HumanEval/71",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced <= with < at line 15",
+      "evalplus_failures": 7,
+      "counterexample": "assert 0.0 == -1\n +  where 0.0 = triangle_area(1, 2, 1)",
+      "run": "20261107-154145-3d6712"
+    },
+    {
+      "tid": "HumanEval/101",
+      "variant": "correct",
+      "model": "",
+      "label": "MERGE",
+      "decision": "MERGE",
+      "blocked_by": [],
+      "bug": "canonical solution",
+      "evalplus_failures": 0,
+      "counterexample": "",
+      "run": "20261107-154200-ec1a25"
+    },
+    {
+      "tid": "HumanEval/101",
+      "variant": "bug",
+      "model": "",
+      "label": "BLOCK",
+      "decision": "BLOCK",
+      "blocked_by": [
+        "property_tests"
+      ],
+      "bug": "replaced ' ' with '' at line 12",
+      "evalplus_failures": 93,
+      "counterexample": "AssertionError: assert ['ab'] == ['a', 'b']\n  \n  At index 0 diff: 'ab' != 'a'\n  Right contains one more item: 'b'\n  Use ",
+      "run": "20261107-154204-6c5474"
+    }
+  ]
+}
