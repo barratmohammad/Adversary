@@ -1,0 +1,8 @@
+{
+  "name": "safe_path",
+  "title": "Safe join of untrusted paths onto a base directory",
+  "module": "safe_path.py",
+  "functions": ["safe_join"],
+  "allow_network": false,
+  "allow_fs_write": false
+}

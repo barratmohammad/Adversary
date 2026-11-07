@@ -1,0 +1,8 @@
+{
+  "name": "roman",
+  "title": "Roman numeral conversion",
+  "module": "roman.py",
+  "functions": ["to_roman", "from_roman"],
+  "allow_network": false,
+  "allow_fs_write": false
+}

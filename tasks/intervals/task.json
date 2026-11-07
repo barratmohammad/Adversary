@@ -1,0 +1,8 @@
+{
+  "name": "intervals",
+  "title": "Merge closed integer intervals",
+  "module": "intervals.py",
+  "functions": ["merge_intervals"],
+  "allow_network": false,
+  "allow_fs_write": false
+}
