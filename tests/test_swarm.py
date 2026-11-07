@@ -179,3 +179,14 @@ def test_bureau_matches_direct_path_offline(no_network):
     assert [d.decision_sha256 for d, _ in res] == [d.decision_sha256 for d in expected]
     assert led.weights() == ref.weights()
     assert events.count("vote") == len(jobs) * len(SPECIALISTS) and events.count("decision") == len(jobs)
+
+
+def test_chat_protocol_review_offline(no_network):
+    pytest.importorskip("uagents")
+    from adversary.swarm.runtime import SwarmRuntime
+    led = Ledger.load(None, SPECIALISTS)
+    transcript = SwarmRuntime(led, vote_timeout=5).serve(chat_script=["review cheat_roman block", "reputation"])
+    assert len(transcript) == 2
+    assert "SWARM BLOCKS" in transcript[0][1] and "swarm was right" in transcript[0][1]
+    assert "cheat-agent" in transcript[1][1]
+    assert led.agents["cheat-agent"].correct == 1 and led.swarm["settled"] == 1

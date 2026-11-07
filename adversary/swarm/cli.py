@@ -6,6 +6,10 @@
         replay every labelled sample for N rounds from fresh reputations; watch weights converge
   python -m adversary.swarm --resolve <run_id|job_id|sha> --label block|allow
         settle a pending decision later (human override, or after `adversary reproduce`)
+  python -m adversary.swarm --chat "review cheat_roman" [--chat ...]
+        a local demo-user agent talks to the coordinator over AgentChatProtocol (offline)
+  python -m adversary.swarm --serve [--agentverse]
+        keep the coordinator up as a chat agent; --agentverse gives it a mailbox for ASI:One
   python -m adversary.swarm --show          print the reputation ledger
   python -m adversary.swarm --samples       list bundled sample verdicts
 """
@@ -42,8 +46,10 @@ def resolve_verdict_path(arg: str) -> Path:
 
 def _runtime(ledger: Ledger, args, on_event, pace: float, job_delay: float = 0.0):
     from .runtime import SwarmRuntime
+    import logging
     return SwarmRuntime(ledger, on_event=on_event, pace=pace, job_delay=job_delay, vote_timeout=args.timeout,
-                        threshold=args.threshold, agentverse=args.agentverse)
+                        threshold=args.threshold, agentverse=args.agentverse, port=args.port,
+                        log_level=logging.INFO if args.agentverse else logging.ERROR)
 
 
 def cmd_review(args) -> int:
@@ -116,6 +122,26 @@ def _as_decision(entry: dict):
     return SwarmDecision(**{k: v for k, v in entry.items() if k in fields})
 
 
+def cmd_chat(args) -> int:
+    ledger = Ledger.load(args.ledger, SPECIALISTS)
+    view.banner("chat: demo-user agent → coordinator over AgentChatProtocol (the protocol ASI:One speaks); "
+                + ("Agentverse mailbox on" if args.agentverse else "local Bureau, offline"))
+    pr = view.StreamPrinter(ledger)
+    pace = 0.0 if args.fast else (args.pace if args.pace_set else 0.15)
+    transcript = _runtime(ledger, args, pr.on_event, pace).serve(chat_script=args.chat)
+    view.console.print(f"[dim]ledger: {ledger.save()}[/]")
+    return 0 if len(transcript) == len(args.chat) else 3
+
+
+def cmd_serve(args) -> int:
+    ledger = Ledger.load(args.ledger, SPECIALISTS)
+    view.banner("serve: coordinator is a long-running AgentChatProtocol agent" + (" with an Agentverse mailbox" if args.agentverse else " (local only)"))
+    pr = view.StreamPrinter(ledger)
+    _runtime(ledger, args, pr.on_event, 0.0).serve(forever=True)
+    view.console.print(f"[dim]ledger: {ledger.save()}[/]")
+    return 0
+
+
 def cmd_show(args) -> int:
     ledger = Ledger.load(args.ledger, SPECIALISTS)
     view.console.print(view.reputation_table(ledger, f"reputation ledger · {ledger.path}"))
@@ -138,6 +164,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--rounds", type=int, default=6)
     p.add_argument("--resolve", metavar="KEY", help="settle a pending decision (run_id, job_id or decision sha)")
     p.add_argument("--show", action="store_true", help="print the reputation ledger")
+    p.add_argument("--chat", action="append", metavar="TEXT", help="send TEXT to the coordinator over AgentChatProtocol (repeatable)")
+    p.add_argument("--serve", action="store_true", help="keep the coordinator running as a chat agent (Ctrl+C to stop)")
     p.add_argument("--samples", action="store_true", help="list bundled sample verdicts")
     p.add_argument("--ledger", default=str(DEFAULT_PATH), help="reputation ledger JSON path")
     p.add_argument("--threshold", type=float, default=0.5, help="block if weighted block share >= threshold")
@@ -146,6 +174,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--timeout", type=float, default=10.0, help="seconds to wait for votes before failing closed")
     p.add_argument("--agentverse", action="store_true", help="give agents Agentverse mailboxes (needs network); default is offline")
     p.add_argument("--json", action="store_true", help="also print the decision as JSON")
+    p.add_argument("--port", type=int, default=None, help="Bureau HTTP port (default: 8000 with --serve, else a free port)")
     args = p.parse_args(argv)
     args.pace_set = args.pace is not None
     if args.pace is None:
@@ -156,6 +185,11 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_show(args)
     if args.resolve:
         return cmd_resolve(args)
+    if args.chat:
+        return cmd_chat(args)
+    if args.serve:
+        args.port = args.port or 8000
+        return cmd_serve(args)
     if args.calibrate:
         return cmd_calibrate(args)
     if not args.verdict:

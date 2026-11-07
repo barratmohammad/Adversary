@@ -111,29 +111,53 @@ class SwarmRuntime:
 
     # ------------------------------------------------------------------------------------------
     def run(self, jobs: list[Job]) -> list[tuple[SwarmDecision, list[Settlement] | None]]:
+        """Review a fixed list of jobs, then shut the Bureau down."""
+        return self._with_loop(lambda loop: self._run(loop, jobs=jobs))
+
+    def serve(self, chat_script: list[str] | None = None, forever: bool = False) -> list[tuple[str, str]]:
+        """Run the coordinator as a chat-protocol agent (AgentChatProtocol, what ASI:One speaks).
+
+        With ``chat_script`` a local ``demo-user`` agent sends each line to the coordinator over the
+        chat protocol and the run ends when every reply is in. With ``forever`` (Agentverse mode)
+        the Bureau keeps serving until Ctrl+C. Returns the [(sent, reply)] transcript.
+        """
+        transcript: list[tuple[str, str]] = []
+        self._with_loop(lambda loop: self._run(loop, jobs=[], chat_script=chat_script or [], forever=forever, transcript=transcript))
+        return transcript
+
+    def _with_loop(self, fn):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            ctx = contextlib.nullcontext() if self.agentverse else _offline_almanac()
-            with ctx:
-                return self._run(loop, jobs)
+            with (contextlib.nullcontext() if self.agentverse else _offline_almanac()):
+                return fn(loop)
         finally:
             with contextlib.suppress(Exception):
                 loop.close()
             asyncio.set_event_loop(None)
 
-    def _run(self, loop, jobs):
+    def _run(self, loop, jobs, chat_script=None, forever=False, transcript=None):
         from uagents import Agent, Bureau, Context, Protocol
+        from uagents_core.contrib.protocols.chat import (ChatAcknowledgement, ChatMessage, EndSessionContent, TextContent,
+                                                         chat_protocol_spec)
 
-        common = dict(loop=loop, enable_agent_inspector=False, publish_agent_details=self.agentverse, report_events=False,
+        common = dict(loop=loop, enable_agent_inspector=False, publish_agent_details=False, report_events=False,
                       mark_inactive_on_shutdown=False, log_level=self.log_level)
         bureau_kw = {}
         if not self.agentverse:
             NoAgentReg, NoBatchReg = _offline_policies()
             common["registration_policy"] = NoAgentReg()
             bureau_kw["registration_policy"] = NoBatchReg()
-        else:
-            common["mailbox"] = True
+
+        def make_agent(name: str, description: str, public: bool = False) -> Agent:
+            kw = dict(common)
+            if public and self.agentverse:  # only the coordinator faces Agentverse / ASI:One
+                kw.update(mailbox=True, enable_agent_inspector=True, publish_agent_details=True)
+            ag = Agent(name=name, seed=f"{SEED_PREFIX}:{name}", description=description, **kw)
+            if not self.agentverse:
+                ag._update_agent_status = _no_status_update
+            self.addresses[name] = ag.address
+            return ag
 
         results: list[tuple[SwarmDecision, list[Settlement] | None]] = []
         pending: dict[str, dict] = {}  # job_id -> {"req": {agent: req}, "votes": {agent: vote}, "done": Event}
@@ -142,7 +166,7 @@ class SwarmRuntime:
         # ---- specialists --------------------------------------------------------------------
         specialists = []
         for name in self.agents:
-            ag = Agent(name=name, seed=f"{SEED_PREFIX}:{name}", description=f"Adversary swarm specialist: {name}", **common)
+            ag = make_agent(name, f"Adversary swarm specialist: {name}")
             proto = Protocol(name="adversary-swarm-review", version="0.1.0")
 
             def make_handler(agent_name: str):
@@ -155,19 +179,15 @@ class SwarmRuntime:
                 return on_review
 
             proto.on_message(model=ReviewRequest, replies=Vote)(make_handler(name))
-            ag.include(proto, publish_manifest=self.agentverse)
-            if not self.agentverse:
-                ag._update_agent_status = _no_status_update
+            ag.include(proto, publish_manifest=False)
             specialists.append(ag)
-            self.addresses[name] = ag.address
             by_address[ag.address] = name
 
         # ---- coordinator --------------------------------------------------------------------
-        coord = Agent(name="coordinator", seed=f"{SEED_PREFIX}:coordinator", description="Adversary swarm coordinator", **common)
-        if not self.agentverse:
-            coord._update_agent_status = _no_status_update
-        self.addresses["coordinator"] = coord.address
-        bureau = Bureau(agents=[*specialists, coord], port=self.port or _free_port(), loop=loop, log_level=self.log_level, **bureau_kw)
+        coord = make_agent("coordinator", "Adversary Swarm Verify coordinator: specialist verifier agents vote on whether an "
+                                          "AI-generated code change is safe to merge, weighted by earned reputation.", public=True)
+        port = self.port or _free_port()
+        bureau = Bureau(agents=[*specialists, coord], port=port, loop=loop, log_level=self.log_level, **bureau_kw)
 
         @coord.on_message(model=Vote)
         async def on_vote(ctx: Context, sender: str, msg: Vote):
@@ -181,40 +201,119 @@ class SwarmRuntime:
             if len(st["votes"]) == len(self.agents):
                 st["done"].set()
 
+        lock = asyncio.Lock()  # one review at a time: reputations must update in order
+
+        async def review(ctx: Context, job: Job, index: int):
+            async with lock:
+                jid = job.job_id
+                reqs = {a: build_request(job.verdict, a, self.ledger.weight(a), jid) for a in self.agents}
+                pending[jid] = {"req": reqs, "votes": {}, "done": asyncio.Event()}
+                self.emit("job_start", {"index": index, "job": job, "weights": self.ledger.weights(), "addresses": dict(self.addresses)})
+                for a in self.agents:
+                    await ctx.send(self.addresses[a], ReviewRequest(**reqs[a]))
+                with contextlib.suppress(asyncio.TimeoutError):
+                    await asyncio.wait_for(pending[jid]["done"].wait(), self.vote_timeout)
+                st = pending.pop(jid)
+                votes = [st["votes"][a] for a in self.agents if a in st["votes"]]
+                decision, settlements = decide(job, votes, self.ledger, self.agents, self.threshold)
+                results.append((decision, settlements))
+                self.emit("decision", {"job": job, "decision": decision, "settlements": settlements})
+                return decision, settlements
+
         async def drive(ctx: Context):
             try:
                 for i, job in enumerate(jobs):
-                    jid = job.job_id
-                    reqs = {a: build_request(job.verdict, a, self.ledger.weight(a), jid) for a in self.agents}
-                    pending[jid] = {"req": reqs, "votes": {}, "done": asyncio.Event()}
-                    self.emit("job_start", {"index": i, "job": job, "weights": self.ledger.weights(), "addresses": dict(self.addresses)})
-                    for a in self.agents:
-                        await ctx.send(self.addresses[a], ReviewRequest(**reqs[a]))
-                    with contextlib.suppress(asyncio.TimeoutError):
-                        await asyncio.wait_for(pending[jid]["done"].wait(), self.vote_timeout)
-                    st = pending.pop(jid)
-                    votes = [st["votes"][a] for a in self.agents if a in st["votes"]]
-                    decision, settlements = decide(job, votes, self.ledger, self.agents, self.threshold)
-                    results.append((decision, settlements))
-                    self.emit("decision", {"job": job, "decision": decision, "settlements": settlements})
+                    await review(ctx, job, i)
                     if self.job_delay and i + 1 < len(jobs):
                         await asyncio.sleep(self.job_delay)
             except Exception as e:  # surface, then stop the bureau
                 self.emit("error", {"error": f"{type(e).__name__}: {e}"})
                 raise
             finally:
-                await _stop(bureau)
+                if not chat_script and not forever:
+                    await _stop(bureau)
 
         @coord.on_event("startup")
         async def start(ctx: Context):
             # Run the job loop in its own task so the coordinator keeps processing Vote messages.
             loop.create_task(drive(ctx))
 
-        # Watchdog: never hang the CLI or the tests.
-        budget = 15.0 + len(jobs) * (self.vote_timeout + self.job_delay + self.pace * (len(self.agents) + 1))
+        # ---- chat protocol (ASI:One / Agentverse compatible) -------------------------------------
+        chat = Protocol(spec=chat_protocol_spec)
 
-        loop.call_later(budget, lambda: loop.create_task(_stop(bureau)))
-        loop.run_until_complete(bureau.run_async())
+        def reply(text: str, end: bool = True) -> ChatMessage:
+            content = [TextContent(text=text)] + ([EndSessionContent()] if end else [])
+            return ChatMessage(content=content)
+
+        async def answer(ctx: Context, sender: str, text: str):
+            from .chat import handle_text
+            try:
+                out = await handle_text(text, self.ledger, lambda job: review(ctx, job, len(results)))
+            except Exception as e:  # never leave a chat user hanging
+                out = f"swarm error: {type(e).__name__}: {e}"
+            await ctx.send(sender, reply(out))
+
+        @chat.on_message(ChatMessage)
+        async def on_chat(ctx: Context, sender: str, msg: ChatMessage):
+            await ctx.send(sender, ChatAcknowledgement(acknowledged_msg_id=msg.msg_id))
+            text = msg.text().strip()
+            if not text:
+                return
+            # Reviewing needs this agent to keep receiving Vote messages, so don't block the handler.
+            loop.create_task(answer(ctx, sender, text))
+
+        @chat.on_message(ChatAcknowledgement)
+        async def on_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
+            return None
+
+        coord.include(chat, publish_manifest=self.agentverse)
+
+        agents = [*specialists, coord]
+        if chat_script:
+            user = make_agent("demo-user", "local stand-in for an ASI:One user")
+            user_chat = Protocol(spec=chat_protocol_spec)
+            got: asyncio.Queue = asyncio.Queue()
+
+            @user_chat.on_message(ChatMessage)
+            async def on_reply(ctx: Context, sender: str, msg: ChatMessage):
+                await ctx.send(sender, ChatAcknowledgement(acknowledged_msg_id=msg.msg_id))
+                await got.put(msg.text())
+
+            @user_chat.on_message(ChatAcknowledgement)
+            async def on_user_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
+                return None
+
+            user.include(user_chat)
+
+            async def converse(ctx: Context):
+                try:
+                    for line in chat_script:
+                        self.emit("chat_out", {"text": line, "to": coord.address})
+                        await ctx.send(coord.address, ChatMessage(content=[TextContent(text=line)]))
+                        r = await asyncio.wait_for(got.get(), self.vote_timeout + 5 + self.pace * (len(self.agents) + 1))
+                        transcript.append((line, r))
+                        self.emit("chat_in", {"text": r, "from": coord.address})
+                finally:
+                    await _stop(bureau)
+
+            @user.on_event("startup")
+            async def user_start(ctx: Context):
+                loop.create_task(converse(ctx))
+
+            bureau.add(user)
+            agents.append(user)
+
+        if self.agentverse:
+            self.emit("agentverse", {"coordinator": coord.address, "port": port,
+                                     "inspector": f"https://agentverse.ai/inspect/?uri=http%3A//127.0.0.1%3A{port}&address={coord.address}"})
+
+        if not forever:
+            # Watchdog: never hang the CLI or the tests.
+            n = max(len(jobs), len(chat_script or []))
+            budget = 15.0 + n * (self.vote_timeout + self.job_delay + self.pace * (len(self.agents) + 1))
+            loop.call_later(budget, lambda: loop.create_task(_stop(bureau)))
+        with contextlib.suppress(KeyboardInterrupt):
+            loop.run_until_complete(bureau.run_async())
         return results
 
 

@@ -287,3 +287,36 @@ class CalibrationView:
                     lab, sty = VOTE_STYLE[v["decision"]]
                     live.append(f"{a.split('-')[0]}={lab.lower()} ", style=sty)
         return Panel(Group(g, Text(""), rt, Text(""), live), title="[bold]SWARM CALIBRATION[/] · Fetch.ai uAgents Bureau", border_style="magenta")
+
+
+class StreamPrinter:
+    """Line-by-line event log for chat / serve mode (votes printed as they arrive)."""
+
+    def __init__(self, ledger: Ledger) -> None:
+        self.ledger = ledger
+
+    def on_event(self, kind: str, p: dict) -> None:
+        from rich.markdown import Markdown
+        if kind == "chat_out":
+            console.print(Panel(Text(p["text"]), title=f"demo-user → coordinator [dim]{_addr(p['to'])}[/] · AgentChatProtocol", border_style="cyan", expand=False))
+        elif kind == "chat_in":
+            console.print(Panel(Markdown(p["text"]), title="coordinator → demo-user · AgentChatProtocol", border_style="magenta"))
+        elif kind == "job_start":
+            v = p["job"].verdict
+            console.print(f"[magenta]coordinator[/] fan-out ReviewRequest for [bold]{v.get('run_id')}[/] (verdict {short(v.get('verdict_sha256', ''))}) "
+                          f"to {len(p['weights'])} specialists")
+        elif kind == "vote":
+            v = p["vote"]
+            label, style = VOTE_STYLE[v["decision"]]
+            if v.get("veto"):
+                label, style = "VETO", "bold white on red"
+            console.print(f"  [bold]{v['agent']:15}[/] w={p['weight']:.2f} [{style}]{label:7}[/] conf {v['confidence']:.2f} stake {v['stake']:.3f}  [dim]{v['rationale'][:90]}[/]")
+        elif kind == "decision":
+            d = p["decision"]
+            console.print("  ", _decision_text(d, getattr(p["job"], "label", None)))
+        elif kind == "agentverse":
+            console.print(Panel(Text.assemble(("coordinator address  ", "dim"), (p["coordinator"], "bold"), ("\nconnect its mailbox  ", "dim"), (p["inspector"], "bold cyan"),
+                                              ("\nthen chat with it from ASI:One or Agentverse (AgentChatProtocol). Ctrl+C to stop.", "dim")),
+                                title="Agentverse", border_style="cyan"))
+        elif kind == "error":
+            console.print(f"[bold red]swarm error:[/] {p['error']}")
