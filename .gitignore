@@ -7,3 +7,6 @@ runs/
 *.egg-info/
 .env
 .DS_Store
+uv.lock
+.cache/
+playground/
