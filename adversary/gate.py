@@ -6,7 +6,7 @@
 The status context `adversary/verify` can be made a required check in branch protection, so a BLOCK
 verdict literally blocks the merge button.
 
-Repo layout: each task lives at playground/<task>/ in the repository (mirroring tasks/<task>/base/).
+Repo layout: each task lives at pr_demo/<task>/ in the repository (mirroring tasks/<task>/base/).
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from .hashing import short
 from .verdict import Verdict
 from .workspace import ROOT, RUNS_DIR, Change, Task, list_tasks, load_task, write_tree
 
-PLAYGROUND = "playground"
+PLAYGROUND = "pr_demo"
 CONTEXT = "adversary/verify"
 
 

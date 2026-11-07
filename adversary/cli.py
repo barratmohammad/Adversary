@@ -56,7 +56,7 @@ def cmd_run(args) -> int:
     if getattr(args, "open_pr", False):
         from . import gate
         if not gate.ensure_playground(task):
-            ui.console.print(f"[red]playground/{task.name}/ is not on origin/main yet - run `adversary playground {task.name}` first[/]")
+            ui.console.print(f"[red]{gate.PLAYGROUND}/{task.name}/ is not on origin/main yet - run `adversary playground {task.name}` first[/]")
             return 2
         pr = gate.open_pr(task, change, title=f"[{task.name}] implement {', '.join(task.functions) or task.module}",
                           body=f"Implements `{task.module}` per `tasks/{task.name}/spec.md`.\n\nOpened by the Adversary implementer agent.")
@@ -91,7 +91,7 @@ def cmd_gate(args) -> int:
 
 
 def cmd_playground(args) -> int:
-    """Print the files to commit at playground/<task>/ on main (the base every AI PR starts from)."""
+    """Write the files to commit at pr_demo/<task>/ on main (the base every AI PR starts from)."""
     from . import gate
     from .workspace import write_tree
     task = load_task(args.task)
@@ -245,7 +245,7 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--no-post", action="store_true", help="don't post status/comment")
     common(g)
     g.set_defaults(fn=cmd_gate)
-    pg = sub.add_parser("playground", help="write tasks/<task>/base to playground/<task>/ for PR-based demos")
+    pg = sub.add_parser("playground", help="write tasks/<task>/base to pr_demo/<task>/ for PR-based demos")
     pg.add_argument("task")
     pg.set_defaults(fn=cmd_playground)
     mx = sub.add_parser("matrix", help="run every task x fixture; clean must MERGE, planted variants must BLOCK")
