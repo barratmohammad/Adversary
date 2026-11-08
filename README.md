@@ -3,6 +3,10 @@
 **An independent verifier that writes tests the implementer can't see.**
 Built at the AIE Code Summit Hackathon 2026 (Cerebral Valley) for the *Trust but Verify* problem statement.
 
+**[▶ 40-second demo video](brag-output/brag.mp4)** · **Results:** blocked 27/44 real GPT-4 / ChatGPT / Code Llama /
+Mistral bugs that passed every official HumanEval test (official tests: 0) · 10/11 adaptive red-team attacks caught ·
+every verdict reproduces to the same hash ([details](#benchmarks-live-models-nov-7)) · run it: `./demo.sh` (no API keys needed)
+
 AI writes code faster than teams can check whether it is safe to merge. Adversary sits between an AI
 implementer and `main`: it takes the **spec** and the **diff** - never the implementer's reasoning - writes
 its own property-based tests, mutation-tests both test suites, runs a security pass and a cheat detector,
