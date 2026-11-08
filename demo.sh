@@ -18,8 +18,10 @@ say "1. An honest change: blind tests written from the spec all hold -> safe to 
 $A run roman --fixture clean --quiet --mutants 20
 
 say "2. Now the implementer AI is SECRETLY told to plant a subtle bug. The verifier is not told."
-$A run intervals --plant subtle --mutants 20 --diff-lines 0 --quiet | tee /tmp/adversary_demo_run.txt
-RUN=$(grep -oE 'runs/[0-9]{8}-[0-9]{6}-[0-9a-f]{6}' /tmp/adversary_demo_run.txt | tail -1)
+$A run intervals --plant subtle --mutants 20 --diff-lines 0 --quiet
+# newest run directory (don't parse it out of the panel: long paths wrap)
+RUN=$(ls -td runs/[0-9]*/ 2>/dev/null | grep -v -- '-repro' | head -1)
+RUN=${RUN%/}
 
 say "3. Anyone can re-run the verdict from pinned inputs - no model calls, same outcome hash"
 $A reproduce "$RUN" | tail -9
